@@ -398,13 +398,15 @@ export default function TabOneScreen() {
               />
               <Text style={styles.iconText}>Medicals</Text>
             </View>
-            <View style={styles.iconItem}>
-              <Image 
-                source={require('../../assets/images/home-icons/qualifications.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.iconText}>Qualifications</Text>
-            </View>
+            <Link href="/(tabs)/qualifications" asChild>
+              <TouchableOpacity style={styles.iconItem}>
+                <Image 
+                  source={require('../../assets/images/home-icons/qualifications.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.iconText}>Qualifications</Text>
+              </TouchableOpacity>
+            </Link>
             <View style={styles.iconItem}>
               <Image 
                 source={require('../../assets/images/home-icons/testimonials.png')}

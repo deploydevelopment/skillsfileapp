@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
@@ -136,6 +136,29 @@ export default function QualificationsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
+  const [activeTab, setActiveTab] = useState('required');
+  const [selectedQual, setSelectedQual] = useState<Qualification | null>(null);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const drawerAnimation = useRef(new Animated.Value(0)).current;
+
+  const showDrawer = (qual: Qualification) => {
+    setSelectedQual(qual);
+    setIsDrawerVisible(true);
+    Animated.spring(drawerAnimation, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const hideDrawer = () => {
+    Animated.spring(drawerAnimation, {
+      toValue: 0,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsDrawerVisible(false);
+      setSelectedQual(null);
+    });
+  };
 
   useEffect(() => {
     const initialize = async () => {
@@ -218,6 +241,99 @@ export default function QualificationsScreen() {
     }
   };
 
+  const renderQualificationDrawer = () => {
+    if (!selectedQual) return null;
+
+    const translateY = drawerAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [600, 0],
+    });
+
+    return (
+      <Modal
+        visible={isDrawerVisible}
+        transparent
+        animationType="none"
+        onRequestClose={hideDrawer}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={hideDrawer}
+        >
+          <Animated.View 
+            style={[
+              styles.drawer,
+              {
+                transform: [{ translateY }],
+              },
+            ]}
+          >
+            <View style={styles.drawerHandle} />
+            <View style={styles.drawerContent}>
+              <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
+              <Text style={styles.drawerSubtitle}>
+                Requested by {selectedQual.requested_by}
+              </Text>
+              <Text style={styles.drawerExpiry}>
+                Expires in {selectedQual.expires_months} months
+              </Text>
+              <Text style={styles.drawerDescription}>
+                {selectedQual.intro}
+              </Text>
+              <TouchableOpacity 
+                style={styles.addButton}
+                onPress={() => {
+                  addQualification(selectedQual);
+                  hideDrawer();
+                }}
+              >
+                <Text style={styles.addButtonText}>Add Qualification</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
+  const renderTabContent = () => {
+    if (activeTab === 'achieved') {
+      return (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>No qualifications achieved yet</Text>
+          <Text style={styles.emptyStateSubtext}>Your achieved qualifications will appear here</Text>
+        </View>
+      );
+    }
+
+    return (
+      <ScrollView style={styles.qualificationList}>
+        {requiredQualifications.qualifications.map((qual, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.qualificationButton,
+              isLoading && styles.buttonDisabled
+            ]}
+            onPress={() => showDrawer(qual)}
+            disabled={isLoading}
+          >
+            <Text style={styles.qualificationButtonText}>
+              {qual.name}
+            </Text>
+            <Text style={styles.qualificationSubtext}>
+              {qual.requested_by} • Expires in {qual.expires_months} months
+            </Text>
+            <Text style={styles.qualificationIntro}>
+              {qual.intro}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <Image 
@@ -228,40 +344,40 @@ export default function QualificationsScreen() {
         <Text style={styles.headerTitle}>Qualifications</Text>
       </View>
 
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
-          <View style={styles.qualificationSelector}>
-            <Text style={styles.label}>Available Qualifications:</Text>
-            <ScrollView style={styles.qualificationList}>
-              {requiredQualifications.qualifications.map((qual, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.qualificationButton,
-                    isLoading && styles.buttonDisabled
-                  ]}
-                  onPress={() => addQualification(qual)}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.qualificationButtonText}>
-                    {qual.name}
-                  </Text>
-                  <Text style={styles.qualificationSubtext}>
-                    {qual.requested_by} • Expires in {qual.expires_months} months
-                  </Text>
-                  <Text style={styles.qualificationIntro}>
-                    {qual.intro}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity 
+          style={[
+            styles.tabButton,
+            activeTab === 'achieved' && styles.activeTabButton
+          ]}
+          onPress={() => setActiveTab('achieved')}
+        >
+          <Text style={[
+            styles.tabButtonText,
+            activeTab === 'achieved' && styles.activeTabButtonText
+          ]}>Achieved</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[
+            styles.tabButton,
+            activeTab === 'required' && styles.activeTabButton
+          ]}
+          onPress={() => setActiveTab('required')}
+        >
+          <Text style={[
+            styles.tabButtonText,
+            activeTab === 'required' && styles.activeTabButtonText
+          ]}>Required</Text>
+        </TouchableOpacity>
+      </View>
 
-          {error && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
-        </View>
-      </ScrollView>
+      <View style={styles.content}>
+        {renderTabContent()}
+        {error && (
+          <Text style={styles.errorText}>{error}</Text>
+        )}
+      </View>
+      {renderQualificationDrawer()}
     </SafeAreaView>
   );
 }
@@ -283,26 +399,61 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     padding: 20,
-    backgroundColor: '#0A1929',
+    paddingTop: 80,
+    backgroundColor: 'transparent',
+    alignItems: 'center',
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: 'MavenPro-Bold',
-    color: '#ffffff',
+    fontFamily: 'MavenPro-Medium',
+    color: '#0A1929',
   },
   content: {
     flex: 1,
     padding: 20,
     backgroundColor: 'transparent',
   },
-  qualificationSelector: {
-    flex: 1,
-    marginBottom: 20,
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#0A1929',
+    paddingHorizontal: 20,
+    paddingBottom: 15,
   },
-  label: {
+  tabButton: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeTabButton: {
+    borderBottomColor: '#ffffff',
+  },
+  tabButtonText: {
     fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+  },
+  activeTabButtonText: {
+    color: '#ffffff',
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 18,
     fontFamily: 'MavenPro-Bold',
-    marginBottom: 10,
+    color: '#666666',
+    marginBottom: 8,
+  },
+  emptyStateSubtext: {
+    fontSize: 14,
+    fontFamily: 'MavenPro-Regular',
+    color: '#999999',
+    textAlign: 'center',
   },
   qualificationList: {
     flex: 1,
@@ -343,8 +494,72 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     fontFamily: 'MavenPro-Regular',
   },
-  scrollView: {
+  modalOverlay: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  drawer: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    minHeight: 400,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  drawerHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  drawerContent: {
+    padding: 10,
+  },
+  drawerTitle: {
+    fontSize: 24,
+    fontFamily: 'MavenPro-Medium',
+    color: '#0A1929',
+    marginBottom: 10,
+  },
+  drawerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+    marginBottom: 5,
+  },
+  drawerExpiry: {
+    fontSize: 14,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+    marginBottom: 15,
+  },
+  drawerDescription: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#333333',
+    marginBottom: 30,
+    lineHeight: 24,
+  },
+  addButton: {
+    backgroundColor: '#0A1929',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
   },
 }); 

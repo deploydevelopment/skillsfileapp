@@ -15,37 +15,26 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8E8E93',
-        tabBarStyle: {
-          backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7',
-        },
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#0A1929',
+          borderTopWidth: 0,
+        },
+        tabBarActiveTintColor: '#ffffff',
+        tabBarInactiveTintColor: '#666666',
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 24 }}>⏱️</Text>
-          ),
+          title: 'Home',
+          tabBarIcon: ({ color }) => <Text style={{ color }}>🏠</Text>,
         }}
       />
       <Tabs.Screen
         name="table"
         options={{
-          title: 'Tables',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 24 }}>📊</Text>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="qualifications"
-        options={{
-          title: 'Qualifications',
-          tabBarIcon: ({ color }) => (
-            <Text style={{ color, fontSize: 24 }}>📜</Text>
-          ),
+          title: 'Table',
+          tabBarIcon: ({ color }) => <Text style={{ color }}>📊</Text>,
         }}
       />
     </Tabs>
