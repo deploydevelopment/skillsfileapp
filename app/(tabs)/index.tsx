@@ -1,20 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
-<<<<<<< HEAD
 import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Modal, Animated, Easing, Dimensions } from 'react-native';
-=======
-import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Modal, Animated, Easing } from 'react-native';
->>>>>>> origin/main
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
 import { MediaPreviewTest } from '../../components/MediaPreviewTest';
-<<<<<<< HEAD
 import { useMediaPreview } from '../../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
-=======
->>>>>>> origin/main
 
 interface Qualification {
   uid: string;
@@ -151,20 +144,13 @@ const initializeDatabase = () => {
 };
 
 export default function TabOneScreen() {
-<<<<<<< HEAD
   const { showPreview } = useMediaPreview();
-=======
->>>>>>> origin/main
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-<<<<<<< HEAD
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
-=======
-  const slideAnim = useRef(new Animated.Value(400)).current;
->>>>>>> origin/main
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
 
   useEffect(() => {
@@ -178,11 +164,7 @@ export default function TabOneScreen() {
       }).start();
     } else {
       Animated.timing(slideAnim, {
-<<<<<<< HEAD
         toValue: Dimensions.get('window').width,
-=======
-        toValue: 400,
->>>>>>> origin/main
         duration: 250,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
         useNativeDriver: true,
@@ -310,7 +292,6 @@ export default function TabOneScreen() {
     }
   };
 
-<<<<<<< HEAD
   const handlePreview = async (type: 'image' | 'video' | 'audio' | 'pdf') => {
     try {
       const testMedia = {
@@ -400,13 +381,12 @@ export default function TabOneScreen() {
     </View>
   );
 
-=======
->>>>>>> origin/main
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <Image 
         source={require('../../assets/images/bg-light.jpg')}
         style={styles.backgroundImage}
+        resizeMode="cover"
       />
       <View style={styles.headerContainer}>
         <Image 
@@ -477,13 +457,10 @@ export default function TabOneScreen() {
             <TouchableOpacity style={styles.drawerItem}>
               <Text style={styles.drawerItemText}>About</Text>
             </TouchableOpacity>
-<<<<<<< HEAD
             <View style={styles.previewContainer}>
               <Text style={styles.previewTitle}>Preview Files</Text>
               {renderPreviewButtons()}
             </View>
-=======
->>>>>>> origin/main
           </Animated.View>
         </View>
       </Modal>
@@ -553,6 +530,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginTop: 0,
     paddingTop: 0,
+    backgroundColor: '#E6F3FF',
   },
   backgroundImage: {
     position: 'absolute',
@@ -563,6 +541,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     opacity: 0.5,
+    zIndex: 0,
   },
   headerContainer: {
     height: 150,
@@ -606,12 +585,14 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: 'transparent',
+    zIndex: 1,
   },
   iconGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     padding: 10,
+    backgroundColor: 'transparent',
   },
   iconItem: {
     width: '45%',
@@ -637,6 +618,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     backgroundColor: 'transparent',
+    zIndex: 1,
   },
   drawerOverlay: {
     flex: 1,
@@ -694,7 +676,6 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Regular',
     color: '#ffffff',
   },
-<<<<<<< HEAD
   previewContainer: {
     marginTop: 20,
     marginBottom: 20,
@@ -729,6 +710,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'MavenPro-Medium',
   },
-=======
->>>>>>> origin/main
 });

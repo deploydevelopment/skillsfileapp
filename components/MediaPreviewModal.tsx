@@ -187,13 +187,13 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         return {
           width: height,
           height: width,
-          transform: [{ rotate: '-180deg' }],
+          transform: [{ rotate: '0deg' }],
         };
       case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
         return {
           width: height,
           height: width,
-          transform: [{ rotate: '180deg' }],
+          transform: [{ rotate: '0deg' }],
         };
       default:
         return {
@@ -202,6 +202,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         };
     }
   };
+  
 
   const renderAudioPlayer = () => (
     <View style={styles.audioContainer}>
@@ -237,17 +238,23 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     switch (mediaType) {
       case 'image':
         return (
-          <View style={styles.mediaContent}>
+          <View style={[styles.mediaContent, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 998 }]}>
             <ImageViewer
               imageUrls={[{ url: mediaUrl }]}
               enableSwipeDown={true}
-              onSwipeDown={() => onClose()}
+              onSwipeDown={handleClose}
               backgroundColor="transparent"
               renderIndicator={() => <View />}
               enableImageZoom={true}
               saveToLocalByLongPress={false}
-              loadingRender={() => <View />}
-              menuContext={{ saveToLocal: 'Save to gallery', cancel: 'Cancel' }}
+              style={{ width: '100%', height: '100%' }}
+              renderImage={(props) => (
+                <Image
+                  {...props}
+                  style={[props.style, { width: '100%', height: '100%', resizeMode: 'contain' }]}
+                  contentFit="contain"
+                />
+              )}
             />
           </View>
         );
@@ -292,30 +299,17 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       onRequestClose={handleClose}
       supportedOrientations={['portrait', 'landscape']}
     >
-<<<<<<< HEAD
       <View style={[styles.modalContainer, { zIndex: 999 }]}>
         <TouchableOpacity 
           style={[
-            styles.closeButton, 
-            orientation !== ScreenOrientation.Orientation.PORTRAIT_UP && styles.landscapeCloseButton,
+            styles.closeButton,
             { zIndex: 1000 }
-          ]} 
-=======
-      <View style={styles.modalContainer}>
-        <TouchableOpacity 
-          style={[styles.closeButton, orientation !== ScreenOrientation.Orientation.PORTRAIT_UP && styles.landscapeCloseButton]} 
->>>>>>> origin/main
+          ]}
           onPress={handleClose}
         >
-          <Ionicons name="close" size={20} color="#fff" />
+          <Ionicons name="close" size={30} color="#fff" />
         </TouchableOpacity>
-<<<<<<< HEAD
-        <View style={[styles.modalContent, getOrientationStyle(), { zIndex: 999 }]}>
-=======
-        <View style={[styles.modalContent, getOrientationStyle()]}>
->>>>>>> origin/main
-          {renderMediaContent()}
-        </View>
+        {renderMediaContent()}
       </View>
     </Modal>
   );
@@ -327,38 +321,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
-<<<<<<< HEAD
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    elevation: 1000,
-=======
->>>>>>> origin/main
+    position: 'relative',
   },
-  modalContent: {
-    justifyContent: 'center',
-    alignItems: 'center',
-<<<<<<< HEAD
-    width: '100%',
-    height: '100%',
-    elevation: 1000,
-=======
->>>>>>> origin/main
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    padding: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    zIndex: 1000,
   },
   mediaContent: {
+    flex: 1,
     width: '100%',
     height: '100%',
-<<<<<<< HEAD
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    elevation: 1000,
-=======
->>>>>>> origin/main
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   videoContainer: {
     width: '100%',
@@ -372,71 +352,44 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.black,
   },
-  closeButton: {
-    position: 'absolute',
-    top: 40,
-    right: 20,
-    zIndex: 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  landscapeCloseButton: {
-    top: 20,
-    right: 40,
-  },
   audioContainer: {
-    width: width,
-    height: height,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: 'white',
     padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
   },
   playButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 20,
   },
   playheadContainer: {
-    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    width: '100%',
   },
   slider: {
     flex: 1,
     marginHorizontal: 10,
   },
   timeText: {
-    color: Colors.white,
-    fontSize: 12,
+    color: Colors.blueDark,
     fontFamily: 'MavenPro-Regular',
-    width: 45,
-    textAlign: 'center',
+    fontSize: 12,
   },
   pdfContainer: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
     alignItems: 'center',
-    backgroundColor: Colors.white,
   },
   pdfButton: {
-    alignItems: 'center',
-    padding: 20,
+    backgroundColor: Colors.blueDark,
+    padding: 15,
+    borderRadius: 5,
   },
   pdfButtonText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: Colors.blueDark,
+    color: 'white',
     fontFamily: 'MavenPro-Medium',
+    fontSize: 16,
   },
 }); 

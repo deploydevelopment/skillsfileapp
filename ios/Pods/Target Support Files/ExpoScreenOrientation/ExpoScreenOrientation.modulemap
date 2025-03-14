@@ -1,0 +1,6 @@
+module ExpoScreenOrientation {
+  umbrella header "ExpoScreenOrientation-umbrella.h"
+
+  export *
+  module * { export * }
+}

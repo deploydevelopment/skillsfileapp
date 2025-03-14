@@ -1,0 +1,6 @@
+module ExpoSensors {
+  umbrella header "ExpoSensors-umbrella.h"
+
+  export *
+  module * { export * }
+}
