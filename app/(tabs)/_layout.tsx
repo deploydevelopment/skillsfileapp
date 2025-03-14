@@ -20,11 +20,11 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colorScheme === 'dark' ? '#1C1C1E' : '#F2F2F7',
         },
+        headerShown: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Record',
           tabBarIcon: ({ color }) => (
             <Text style={{ color, fontSize: 24 }}>⏱️</Text>
           ),

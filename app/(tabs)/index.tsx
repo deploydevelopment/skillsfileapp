@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, SafeAreaView, ScrollView } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Modal, Animated, Easing } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
@@ -143,6 +144,30 @@ export default function TabOneScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const slideAnim = useRef(new Animated.Value(400)).current;
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+
+  useEffect(() => {
+    if (isDrawerOpen) {
+      setIsDrawerVisible(true);
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 250,
+        easing: Easing.bezier(0.4, 0, 0.2, 1),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(slideAnim, {
+        toValue: 400,
+        duration: 250,
+        easing: Easing.bezier(0.4, 0, 0.2, 1),
+        useNativeDriver: true,
+      }).start(() => {
+        setIsDrawerVisible(false);
+      });
+    }
+  }, [isDrawerOpen]);
 
   // Initialize database when screen is focused
   useFocusEffect(
@@ -263,14 +288,74 @@ export default function TabOneScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+      <View style={styles.headerContainer}>
+        <Image 
+          source={require('../../assets/images/bg-gradient.png')}
+          style={styles.headerBackground}
+        />
+        <View style={styles.headerContent}>
+          <Image 
+            source={require('../../assets/images/logo-white.png')}
+            style={styles.logo}
+          />
+          <TouchableOpacity 
+            onPress={() => setIsDrawerOpen(true)}
+            style={styles.menuButton}
+          >
+            <Image 
+              source={require('../../assets/images/avatar.png')}
+              style={styles.avatar}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <Modal
+        visible={isDrawerVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsDrawerOpen(false)}
+      >
+        <View style={styles.drawerOverlay}>
+          <TouchableOpacity 
+            style={styles.drawerOverlayTouchable}
+            activeOpacity={1}
+            onPress={() => setIsDrawerOpen(false)}
+          />
+          <Animated.View style={[
+            styles.drawerContent,
+            {
+              transform: [{ translateX: slideAnim }]
+            }
+          ]}>
+            <View style={styles.drawerHeader}>
+              <Text style={styles.drawerTitle}>Menu</Text>
+              <TouchableOpacity 
+                onPress={() => setIsDrawerOpen(false)}
+                style={styles.closeButton}
+              >
+                <Text style={styles.closeButtonText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.drawerItem}>
+              <Text style={styles.drawerItemText}>Profile</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.drawerItem}>
+              <Text style={styles.drawerItemText}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.drawerItem}>
+              <Text style={styles.drawerItemText}>Help</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.drawerItem}>
+              <Text style={styles.drawerItemText}>About</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
+
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Qualification Tracker</Text>
-            <Text style={styles.subtitle}>Record your qualifications</Text>
-          </View>
-
           <View style={styles.qualificationSelector}>
             <Text style={styles.label}>Select Qualification:</Text>
             <ScrollView style={styles.qualificationList}>
@@ -313,19 +398,44 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F5',
+    marginTop: 0,
+    paddingTop: 0,
   },
-  header: {
-    padding: 20,
+  headerContainer: {
+    height: 120,
+    position: 'relative',
+    marginTop: 0,
+    paddingTop: 0,
   },
-  title: {
-    fontSize: 24,
-    fontFamily: 'MavenPro-Bold',
-    marginBottom: 10,
+  headerBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    fontFamily: 'MavenPro-Regular',
+  headerContent: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+  logo: {
+    width: 160,
+    height: 40,
+    resizeMode: 'contain',
+  },
+  menuButton: {
+    padding: 5,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   content: {
     flex: 1,
@@ -381,5 +491,61 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+  },
+  drawerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  drawerOverlayTouchable: {
+    flex: 1,
+  },
+  drawerContent: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: '80%',
+    backgroundColor: '#0A1929',
+    padding: 20,
+    paddingTop: 60,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: -2,
+      height: 0,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  drawerTitle: {
+    fontSize: 20,
+    fontFamily: 'MavenPro-Bold',
+    color: '#ffffff',
+  },
+  closeButton: {
+    padding: 5,
+  },
+  closeButtonText: {
+    fontSize: 20,
+    color: '#ffffff',
+  },
+  drawerItem: {
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  drawerItemText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#ffffff',
   },
 });
