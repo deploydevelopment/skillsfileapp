@@ -3,6 +3,9 @@ import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Ani
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
+import { useMediaPreview } from '../../contexts/MediaPreviewContext';
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system';
 
 interface Qualification {
   uid: string;
@@ -133,13 +136,19 @@ const initializeDatabase = () => {
 };
 
 export default function QualificationsScreen() {
+  const { showPreview } = useMediaPreview();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [activeTab, setActiveTab] = useState('required');
   const [selectedQual, setSelectedQual] = useState<Qualification | null>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isTestModalVisible, setIsTestModalVisible] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
+  const [activePreview, setActivePreview] = useState<{
+    type: 'image' | 'video' | 'audio' | 'pdf';
+    uri: string | null;
+  } | null>(null);
 
   const showDrawer = (qual: Qualification) => {
     setSelectedQual(qual);
@@ -241,12 +250,121 @@ export default function QualificationsScreen() {
     }
   };
 
+  const handlePreview = async (type: 'image' | 'video' | 'audio' | 'pdf') => {
+    try {
+      const testMedia = {
+        image: require('../../assets/test_media/img1.jpg'),
+        video: require('../../assets/test_media/vid1.mp4'),
+        audio: require('../../assets/test_media/test.mp3'),
+        pdf: require('../../assets/test_media/Example PDF.pdf'),
+      };
+
+      const asset = Asset.fromModule(testMedia[type]);
+      await asset.downloadAsync();
+      
+      if (asset.localUri) {
+        if (type === 'pdf') {
+          const fileName = 'Example PDF.pdf';
+          const destination = `${FileSystem.cacheDirectory}${fileName}`;
+          await FileSystem.copyAsync({
+            from: asset.localUri,
+            to: destination
+          });
+          setActivePreview({ type, uri: destination });
+        } else {
+          setActivePreview({ type, uri: asset.localUri });
+        }
+      }
+    } catch (error) {
+      console.error('Error loading media:', error);
+    }
+  };
+
+  const renderPreview = () => {
+    if (!activePreview?.uri) return null;
+
+    switch (activePreview.type) {
+      case 'image':
+        return (
+          <View style={styles.fullscreenPreview}>
+            <TouchableOpacity 
+              style={styles.previewCloseButton}
+              onPress={() => setActivePreview(null)}
+            >
+              <Text style={styles.previewCloseButtonText}>✕</Text>
+            </TouchableOpacity>
+            <Image
+              source={{ uri: activePreview.uri }}
+              style={styles.fullscreenPreviewImage}
+              resizeMode="contain"
+            />
+          </View>
+        );
+      // Add other preview types here as needed
+      default:
+        return null;
+    }
+  };
+
+  const renderPreviewButtons = () => (
+    <View style={styles.previewButtons}>
+      <TouchableOpacity
+        style={styles.previewButton}
+        onPress={() => handlePreview('image')}
+      >
+        <Text style={styles.previewButtonText}>Image</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.previewButton}
+        onPress={() => handlePreview('video')}
+      >
+        <Text style={styles.previewButtonText}>Video</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.previewButton}
+        onPress={() => handlePreview('audio')}
+      >
+        <Text style={styles.previewButtonText}>Audio</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.previewButton}
+        onPress={() => handlePreview('pdf')}
+      >
+        <Text style={styles.previewButtonText}>PDF</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  const renderTestModal = () => (
+    <Modal
+      visible={isTestModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setIsTestModalVisible(false)}
+    >
+      <View style={styles.testModalContainer}>
+        <View style={styles.testModalContent}>
+          <Text style={styles.testModalText}>Hello, World!</Text>
+          <TouchableOpacity 
+            style={styles.testModalButton}
+            onPress={() => setIsTestModalVisible(false)}
+          >
+            <Text style={styles.testModalButtonText}>Close</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderQualificationDrawer = () => {
     if (!selectedQual) return null;
 
     const translateY = drawerAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [600, 0],
+      outputRange: [Dimensions.get('window').height, 0],
     });
 
     return (
@@ -255,12 +373,9 @@ export default function QualificationsScreen() {
         transparent
         animationType="none"
         onRequestClose={hideDrawer}
+        statusBarTranslucent
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={hideDrawer}
-        >
+        <View style={styles.modalOverlay}>
           <Animated.View 
             style={[
               styles.drawer,
@@ -269,30 +384,48 @@ export default function QualificationsScreen() {
               },
             ]}
           >
-            <View style={styles.drawerHandle} />
-            <View style={styles.drawerContent}>
-              <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
-              <Text style={styles.drawerSubtitle}>
-                Requested by {selectedQual.requested_by}
-              </Text>
-              <Text style={styles.drawerExpiry}>
-                Expires in {selectedQual.expires_months} months
-              </Text>
-              <Text style={styles.drawerDescription}>
-                {selectedQual.intro}
-              </Text>
-              <TouchableOpacity 
-                style={styles.addButton}
-                onPress={() => {
-                  addQualification(selectedQual);
-                  hideDrawer();
-                }}
-              >
-                <Text style={styles.addButtonText}>Add Qualification</Text>
-              </TouchableOpacity>
-            </View>
+            {activePreview ? (
+              renderPreview()
+            ) : (
+              <>
+                <View style={styles.drawerHeader}>
+                  <View style={styles.drawerHandle} />
+                  <TouchableOpacity 
+                    style={styles.closeButton}
+                    onPress={hideDrawer}
+                  >
+                    <Text style={styles.closeButtonText}>Close</Text>
+                  </TouchableOpacity>
+                </View>
+                <ScrollView style={styles.drawerContent}>
+                  <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
+                  <Text style={styles.drawerSubtitle}>
+                    Requested by {selectedQual.requested_by}
+                  </Text>
+                  <Text style={styles.drawerExpiry}>
+                    Expires in {selectedQual.expires_months} months
+                  </Text>
+                  <Text style={styles.drawerDescription}>
+                    {selectedQual.intro}
+                  </Text>
+                  <View style={styles.previewContainer}>
+                    <Text style={styles.previewTitle}>Preview Files</Text>
+                    {renderPreviewButtons()}
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.addButton}
+                    onPress={() => {
+                      addQualification(selectedQual);
+                      hideDrawer();
+                    }}
+                  >
+                    <Text style={styles.addButtonText}>Add Qualification</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </>
+            )}
           </Animated.View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     );
   };
@@ -378,6 +511,7 @@ export default function QualificationsScreen() {
         )}
       </View>
       {renderQualificationDrawer()}
+      {renderTestModal()}
     </SafeAreaView>
   );
 }
@@ -497,14 +631,11 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
   },
   drawer: {
     backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    minHeight: 400,
+    height: '100%',
+    width: '100%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -514,13 +645,131 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  drawerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+  },
+  closeButton: {
+    padding: 10,
+  },
+  closeButtonText: {
+    color: '#0A1929',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
   drawerHandle: {
     width: 40,
     height: 4,
     backgroundColor: '#E5E5EA',
     borderRadius: 2,
     alignSelf: 'center',
+  },
+  previewContainer: {
+    marginTop: 20,
     marginBottom: 20,
+  },
+  previewTitle: {
+    fontSize: 18,
+    fontFamily: 'MavenPro-Medium',
+    color: '#0A1929',
+    marginBottom: 15,
+  },
+  previewWrapper: {
+    width: '100%',
+    height: 300,
+    backgroundColor: '#f5f5f5',
+    marginBottom: 20,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  previewButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 20,
+  },
+  previewButton: {
+    flex: 1,
+    backgroundColor: '#0A1929',
+    padding: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  previewButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
+  testButton: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  testButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
+  testModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  testModalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  testModalText: {
+    fontSize: 20,
+    marginBottom: 20,
+    fontFamily: 'MavenPro-Medium',
+  },
+  testModalButton: {
+    backgroundColor: '#0A1929',
+    padding: 10,
+    borderRadius: 5,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  testModalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
+  addButton: {
+    backgroundColor: '#0A1929',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
   },
   drawerContent: {
     padding: 10,
@@ -550,16 +799,30 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     lineHeight: 24,
   },
-  addButton: {
-    backgroundColor: '#0A1929',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
+  fullscreenPreview: {
+    flex: 1,
+    backgroundColor: 'black',
+    position: 'relative',
   },
-  addButtonText: {
+  fullscreenPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  previewCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  previewCloseButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 20,
     fontFamily: 'MavenPro-Medium',
   },
 }); 
