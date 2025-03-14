@@ -1,6 +1,0 @@
-module Pods_SkillsFileAppExpo {
-  umbrella header "Pods-SkillsFileAppExpo-umbrella.h"
-
-  export *
-  module * { export * }
-}
