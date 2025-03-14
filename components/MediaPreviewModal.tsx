@@ -292,6 +292,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       onRequestClose={handleClose}
       supportedOrientations={['portrait', 'landscape']}
     >
+<<<<<<< HEAD
       <View style={[styles.modalContainer, { zIndex: 999 }]}>
         <TouchableOpacity 
           style={[
@@ -299,11 +300,20 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
             orientation !== ScreenOrientation.Orientation.PORTRAIT_UP && styles.landscapeCloseButton,
             { zIndex: 1000 }
           ]} 
+=======
+      <View style={styles.modalContainer}>
+        <TouchableOpacity 
+          style={[styles.closeButton, orientation !== ScreenOrientation.Orientation.PORTRAIT_UP && styles.landscapeCloseButton]} 
+>>>>>>> origin/main
           onPress={handleClose}
         >
           <Ionicons name="close" size={20} color="#fff" />
         </TouchableOpacity>
+<<<<<<< HEAD
         <View style={[styles.modalContent, getOrientationStyle(), { zIndex: 999 }]}>
+=======
+        <View style={[styles.modalContent, getOrientationStyle()]}>
+>>>>>>> origin/main
           {renderMediaContent()}
         </View>
       </View>
@@ -317,29 +327,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+<<<<<<< HEAD
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     elevation: 1000,
+=======
+>>>>>>> origin/main
   },
   modalContent: {
     justifyContent: 'center',
     alignItems: 'center',
+<<<<<<< HEAD
     width: '100%',
     height: '100%',
     elevation: 1000,
+=======
+>>>>>>> origin/main
   },
   mediaContent: {
     width: '100%',
     height: '100%',
+<<<<<<< HEAD
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     elevation: 1000,
+=======
+>>>>>>> origin/main
   },
   videoContainer: {
     width: '100%',

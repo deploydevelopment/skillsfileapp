@@ -147,6 +147,10 @@ export default function QualificationsScreen() {
   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
+  const [activePreview, setActivePreview] = useState<{
+    type: 'image' | 'video' | 'audio' | 'pdf';
+    uri: string | null;
+  } | null>(null);
 
   const showDrawer = (qual: Qualification) => {
     setSelectedQual(qual);
@@ -284,8 +288,10 @@ export default function QualificationsScreen() {
           stiffness: 300,
         }).start(() => {
           setIsDrawerVisible(false);
+          setActivePreview({ type, uri: destination });
           // Show preview after drawer is closed
           showPreview(destination, type, () => {
+            setActivePreview(null);
             // When preview closes, show drawer again with delay and slower animation
             if (savedQual) {
               setTimeout(() => {
@@ -310,8 +316,10 @@ export default function QualificationsScreen() {
           stiffness: 300,
         }).start(() => {
           setIsDrawerVisible(false);
+          setActivePreview({ type, uri: localUri });
           // Show preview after drawer is closed
           showPreview(localUri, type, () => {
+            setActivePreview(null);
             // When preview closes, show drawer again with delay and slower animation
             if (savedQual) {
               setTimeout(() => {
@@ -330,6 +338,32 @@ export default function QualificationsScreen() {
       }
     } catch (error) {
       console.error('Error loading media:', error);
+    }
+  };
+
+  const renderPreview = () => {
+    if (!activePreview?.uri) return null;
+
+    switch (activePreview.type) {
+      case 'image':
+        return (
+          <View style={styles.fullscreenPreview}>
+            <TouchableOpacity 
+              style={styles.previewCloseButton}
+              onPress={() => setActivePreview(null)}
+            >
+              <Text style={styles.previewCloseButtonText}>✕</Text>
+            </TouchableOpacity>
+            <Image
+              source={{ uri: activePreview.uri }}
+              style={styles.fullscreenPreviewImage}
+              resizeMode="contain"
+            />
+          </View>
+        );
+      // Add other preview types here as needed
+      default:
+        return null;
     }
   };
 
@@ -402,7 +436,7 @@ export default function QualificationsScreen() {
         onRequestClose={hideDrawer}
         statusBarTranslucent
       >
-        <View style={[styles.modalOverlay, { zIndex: 1 }]}>
+        <View style={styles.modalOverlay}>
           <Animated.View 
             style={[
               styles.drawer,
@@ -653,13 +687,11 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    position: 'relative',
   },
   drawer: {
     backgroundColor: 'white',
     height: '100%',
     width: '100%',
-    position: 'relative',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
