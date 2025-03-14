@@ -89,14 +89,14 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
   },
   listContainer: {
     flex: 1,
   },
   listTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
     marginBottom: 10,
   },
   timestamp: {
@@ -105,5 +105,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 5,
     marginBottom: 5,
+    fontFamily: 'MavenPro-Regular',
   },
 }); 

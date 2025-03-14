@@ -337,12 +337,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 16,
     color: '#666',
+    fontFamily: 'MavenPro-Regular',
   },
   content: {
     flex: 1,
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
     marginBottom: 10,
   },
   qualificationList: {
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     marginBottom: 4,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
   },
   selectedQualificationButtonText: {
     color: 'white',
@@ -385,6 +386,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 4,
+    fontFamily: 'MavenPro-Regular',
   },
   selectedQualificationSubtext: {
     color: '#E5E5EA',
@@ -393,6 +395,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     fontStyle: 'italic',
+    fontFamily: 'MavenPro-Regular',
   },
   selectedQualificationIntro: {
     color: '#E5E5EA',
@@ -410,11 +413,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
   },
   errorText: {
     color: 'red',
     marginBottom: 20,
+    fontFamily: 'MavenPro-Regular',
   },
   scrollView: {
     flex: 1,

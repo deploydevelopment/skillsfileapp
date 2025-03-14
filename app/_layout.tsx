@@ -8,6 +8,12 @@ import { useMediaPreview } from '../contexts/MediaPreviewContext';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
+import { 
+  useFonts,
+  MavenPro_400Regular,
+  MavenPro_500Medium,
+  MavenPro_700Bold,
+} from '@expo-google-fonts/maven-pro';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -15,15 +21,23 @@ SplashScreen.preventAutoHideAsync();
 function RootLayoutNav() {
   const { isVisible, currentMedia, hidePreview } = useMediaPreview();
   const colorScheme = useColorScheme();
+  
+  const [fontsLoaded, fontError] = useFonts({
+    'MavenPro-Regular': MavenPro_400Regular,
+    'MavenPro-Medium': MavenPro_500Medium,
+    'MavenPro-Bold': MavenPro_700Bold,
+  });
 
   useEffect(() => {
-    // Hide splash screen after a short delay to ensure everything is loaded
-    const hideSplash = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await SplashScreen.hideAsync();
-    };
-    hideSplash();
-  }, []);
+    if (fontsLoaded || fontError) {
+      // Hide splash screen once fonts are loaded or if there's an error
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <View style={{ flex: 1 }}>

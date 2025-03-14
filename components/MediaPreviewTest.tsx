@@ -4,6 +4,7 @@ import { useMediaPreview } from '../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import * as Progress from 'react-native-progress';
+import { Colors, Typography } from '../constants/styles';
 
 // Dynamic imports for test media
 const testMedia = {
@@ -82,8 +83,8 @@ export const MediaPreviewTest: React.FC = () => {
           progress={0} 
           width={null} 
           height={8}
-          color="#007AFF"
-          unfilledColor="rgba(0, 122, 255, 0.2)"
+          color={Colors.blueMid}
+          unfilledColor={Colors.grayLight}
           borderWidth={0}
           borderRadius={4}
           style={styles.progressBar}
@@ -105,22 +106,23 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: '#222222',
-    padding: 4,
-    borderRadius: 8,
+    backgroundColor: Colors.blueDark,
+    padding: 12,
+    borderRadius: 6,
     alignItems: 'center',
   },
   buttonText: {
-    color: 'white',
+    color: Colors.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'MavenPro-Medium',
   },
   progressContainer: {
     width: '100%',
   },
   progressText: {
     fontSize: 14,
-    color: '#000000',
+    color: Colors.charcoal,
+    fontFamily: 'MavenPro-Regular',
     marginBottom: 8,
   },
   progressBar: {

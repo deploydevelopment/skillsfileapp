@@ -7,6 +7,7 @@ import * as FileSystem from 'expo-file-system';
 import ImageViewer from 'react-native-image-zoom-viewer';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Slider from '@react-native-community/slider';
+import { Colors } from '../constants/styles';
 
 const { width, height } = Dimensions.get('window');
 
@@ -208,7 +209,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         <Ionicons
           name={isPlaying ? 'pause' : 'play'}
           size={50}
-          color="#007AFF"
+          color={Colors.blueDark}
         />
       </TouchableOpacity>
       <View style={styles.playheadContainer}>
@@ -218,9 +219,9 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
           value={position}
           minimumValue={0}
           maximumValue={duration}
-          minimumTrackTintColor="#007AFF"
-          maximumTrackTintColor="#FFFFFF"
-          thumbTintColor="#007AFF"
+          minimumTrackTintColor={Colors.blueDark}
+          maximumTrackTintColor={Colors.blueLight}
+          thumbTintColor={Colors.blueDark}
           onSlidingStart={() => setIsSeeking(true)}
           onSlidingComplete={(value: number) => {
             setIsSeeking(false);
@@ -326,12 +327,12 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: Colors.black,
   },
   video: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#000',
+    backgroundColor: Colors.black,
   },
   closeButton: {
     position: 'absolute',
@@ -376,9 +377,9 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   timeText: {
-    color: '#FFFFFF',
+    color: Colors.white,
     fontSize: 12,
-    fontFamily: 'System',
+    fontFamily: 'MavenPro-Regular',
     width: 45,
     textAlign: 'center',
   },
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.white,
   },
   pdfButton: {
     alignItems: 'center',
@@ -397,6 +398,7 @@ const styles = StyleSheet.create({
   pdfButtonText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#007AFF',
+    color: Colors.blueDark,
+    fontFamily: 'MavenPro-Medium',
   },
 }); 

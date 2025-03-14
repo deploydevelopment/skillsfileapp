@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import * as SQLite from 'expo-sqlite';
+import { Colors } from '../../constants/styles';
 
 interface BaseRecord {
   id: number;
@@ -575,6 +576,16 @@ const styles = StyleSheet.create({
   clearButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
+  },
+  headerText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Bold',
+    color: Colors.blueDark,
+  },
+  cellText: {
+    fontSize: 14,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.charcoal,
   },
 }); 

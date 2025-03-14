@@ -1,23 +1,58 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import * as SQLite from 'expo-sqlite';
+import { 
+  useFonts,
+  MavenPro_400Regular,
+  MavenPro_500Medium,
+  MavenPro_700Bold,
+} from '@expo-google-fonts/maven-pro';
+import * as SplashScreen from 'expo-splash-screen';
+import { Colors } from './constants/styles';
 
 const db = SQLite.openDatabase('skillsfile.db');
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [timestamps, setTimestamps] = useState([]);
 
-  useEffect(() => {
-    db.transaction(tx => {
-      // Create table if it doesn't exist
-      tx.executeSql(
-        'CREATE TABLE IF NOT EXISTS timestamps (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT)'
-      );
-    });
+  const [fontsLoaded, fontError] = useFonts({
+    'MavenPro-Regular': MavenPro_400Regular,
+    'MavenPro-Medium': MavenPro_500Medium,
+    'MavenPro-Bold': MavenPro_700Bold,
+  });
 
-    // Load existing timestamps
-    loadTimestamps();
+  useEffect(() => {
+    const prepare = async () => {
+      try {
+        // Initialize database
+        db.transaction(tx => {
+          tx.executeSql(
+            'CREATE TABLE IF NOT EXISTS timestamps (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT)'
+          );
+        });
+        
+        // Load initial timestamps
+        loadTimestamps();
+      } catch (e) {
+        console.warn(e);
+      }
+    };
+
+    prepare();
   }, []);
+
+  useEffect(() => {
+    const onLayoutRootView = async () => {
+      if (fontsLoaded || fontError) {
+        await SplashScreen.hideAsync();
+      }
+    };
+
+    onLayoutRootView();
+  }, [fontsLoaded, fontError]);
 
   const loadTimestamps = () => {
     db.transaction(tx => {
@@ -53,6 +88,10 @@ export default function App() {
     });
   };
 
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -76,37 +115,40 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: Colors.silver,
   },
   content: {
     flex: 1,
     padding: 20,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: Colors.blueDark,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginBottom: 20,
   },
   buttonText: {
-    color: 'white',
+    color: Colors.white,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
   },
   listContainer: {
     flex: 1,
   },
   listTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
+    color: Colors.blueDark,
     marginBottom: 10,
   },
   timestamp: {
     fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
     padding: 10,
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
     borderRadius: 5,
     marginBottom: 5,
+    color: Colors.charcoal,
   },
 }); 
