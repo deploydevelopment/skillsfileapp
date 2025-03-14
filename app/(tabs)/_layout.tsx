@@ -39,6 +39,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="qualifications"
+        options={{
+          title: 'Qualifications',
+          tabBarIcon: ({ color }) => (
+            <Text style={{ color, fontSize: 24 }}>📜</Text>
+          ),
+        }}
+      />
     </Tabs>
   );
 }
