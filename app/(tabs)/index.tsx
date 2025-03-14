@@ -369,31 +369,49 @@ export default function TabOneScreen() {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
-          <View style={styles.qualificationSelector}>
-            <Text style={styles.label}>Select Qualification:</Text>
-            <ScrollView style={styles.qualificationList}>
-              {requiredQualifications.qualifications.map((qual, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.qualificationButton,
-                    isLoading && styles.buttonDisabled
-                  ]}
-                  onPress={() => addQualification(qual)}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.qualificationButtonText}>
-                    {qual.name}
-                  </Text>
-                  <Text style={styles.qualificationSubtext}>
-                    {qual.requested_by} • Expires in {qual.expires_months} months
-                  </Text>
-                  <Text style={styles.qualificationIntro}>
-                    {qual.intro}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+          <View style={styles.iconGrid}>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/cvs.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>CVs</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/cover-letters.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Cover Letters</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/experience.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Experience</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/medicals.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Medicals</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/qualifications.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Qualifications</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/testimonials.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Testimonials</Text>
+            </View>
           </View>
 
           {error && (
@@ -410,7 +428,6 @@ export default function TabOneScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E6F3FF',
     marginTop: 0,
     paddingTop: 0,
   },
@@ -467,48 +484,27 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'transparent',
   },
-  qualificationSelector: {
-    flex: 1,
-    marginBottom: 20,
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    padding: 10,
   },
-  label: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Bold',
-    marginBottom: 10,
+  iconItem: {
+    width: '45%',
+    alignItems: 'center',
+    marginBottom: 30,
   },
-  qualificationList: {
-    flex: 1,
-    backgroundColor: 'white',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+  icon: {
+    width: 70,
+    height: 70,
+    marginBottom: 8,
   },
-  qualificationButton: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-    backgroundColor: 'white',
-  },
-  qualificationButtonText: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 4,
-    fontFamily: 'MavenPro-Bold',
-  },
-  qualificationSubtext: {
+  iconText: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 4,
     fontFamily: 'MavenPro-Regular',
-  },
-  qualificationIntro: {
-    fontSize: 12,
-    color: '#999',
-    fontStyle: 'italic',
-    fontFamily: 'MavenPro-Regular',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
+    color: '#000',
+    textAlign: 'center',
   },
   errorText: {
     color: 'red',
