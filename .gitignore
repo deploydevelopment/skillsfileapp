@@ -51,3 +51,5 @@ ios/Podfile.lock
 android/app/build/
 android/build/
 android/.gradle/
+
+_oldversion/

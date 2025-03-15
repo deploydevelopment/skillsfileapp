@@ -1,36 +1,47 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions, Easing } from 'react-native';
 import { Colors } from '../../constants/styles';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 export default function CompaniesScreen() {
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(-20)).current;
+  const navigation = useNavigation();
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const isBack = useRef(false);
+
+  // Add navigation listener for back button
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      isBack.current = true;
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   useFocusEffect(
     React.useCallback(() => {
-      // Reset animations to initial values
-      fadeAnim.setValue(0);
-      slideAnim.setValue(-20);
+      // Reset animation to initial value based on direction
+      slideAnim.setValue(Dimensions.get('window').width);
       
-      // Start animations
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start();
+      // Slide in from right
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }).start();
 
       return () => {
-        // Optional cleanup
-        fadeAnim.setValue(0);
-        slideAnim.setValue(-20);
+        // If going back, slide out to right, otherwise slide out to left
+        const toValue = isBack.current ? Dimensions.get('window').width : -Dimensions.get('window').width;
+        
+        Animated.timing(slideAnim, {
+          toValue: toValue,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.cubic),
+        }).start(() => {
+          isBack.current = false;
+        });
       };
     }, [])
   );
@@ -40,8 +51,7 @@ export default function CompaniesScreen() {
       style={[
         styles.container, 
         { 
-          opacity: fadeAnim,
-          transform: [{ translateY: slideAnim }]
+          transform: [{ translateX: slideAnim }]
         }
       ]}
     >

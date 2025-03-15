@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Animated } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Animated, Dimensions, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
-import { Link, useFocusEffect, useRouter } from 'expo-router';
+import { Link, useFocusEffect, useRouter, useNavigation } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/styles';
-import { useNavigation, DrawerActions } from '@react-navigation/native';
+import { DrawerActions } from '@react-navigation/native';
 
 interface Qualification {
   uid: string;
@@ -148,28 +148,36 @@ export default function TabOneScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(-20)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const isBack = useRef(false);
+  const isFirstLoad = useRef(true);
+
+  // Add navigation listener for back button
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      isBack.current = true;
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   useFocusEffect(
     React.useCallback(() => {
-      // Reset animations to initial values
-      fadeAnim.setValue(0);
-      slideAnim.setValue(-20);
-      
-      // Start animations
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
+      if (!isFirstLoad.current) {
+        // Only animate if it's not the first load
+        slideAnim.setValue(-Dimensions.get('window').width);
+        
         Animated.timing(slideAnim, {
           toValue: 0,
           duration: 300,
           useNativeDriver: true,
-        })
-      ]).start();
+          easing: Easing.out(Easing.cubic),
+        }).start();
+      } else {
+        // On first load, just set the position without animation
+        slideAnim.setValue(0);
+        isFirstLoad.current = false;
+      }
 
       // Initialize database
       const initialize = async () => {
@@ -189,9 +197,15 @@ export default function TabOneScreen() {
       initialize();
 
       return () => {
-        // Optional cleanup
-        fadeAnim.setValue(0);
-        slideAnim.setValue(-20);
+        // Always slide out to right
+        Animated.timing(slideAnim, {
+          toValue: Dimensions.get('window').width,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.cubic),
+        }).start(() => {
+          isBack.current = false;
+        });
       };
     }, [])
   );
@@ -299,8 +313,7 @@ export default function TabOneScreen() {
         style={[
           styles.container, 
           { 
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
+            transform: [{ translateX: slideAnim }]
           }
         ]}
       >
@@ -434,17 +447,17 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
   },
   logo: {
-    width: 160,
-    height: 40,
+    width: 144,
+    height: 36,
     resizeMode: 'contain',
   },
   menuButton: {
     padding: 5,
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 29,
+    height: 29,
+    borderRadius: 15,
   },
   content: {
     flex: 1,

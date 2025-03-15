@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
@@ -7,7 +7,7 @@ import { useMediaPreview } from '../../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { MediaPreviewModal } from '../../components/MediaPreviewModal';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
@@ -152,62 +152,48 @@ export default function QualificationsScreen() {
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(-20)).current;
+  const slideAnim = useRef(new Animated.Value(0)).current;
   const [activePreview, setActivePreview] = useState<{
     type: 'image' | 'video' | 'audio' | 'pdf';
     uri: string | null;
   } | null>(null);
+  const navigation = useNavigation();
+  const isBack = useRef(false);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return gestureState.dy > 0;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        if (gestureState.dy > 0) {
-          const newValue = 1 - (gestureState.dy / (Dimensions.get('window').height * 0.67));
-          drawerAnimation.setValue(Math.max(0, Math.min(1, newValue)));
-        }
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (gestureState.dy > 50) {
-          hideDrawer();
-        } else {
-          Animated.spring(drawerAnimation, {
-            toValue: 1,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
+  // Add navigation listener for back button
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      isBack.current = true;
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   useFocusEffect(
     React.useCallback(() => {
-      // Reset animations to initial values
-      fadeAnim.setValue(0);
-      slideAnim.setValue(-20);
+      // Reset animation to initial value based on direction
+      slideAnim.setValue(Dimensions.get('window').width);
       
-      // Start animations
-      Animated.parallel([
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        })
-      ]).start();
+      // Slide in from right
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+        easing: Easing.out(Easing.cubic),
+      }).start();
 
       return () => {
-        // Optional cleanup
-        fadeAnim.setValue(0);
-        slideAnim.setValue(-20);
+        // If going back, slide out to right, otherwise slide out to left
+        const toValue = isBack.current ? Dimensions.get('window').width : -Dimensions.get('window').width;
+        
+        Animated.timing(slideAnim, {
+          toValue: toValue,
+          duration: 300,
+          useNativeDriver: true,
+          easing: Easing.in(Easing.cubic),
+        }).start(() => {
+          isBack.current = false;
+        });
       };
     }, [])
   );
@@ -590,10 +576,8 @@ export default function QualificationsScreen() {
                 },
               ]}
             >
-              <View {...panResponder.panHandlers}>
-                <View style={styles.drawerHeader}>
-                  <View style={styles.drawerHandle} />
-                </View>
+              <View style={styles.drawerHeader}>
+                <View style={styles.drawerHandle} />
               </View>
               <TouchableOpacity 
                 activeOpacity={1} 
@@ -675,8 +659,7 @@ export default function QualificationsScreen() {
         style={[
           { flex: 1 }, 
           { 
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }]
+            transform: [{ translateX: slideAnim }]
           }
         ]}
       >
