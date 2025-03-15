@@ -688,6 +688,11 @@ export default function QualificationsScreen() {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={require('../../assets/images/bg-light.jpg')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
       <Animated.View 
         style={[
           { flex: 1 }, 
@@ -699,7 +704,7 @@ export default function QualificationsScreen() {
         <SafeAreaView style={styles.container}>
           <View style={styles.headerContainer}>
             <Image
-              source={require('../../assets/images/bg-light.jpg')}
+              source={require('../../assets/images/bg-gradient.png')}
               style={styles.headerBackground}
               resizeMode="cover"
             />
