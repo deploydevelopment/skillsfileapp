@@ -21,6 +21,7 @@ export function CustomDrawerContent(props: any) {
         <TouchableOpacity 
           style={styles.drawerItem}
           onPress={() => {}}
+          activeOpacity={1}
         >
           <Ionicons name="id-card-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>My Profile</Text>
@@ -29,6 +30,7 @@ export function CustomDrawerContent(props: any) {
         <TouchableOpacity 
           style={styles.drawerItem}
           onPress={() => {}}
+          activeOpacity={1}
         >
           <Ionicons name="people-circle-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>Invite a Friend</Text>
@@ -37,6 +39,7 @@ export function CustomDrawerContent(props: any) {
         <TouchableOpacity 
           style={styles.drawerItem}
           onPress={() => {}}
+          activeOpacity={1}
         >
           <Ionicons name="rocket-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>Find Training</Text>
@@ -45,6 +48,7 @@ export function CustomDrawerContent(props: any) {
         <TouchableOpacity 
           style={styles.drawerItem}
           onPress={() => {}}
+          activeOpacity={1}
         >
           <Ionicons name="information-circle-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>About SkillsFile</Text>
@@ -53,6 +57,7 @@ export function CustomDrawerContent(props: any) {
         <TouchableOpacity 
           style={styles.drawerItem}
           onPress={() => router.push('/table')}
+          activeOpacity={1}
         >
           <Ionicons name="bug-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>View Storage</Text>
@@ -61,6 +66,7 @@ export function CustomDrawerContent(props: any) {
         <TouchableOpacity 
           style={[styles.drawerItem, styles.logoutItem]}
           onPress={() => {}}
+          activeOpacity={1}
         >
           <Ionicons name="exit-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>Log Out</Text>

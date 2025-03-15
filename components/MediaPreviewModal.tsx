@@ -206,7 +206,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
 
   const renderAudioPlayer = () => (
     <View style={styles.audioContainer}>
-      <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
+      <TouchableOpacity onPress={handlePlayPause} style={styles.playButton} activeOpacity={1}>
         <Ionicons
           name={isPlaying ? 'pause' : 'play'}
           size={50}
@@ -280,7 +280,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       case 'pdf':
         return (
           <View style={styles.pdfContainer}>
-            <TouchableOpacity onPress={handlePDFOpen} style={styles.pdfButton}>
+            <TouchableOpacity onPress={handlePDFOpen} style={styles.pdfButton} activeOpacity={1}>
               <Ionicons name="document" size={50} color="#007AFF" />
               <Text style={styles.pdfButtonText}>Open PDF</Text>
             </TouchableOpacity>
@@ -306,6 +306,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
             { zIndex: 1000 }
           ]}
           onPress={handleClose}
+          activeOpacity={1}
         >
           <Ionicons name="close" size={30} color="#fff" />
         </TouchableOpacity>

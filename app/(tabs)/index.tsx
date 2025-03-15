@@ -362,6 +362,7 @@ export default function TabOneScreen() {
               <TouchableOpacity 
                 onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                 style={styles.menuButton}
+                activeOpacity={1}
               >
                 <Image 
                   source={require('../../assets/images/avatar.png')}
@@ -404,7 +405,7 @@ export default function TabOneScreen() {
                 <Text style={styles.iconText}>Medicals</Text>
               </View>
               <Link href="/(tabs)/qualifications" asChild>
-                <TouchableOpacity style={styles.iconItem}>
+                <TouchableOpacity style={styles.iconItem} activeOpacity={1}>
                   <Image 
                     source={require('../../assets/images/home-icons/qualifications.png')}
                     style={styles.icon}

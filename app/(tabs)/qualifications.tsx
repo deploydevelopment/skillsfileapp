@@ -443,6 +443,7 @@ export default function QualificationsScreen() {
             <TouchableOpacity 
               style={styles.previewCloseButton}
               onPress={() => setActivePreview(null)}
+              activeOpacity={1}
             >
               <Text style={styles.previewCloseButtonText}>✕</Text>
             </TouchableOpacity>
@@ -464,6 +465,7 @@ export default function QualificationsScreen() {
       <TouchableOpacity
         style={styles.previewButton}
         onPress={() => handlePreview('image')}
+        activeOpacity={1}
       >
         <Text style={styles.previewButtonText}>Image</Text>
       </TouchableOpacity>
@@ -471,6 +473,7 @@ export default function QualificationsScreen() {
       <TouchableOpacity
         style={styles.previewButton}
         onPress={() => handlePreview('video')}
+        activeOpacity={1}
       >
         <Text style={styles.previewButtonText}>Video</Text>
       </TouchableOpacity>
@@ -478,6 +481,7 @@ export default function QualificationsScreen() {
       <TouchableOpacity
         style={styles.previewButton}
         onPress={() => handlePreview('audio')}
+        activeOpacity={1}
       >
         <Text style={styles.previewButtonText}>Audio</Text>
       </TouchableOpacity>
@@ -485,6 +489,7 @@ export default function QualificationsScreen() {
       <TouchableOpacity
         style={styles.previewButton}
         onPress={() => handlePreview('pdf')}
+        activeOpacity={1}
       >
         <Text style={styles.previewButtonText}>PDF</Text>
       </TouchableOpacity>
@@ -615,6 +620,7 @@ export default function QualificationsScreen() {
                       addQualification(selectedQual);
                       hideDrawer();
                     }}
+                    activeOpacity={1}
                   >
                     <Text style={styles.addButtonText}>Add Qualification</Text>
                   </TouchableOpacity>
@@ -752,6 +758,7 @@ export default function QualificationsScreen() {
               <TouchableOpacity 
                 style={styles.backButton}
                 onPress={() => router.back()}
+                activeOpacity={1}
               >
                 <Ionicons name="chevron-back" size={20} color={Colors.white} />
               </TouchableOpacity>
@@ -759,6 +766,7 @@ export default function QualificationsScreen() {
               <TouchableOpacity 
                 style={styles.helpButton}
                 onPress={() => setIsHelpModalVisible(true)}
+                activeOpacity={1}
               >
                 <Ionicons name="help-circle-outline" size={23} color={Colors.white} />
               </TouchableOpacity>
@@ -779,6 +787,7 @@ export default function QualificationsScreen() {
                 <TouchableOpacity 
                   style={styles.clearButton}
                   onPress={() => setSearchText('')}
+                  activeOpacity={1}
                 >
                   <Ionicons name="close-circle" size={20} color={Colors.blueDark} />
                 </TouchableOpacity>
@@ -826,6 +835,9 @@ export default function QualificationsScreen() {
       {renderQualificationDrawer()}
       {renderTestModal()}
       {renderHelpModal()}
+      <TouchableOpacity style={styles.fab} activeOpacity={1}>
+        <Ionicons name="add" size={30} color={Colors.white} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -1260,5 +1272,25 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 5,
     marginRight: -8,
+  },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.blueDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1000,
   },
 }); 
