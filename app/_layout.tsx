@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Drawer } from 'expo-router/drawer';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MediaPreviewProvider } from '../contexts/MediaPreviewContext';
 import { MediaPreviewModal } from '../components/MediaPreviewModal';
@@ -14,6 +14,7 @@ import {
   MavenPro_700Bold,
 } from '@expo-google-fonts/maven-pro';
 import Toast from 'react-native-toast-message';
+import { CustomDrawerContent } from '../components/CustomDrawerContent';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -40,15 +41,24 @@ function RootLayoutNav() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Stack
+      <Drawer
         screenOptions={{
           headerShown: false,
-          animation: 'fade',
-          animationDuration: 200,
+          drawerStyle: {
+            backgroundColor: '#fff',
+            width: 280,
+          },
         }}
+        drawerContent={(props) => <CustomDrawerContent {...props} />}
       >
-        <Stack.Screen name="(tabs)" />
-      </Stack>
+        <Drawer.Screen 
+          name="(tabs)"
+          options={{
+            drawerLabel: 'Home',
+            headerShown: false,
+          }}
+        />
+      </Drawer>
       <StatusBar style="auto" />
       {currentMedia && (
         <MediaPreviewModal

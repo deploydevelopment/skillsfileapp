@@ -687,7 +687,7 @@ export default function QualificationsScreen() {
                 Expires in {qual.expires_months} months
               </Text>
               <Text style={styles.qualificationReference}>
-                Reference: {qual.reference}
+                {qual.reference}
               </Text>
             </TouchableOpacity>
           ))}
@@ -893,9 +893,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingTop: 5,
-    paddingBottom: 60,
     paddingHorizontal: 15,
     backgroundColor: 'transparent',
+    paddingBottom: 0,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -949,9 +949,11 @@ const styles = StyleSheet.create({
   qualificationList: {
     flex: 1,
     backgroundColor: 'transparent',
-    borderRadius: 10,
-    paddingHorizontal: 0,
-    paddingVertical: 2,
+    paddingHorizontal: 5,
+    paddingTop: 2,
+    paddingBottom: 0,
+    marginBottom: -35,
+    marginHorizontal: -5,
   },
   qualificationButton: {
     padding: 12,
@@ -959,20 +961,20 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.white,
     borderRadius: 10,
     marginBottom: 10,
-    shadowColor: Colors.black,
+    shadowColor: Colors.blueDark,
     shadowOffset: {
       width: 0,
       height: 1,
     },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 7,
   },
   qualificationButtonText: {
     fontSize: 16,
     color: Colors.blueDark,
     marginBottom: 4,
-    fontFamily: 'MavenPro-SemiBold',
+    fontFamily: 'MavenPro-Medium',
   },
   qualificationSubtext: {
     fontSize: 14,
@@ -982,7 +984,7 @@ const styles = StyleSheet.create({
   },
   qualificationIntro: {
     fontSize: 12,
-    color: Colors.charcoal,
+    color: Colors.blueDark,
     fontStyle: 'italic',
     fontFamily: 'MavenPro-Regular',
   },
@@ -1097,7 +1099,7 @@ const styles = StyleSheet.create({
   },
   helpModalTitle: {
     fontSize: 22,
-    fontFamily: 'MavenPro-SemiBold',
+    fontFamily: 'MavenPro-Mediium',
     color: Colors.blueDark,
   },
   helpModalText: {
@@ -1223,7 +1225,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.blueDark,
     fontFamily: 'MavenPro-Regular',
-    marginTop: 4,
+    textAlign: 'right',
+    position: 'absolute',
+    right: 12,
+    top: 12,
   },
   searchContainer: {
     paddingHorizontal: 15,

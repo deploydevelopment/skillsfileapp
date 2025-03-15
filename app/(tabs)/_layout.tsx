@@ -105,6 +105,7 @@ export default function TabLayout() {
         name="qualifications"
         options={{
           href: null,
+          tabBarStyle: { display: 'none' }
         }}
       />
     </Tabs>
