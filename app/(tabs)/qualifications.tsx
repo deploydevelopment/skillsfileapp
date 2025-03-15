@@ -11,6 +11,7 @@ import { router, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
+import { Colors } from '../../constants/styles';
 
 interface Qualification {
   uid: string;
@@ -147,7 +148,7 @@ export default function QualificationsScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
-  const [activeTab, setActiveTab] = useState('required');
+  const [activeTab, setActiveTab] = useState('achieved');
   const [selectedQual, setSelectedQual] = useState<Qualification | null>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
@@ -623,11 +624,38 @@ export default function QualificationsScreen() {
 
   const renderTabContent = () => {
     if (activeTab === 'achieved') {
+      if (qualifications.length === 0) {
+        return (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No qualifications achieved yet</Text>
+            <Text style={styles.emptyStateSubtext}>Your achieved qualifications will appear here</Text>
+          </View>
+        );
+      }
+
       return (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>No qualifications achieved yet</Text>
-          <Text style={styles.emptyStateSubtext}>Your achieved qualifications will appear here</Text>
-        </View>
+        <ScrollView style={styles.qualificationList}>
+          {qualifications.map((qual, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.qualificationButton,
+                isLoading && styles.buttonDisabled
+              ]}
+              disabled={isLoading}
+            >
+              <Text style={styles.qualificationButtonText}>
+                {qual.name}
+              </Text>
+              <Text style={styles.qualificationSubtext}>
+                Expires in {qual.expires_months} months
+              </Text>
+              <Text style={styles.qualificationReference}>
+                Reference: {qual.reference}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       );
     }
 
@@ -680,14 +708,14 @@ export default function QualificationsScreen() {
                 style={styles.backButton}
                 onPress={() => router.back()}
               >
-                <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+                <Ionicons name="chevron-back" size={20} color={Colors.white} />
               </TouchableOpacity>
               <Text style={styles.headerTitle}>Qualifications</Text>
               <TouchableOpacity 
                 style={styles.helpButton}
                 onPress={() => setIsHelpModalVisible(true)}
               >
-                <Ionicons name="help-circle-outline" size={23} color="#FFFFFF" />
+                <Ionicons name="help-circle-outline" size={23} color={Colors.white} />
               </TouchableOpacity>
             </View>
           </View>
@@ -737,7 +765,7 @@ export default function QualificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#E6F3FF',
+    backgroundColor: Colors.blueLight,
     marginTop: -35,
   },
   backgroundImage: {
@@ -771,7 +799,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 10,
+    paddingHorizontal: 5,
     marginTop: -30,
   },
   backButton: {
@@ -782,7 +810,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontFamily: 'MavenPro-Medium',
-    color: '#FFFFFF',
+    color: Colors.white,
     flex: 1,
     textAlign: 'center',
   },
@@ -799,30 +827,32 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'transparent',
     paddingHorizontal: 20,
-    paddingVertical: 5,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
+    paddingVertical: 10,
     marginTop: -100,
+    gap: 10,
   },
   tabButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    backgroundColor: 'transparent',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.blueDark,
   },
   activeTabButton: {
-    borderBottomColor: '#4A90E2',
+    backgroundColor: Colors.blueDark,
+    borderWidth: 0,
   },
   tabButtonText: {
     fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: '#999999',
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
   },
   activeTabButtonText: {
-    color: '#4A90E2',
+    color: Colors.white,
     fontFamily: 'MavenPro-Medium',
   },
   emptyState: {
@@ -845,32 +875,40 @@ const styles = StyleSheet.create({
   },
   qualificationList: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E5E5EA',
+    paddingHorizontal: 5,
+    paddingVertical: 5,
   },
   qualificationButton: {
     padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-    backgroundColor: 'white',
+    backgroundColor: Colors.white,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: Colors.black,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   qualificationButtonText: {
     fontSize: 16,
-    color: '#000',
+    color: Colors.blueDark,
     marginBottom: 4,
-    fontFamily: 'MavenPro-Bold',
+    fontFamily: 'MavenPro-SemiBold',
   },
   qualificationSubtext: {
     fontSize: 14,
-    color: '#666',
+    color: Colors.blueDark,
     marginBottom: 4,
     fontFamily: 'MavenPro-Regular',
   },
   qualificationIntro: {
     fontSize: 12,
-    color: '#999',
+    color: Colors.charcoal,
     fontStyle: 'italic',
     fontFamily: 'MavenPro-Regular',
   },
@@ -1101,5 +1139,11 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontFamily: 'MavenPro-Medium',
+  },
+  qualificationReference: {
+    fontSize: 12,
+    color: Colors.blueDark,
+    fontFamily: 'MavenPro-Regular',
+    marginTop: 4,
   },
 }); 
