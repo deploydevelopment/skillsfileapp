@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { Drawer } from 'expo-router/drawer';
-import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { MediaPreviewProvider } from '../contexts/MediaPreviewContext';
@@ -8,7 +7,7 @@ import { MediaPreviewModal } from '../components/MediaPreviewModal';
 import { useMediaPreview } from '../contexts/MediaPreviewContext';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { View, Image, TouchableOpacity, Text, Animated } from 'react-native';
+import { View, Image, TouchableOpacity, Text } from 'react-native';
 import { Colors } from '../constants/styles';
 import { 
   useFonts,
@@ -19,7 +18,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import Toast from 'react-native-toast-message';
-import type { StackCardInterpolationProps } from '@react-navigation/stack';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -154,9 +152,7 @@ function RootLayoutNav() {
           drawerStyle: {
             backgroundColor: Colors.blueDark,
             width: 280,
-          },
-          presentation: 'modal',
-          animation: 'slide_from_right',
+          }
         }}
         drawerContent={(props: DrawerContentComponentProps) => <CustomDrawerContent {...props} />}
       >
