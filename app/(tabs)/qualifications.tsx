@@ -10,6 +10,7 @@ import { MediaPreviewModal } from '../../components/MediaPreviewModal';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface Qualification {
   uid: string;
@@ -151,11 +152,12 @@ export default function QualificationsScreen() {
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
   const [activePreview, setActivePreview] = useState<{
     type: 'image' | 'video' | 'audio' | 'pdf';
     uri: string | null;
   } | null>(null);
-  const slideAnim = React.useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -181,6 +183,34 @@ export default function QualificationsScreen() {
       },
     })
   ).current;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Reset animations to initial values
+      fadeAnim.setValue(0);
+      slideAnim.setValue(20);
+      
+      // Start animations
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start();
+
+      return () => {
+        // Optional cleanup
+        fadeAnim.setValue(0);
+        slideAnim.setValue(20);
+      };
+    }, [])
+  );
 
   const showDrawer = (qual: Qualification) => {
     setSelectedQual(qual);
@@ -218,14 +248,6 @@ export default function QualificationsScreen() {
     };
 
     initialize();
-  }, []);
-
-  useEffect(() => {
-    Animated.timing(slideAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
   }, []);
 
   const addQualification = async (qual: Qualification) => {
@@ -648,81 +670,79 @@ export default function QualificationsScreen() {
   };
 
   return (
-    <Animated.View style={{
-      flex: 1,
-      transform: [{
-        translateX: slideAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [300, 0]
-        })
-      }]
-    }}>
-      <SafeAreaView style={[styles.container, { paddingBottom: 0 }]} edges={['left', 'right']}>
-        <Image 
-          source={require('../../assets/images/bg-light.jpg')}
-          style={styles.backgroundImage}
-        />
-        <View style={styles.headerContainer}>
-          <Image 
-            source={require('../../assets/images/bg-gradient.png')}
-            style={styles.headerBackground}
-            resizeMode="cover"
-          />
-          <View style={styles.headerRow}>
+    <View style={styles.container}>
+      <Animated.View 
+        style={[
+          { flex: 1 }, 
+          { 
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        <SafeAreaView style={styles.container}>
+          <View style={styles.headerContainer}>
+            <Image
+              source={require('../../assets/images/bg-gradient.png')}
+              style={styles.headerBackground}
+              resizeMode="cover"
+            />
+            <View style={styles.headerRow}>
+              <TouchableOpacity 
+                style={styles.backButton}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Qualifications</Text>
+              <TouchableOpacity 
+                style={styles.helpButton}
+                onPress={() => setIsHelpModalVisible(true)}
+              >
+                <Ionicons name="help-circle-outline" size={23} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.tabContainer}>
             <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => router.back()}
+              style={[
+                styles.tabButton,
+                activeTab === 'achieved' && styles.activeTabButton
+              ]}
+              onPress={() => setActiveTab('achieved')}
             >
-              <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'achieved' && styles.activeTabButtonText
+              ]}>Achieved</Text>
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Qualifications</Text>
             <TouchableOpacity 
-              style={styles.helpButton}
-              onPress={() => setIsHelpModalVisible(true)}
+              style={[
+                styles.tabButton,
+                activeTab === 'required' && styles.activeTabButton
+              ]}
+              onPress={() => setActiveTab('required')}
             >
-              <Ionicons name="help-circle-outline" size={24} color="#FFFFFF" />
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'required' && styles.activeTabButtonText
+              ]}>Required</Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-        <View style={styles.tabContainer}>
-          <TouchableOpacity 
-            style={[
-              styles.tabButton,
-              activeTab === 'achieved' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('achieved')}
-          >
-            <Text style={[
-              styles.tabButtonText,
-              activeTab === 'achieved' && styles.activeTabButtonText
-            ]}>Achieved</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[
-              styles.tabButton,
-              activeTab === 'required' && styles.activeTabButton
-            ]}
-            onPress={() => setActiveTab('required')}
-          >
-            <Text style={[
-              styles.tabButtonText,
-              activeTab === 'required' && styles.activeTabButtonText
-            ]}>Required</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.content}>
-          {renderTabContent()}
-          {error && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
-        </View>
-        {renderQualificationDrawer()}
-        {renderTestModal()}
-        {renderHelpModal()}
-      </SafeAreaView>
-    </Animated.View>
+          <View style={styles.content}>
+            {renderTabContent()}
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
+          </View>
+        </SafeAreaView>
+      </Animated.View>
+      {renderQualificationDrawer()}
+      {renderTestModal()}
+      {renderHelpModal()}
+    </View>
   );
 }
 
@@ -745,7 +765,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     position: 'relative',
     overflow: 'hidden',
-   
+    height: 120,
   },
   headerBackground: {
     position: 'absolute',
@@ -755,14 +775,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
-    
   },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingTop: 70,
+    paddingTop: 10,
     paddingBottom: 10,
   },
   backButton: {

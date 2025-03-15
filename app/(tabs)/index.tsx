@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
@@ -148,10 +148,30 @@ export default function TabOneScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(20)).current;
 
-  // Initialize database when screen is focused
   useFocusEffect(
     React.useCallback(() => {
+      // Reset animations to initial values
+      fadeAnim.setValue(0);
+      slideAnim.setValue(20);
+      
+      // Start animations
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        })
+      ]).start();
+
+      // Initialize database
       const initialize = async () => {
         try {
           console.log('Initializing database...');
@@ -167,6 +187,12 @@ export default function TabOneScreen() {
       };
 
       initialize();
+
+      return () => {
+        // Optional cleanup
+        fadeAnim.setValue(0);
+        slideAnim.setValue(20);
+      };
     }, [])
   );
 
@@ -269,87 +295,97 @@ export default function TabOneScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
-      <Image 
-        source={require('../../assets/images/bg-light.jpg')}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      />
-      <View style={styles.headerContainer}>
+      <Animated.View 
+        style={[
+          styles.container, 
+          { 
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
         <Image 
-          source={require('../../assets/images/bg-gradient.png')}
-          style={styles.headerBackground}
+          source={require('../../assets/images/bg-light.jpg')}
+          style={styles.backgroundImage}
+          resizeMode="cover"
         />
-        <View style={styles.headerContent}>
+        <View style={styles.headerContainer}>
           <Image 
-            source={require('../../assets/images/logo-white.png')}
-            style={styles.logo}
+            source={require('../../assets/images/bg-gradient.png')}
+            style={styles.headerBackground}
           />
-          <TouchableOpacity 
-            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-            style={styles.menuButton}
-          >
+          <View style={styles.headerContent}>
             <Image 
-              source={require('../../assets/images/avatar.png')}
-              style={styles.avatar}
+              source={require('../../assets/images/logo-white.png')}
+              style={styles.logo}
             />
-          </TouchableOpacity>
+            <TouchableOpacity 
+              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+              style={styles.menuButton}
+            >
+              <Image 
+                source={require('../../assets/images/avatar.png')}
+                style={styles.avatar}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.content}>
-          <View style={styles.iconGrid}>
-            <View style={styles.iconItem}>
-              <Image 
-                source={require('../../assets/images/home-icons/cvs.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.iconText}>CVs</Text>
-            </View>
-            <View style={styles.iconItem}>
-              <Image 
-                source={require('../../assets/images/home-icons/cover-letters.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.iconText}>Cover Letters</Text>
-            </View>
-            <View style={styles.iconItem}>
-              <Image 
-                source={require('../../assets/images/home-icons/experience.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.iconText}>Experience</Text>
-            </View>
-            <View style={styles.iconItem}>
-              <Image 
-                source={require('../../assets/images/home-icons/medicals.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.iconText}>Medicals</Text>
-            </View>
-            <Link href="/(tabs)/qualifications" asChild>
-              <TouchableOpacity style={styles.iconItem}>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.content}>
+            <View style={styles.iconGrid}>
+              <View style={styles.iconItem}>
                 <Image 
-                  source={require('../../assets/images/home-icons/qualifications.png')}
+                  source={require('../../assets/images/home-icons/cvs.png')}
                   style={styles.icon}
                 />
-                <Text style={styles.iconText}>Qualifications</Text>
-              </TouchableOpacity>
-            </Link>
-            <View style={styles.iconItem}>
-              <Image 
-                source={require('../../assets/images/home-icons/testimonials.png')}
-                style={styles.icon}
-              />
-              <Text style={styles.iconText}>Testimonials</Text>
+                <Text style={styles.iconText}>CVs</Text>
+              </View>
+              <View style={styles.iconItem}>
+                <Image 
+                  source={require('../../assets/images/home-icons/cover-letters.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.iconText}>Cover Letters</Text>
+              </View>
+              <View style={styles.iconItem}>
+                <Image 
+                  source={require('../../assets/images/home-icons/experience.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.iconText}>Experience</Text>
+              </View>
+              <View style={styles.iconItem}>
+                <Image 
+                  source={require('../../assets/images/home-icons/medicals.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.iconText}>Medicals</Text>
+              </View>
+              <Link href="/(tabs)/qualifications" asChild>
+                <TouchableOpacity style={styles.iconItem}>
+                  <Image 
+                    source={require('../../assets/images/home-icons/qualifications.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>Qualifications</Text>
+                </TouchableOpacity>
+              </Link>
+              <View style={styles.iconItem}>
+                <Image 
+                  source={require('../../assets/images/home-icons/testimonials.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.iconText}>Testimonials</Text>
+              </View>
             </View>
-          </View>
 
-          {error && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
-        </View>
-      </ScrollView>
+            {error && (
+              <Text style={styles.errorText}>{error}</Text>
+            )}
+          </View>
+        </ScrollView>
+      </Animated.View>
     </SafeAreaView>
   );
 }
