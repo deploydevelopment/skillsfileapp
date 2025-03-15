@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Modal, Animated, Easing, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/styles';
+import { useNavigation, DrawerActions } from '@react-navigation/native';
 
 interface Qualification {
   uid: string;
@@ -143,50 +144,10 @@ const initializeDatabase = () => {
 
 export default function TabOneScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
-
-  useEffect(() => {
-    if (isDrawerOpen) {
-      setIsDrawerVisible(true);
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 250,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 250,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        })
-      ]).start();
-    } else {
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: Dimensions.get('window').width,
-          duration: 250,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 250,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        })
-      ]).start(() => {
-        setIsDrawerVisible(false);
-      });
-    }
-  }, [isDrawerOpen]);
 
   // Initialize database when screen is focused
   useFocusEffect(
@@ -308,190 +269,87 @@ export default function TabOneScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right']}>
-      <Animated.View style={[
-        styles.mainContent,
-        {
-          transform: [{
-            translateX: slideAnim.interpolate({
-              inputRange: [0, Dimensions.get('window').width],
-              outputRange: [-240, 0]
-            })
-          }]
-        }
-      ]}>
-        {isDrawerVisible && (
-          <Animated.View 
-            style={[
-              styles.overlay,
-              {
-                opacity: fadeAnim
-              }
-            ]}
-          >
-            <TouchableOpacity 
-              style={{ width: '100%', height: '100%' }}
-              activeOpacity={1}
-              onPress={() => setIsDrawerOpen(false)}
-            />
-          </Animated.View>
-        )}
+      <Image 
+        source={require('../../assets/images/bg-light.jpg')}
+        style={styles.backgroundImage}
+        resizeMode="cover"
+      />
+      <View style={styles.headerContainer}>
         <Image 
-          source={require('../../assets/images/bg-light.jpg')}
-          style={styles.backgroundImage}
-          resizeMode="cover"
+          source={require('../../assets/images/bg-gradient.png')}
+          style={styles.headerBackground}
         />
-        <View style={styles.headerContainer}>
+        <View style={styles.headerContent}>
           <Image 
-            source={require('../../assets/images/bg-gradient.png')}
-            style={styles.headerBackground}
+            source={require('../../assets/images/logo-white.png')}
+            style={styles.logo}
           />
-          <View style={styles.headerContent}>
+          <TouchableOpacity 
+            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+            style={styles.menuButton}
+          >
             <Image 
-              source={require('../../assets/images/logo-white.png')}
-              style={styles.logo}
+              source={require('../../assets/images/avatar.png')}
+              style={styles.avatar}
             />
-            <TouchableOpacity 
-              onPress={() => setIsDrawerOpen(true)}
-              style={styles.menuButton}
-            >
-              <Image 
-                source={require('../../assets/images/avatar.png')}
-                style={styles.avatar}
-              />
-            </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
+      </View>
 
-        <ScrollView style={styles.scrollView}>
-          <View style={styles.content}>
-            <View style={styles.iconGrid}>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/cvs.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>CVs</Text>
-              </View>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/cover-letters.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Cover Letters</Text>
-              </View>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/experience.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Experience</Text>
-              </View>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/medicals.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Medicals</Text>
-              </View>
-              <Link href="/(tabs)/qualifications" asChild>
-                <TouchableOpacity style={styles.iconItem}>
-                  <Image 
-                    source={require('../../assets/images/home-icons/qualifications.png')}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.iconText}>Qualifications</Text>
-                </TouchableOpacity>
-              </Link>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/testimonials.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Testimonials</Text>
-              </View>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.content}>
+          <View style={styles.iconGrid}>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/cvs.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>CVs</Text>
             </View>
-
-            {error && (
-              <Text style={styles.errorText}>{error}</Text>
-            )}
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/cover-letters.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Cover Letters</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/experience.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Experience</Text>
+            </View>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/medicals.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Medicals</Text>
+            </View>
+            <Link href="/(tabs)/qualifications" asChild>
+              <TouchableOpacity style={styles.iconItem}>
+                <Image 
+                  source={require('../../assets/images/home-icons/qualifications.png')}
+                  style={styles.icon}
+                />
+                <Text style={styles.iconText}>Qualifications</Text>
+              </TouchableOpacity>
+            </Link>
+            <View style={styles.iconItem}>
+              <Image 
+                source={require('../../assets/images/home-icons/testimonials.png')}
+                style={styles.icon}
+              />
+              <Text style={styles.iconText}>Testimonials</Text>
+            </View>
           </View>
-        </ScrollView>
-      </Animated.View>
 
-      {isDrawerVisible && (
-        <Animated.View style={[
-          styles.drawerContent,
-          {
-            transform: [{ translateX: slideAnim }]
-          }
-        ]}>
-          <TouchableOpacity 
-            style={styles.drawerItem}
-            onPress={() => {
-              setIsDrawerOpen(false);
-              // Add profile navigation here
-            }}
-          >
-            <Ionicons name="id-card-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
-            <Text style={styles.drawerItemText}>My Profile</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.drawerItem}
-            onPress={() => {
-              setIsDrawerOpen(false);
-              // Add invite friend functionality here
-            }}
-          >
-            <Ionicons name="people-circle-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
-            <Text style={styles.drawerItemText}>Invite a Friend</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.drawerItem}
-            onPress={() => {
-              setIsDrawerOpen(false);
-              // Add find training navigation here
-            }}
-          >
-            <Ionicons name="rocket-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
-            <Text style={styles.drawerItemText}>Find Training</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={styles.drawerItem}
-            onPress={() => {
-              setIsDrawerOpen(false);
-              // Add about navigation here
-            }}
-          >
-            <Ionicons name="alert-circle-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
-            <Text style={styles.drawerItemText}>About SkillsFile</Text>
-          </TouchableOpacity>
-
-          <Link 
-            href="/(tabs)/table" 
-            asChild
-            onPress={() => setIsDrawerOpen(false)}
-          >
-            <TouchableOpacity style={styles.drawerItem}>
-              <Ionicons name="bug" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
-              <Text style={styles.drawerItemText}>View Storage</Text>
-            </TouchableOpacity>
-          </Link>
-
-          <TouchableOpacity 
-            style={styles.drawerItem}
-            onPress={() => {
-              setIsDrawerOpen(false);
-              // Add logout functionality here
-            }}
-          >
-            <Ionicons name="log-out-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
-            <Text style={styles.drawerItemText}>Log Out</Text>
-          </TouchableOpacity>
-        </Animated.View>
-      )}
+          {error && (
+            <Text style={styles.errorText}>{error}</Text>
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -590,43 +448,5 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     zIndex: 1,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 2,
-  },
-  drawerContent: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    width: 280,
-    backgroundColor: Colors.blueDark,
-    padding: 20,
-    paddingTop: 60,
-  },
-  drawerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  drawerItemIcon: {
-    marginRight: 15,
-  },
-  drawerItemText: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: '#FFFFFF',
-  },
-  mainContent: {
-    flex: 1,
-    backgroundColor: '#E6F3FF',
   },
 });
