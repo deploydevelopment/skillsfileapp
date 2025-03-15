@@ -4,10 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
-import { MediaPreviewTest } from '../../components/MediaPreviewTest';
-import { useMediaPreview } from '../../contexts/MediaPreviewContext';
-import { Asset } from 'expo-asset';
-import * as FileSystem from 'expo-file-system';
+import * as Progress from 'react-native-progress';
+import { useProgressBar } from './_layout';
 
 interface Qualification {
   uid: string;
@@ -144,8 +142,8 @@ const initializeDatabase = () => {
 };
 
 export default function TabOneScreen() {
-  const { showPreview } = useMediaPreview();
   const router = useRouter();
+  const { showProgressBar } = useProgressBar();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
@@ -292,95 +290,6 @@ export default function TabOneScreen() {
     }
   };
 
-  const handlePreview = async (type: 'image' | 'video' | 'audio' | 'pdf') => {
-    try {
-      const testMedia = {
-        image: require('../../assets/test_media/img1.jpg'),
-        video: require('../../assets/test_media/vid1.mp4'),
-        audio: require('../../assets/test_media/test.mp3'),
-        pdf: require('../../assets/test_media/Example PDF.pdf'),
-      };
-
-      const asset = Asset.fromModule(testMedia[type]);
-      await asset.downloadAsync();
-      
-      if (!asset.localUri) {
-        console.error('Failed to load media: localUri is null');
-        return;
-      }
-
-      const localUri = asset.localUri; // Store in a const to preserve the type assertion
-
-      if (type === 'pdf') {
-        const fileName = 'Example PDF.pdf';
-        const destination = `${FileSystem.cacheDirectory}${fileName}`;
-        await FileSystem.copyAsync({
-          from: localUri,
-          to: destination
-        });
-        // First close drawer with animation
-        Animated.timing(slideAnim, {
-          toValue: Dimensions.get('window').width,
-          duration: 250,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        }).start(() => {
-          setIsDrawerVisible(false);
-          setIsDrawerOpen(false);
-          // Then show preview after drawer is closed
-          showPreview(destination, type);
-        });
-      } else {
-        // First close drawer with animation
-        Animated.timing(slideAnim, {
-          toValue: Dimensions.get('window').width,
-          duration: 250,
-          easing: Easing.bezier(0.4, 0, 0.2, 1),
-          useNativeDriver: true,
-        }).start(() => {
-          setIsDrawerVisible(false);
-          setIsDrawerOpen(false);
-          // Then show preview after drawer is closed
-          showPreview(localUri, type);
-        });
-      }
-    } catch (error) {
-      console.error('Error loading media:', error);
-    }
-  };
-
-  const renderPreviewButtons = () => (
-    <View style={styles.previewButtons}>
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('image')}
-      >
-        <Text style={styles.previewButtonText}>Image</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('video')}
-      >
-        <Text style={styles.previewButtonText}>Video</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('audio')}
-      >
-        <Text style={styles.previewButtonText}>Audio</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('pdf')}
-      >
-        <Text style={styles.previewButtonText}>PDF</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <Image 
@@ -457,10 +366,6 @@ export default function TabOneScreen() {
             <TouchableOpacity style={styles.drawerItem}>
               <Text style={styles.drawerItemText}>About</Text>
             </TouchableOpacity>
-            <View style={styles.previewContainer}>
-              <Text style={styles.previewTitle}>Preview Files</Text>
-              {renderPreviewButtons()}
-            </View>
           </Animated.View>
         </View>
       </Modal>
@@ -519,8 +424,6 @@ export default function TabOneScreen() {
           )}
         </View>
       </ScrollView>
-
-      {!isLoading && <MediaPreviewTest />}
     </SafeAreaView>
   );
 }
@@ -675,39 +578,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
     color: '#ffffff',
-  },
-  previewContainer: {
-    marginTop: 20,
-    marginBottom: 20,
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  previewTitle: {
-    fontSize: 18,
-    fontFamily: 'MavenPro-Medium',
-    color: '#ffffff',
-    marginBottom: 15,
-  },
-  previewButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-    marginBottom: 20,
-    flexWrap: 'wrap',
-  },
-  previewButton: {
-    flex: 1,
-    minWidth: '45%',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    padding: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  previewButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'MavenPro-Medium',
   },
 });

@@ -7,6 +7,8 @@ import { useMediaPreview } from '../../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { MediaPreviewModal } from '../../components/MediaPreviewModal';
+import { useProgressBar } from './_layout';
+import { router } from 'expo-router';
 
 interface Qualification {
   uid: string;
@@ -138,6 +140,7 @@ const initializeDatabase = () => {
 
 export default function QualificationsScreen() {
   const { showPreview } = useMediaPreview();
+  const { setShowProgressBar } = useProgressBar();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
@@ -171,6 +174,11 @@ export default function QualificationsScreen() {
       setSelectedQual(null);
     });
   };
+
+  useEffect(() => {
+    setShowProgressBar(false);
+    return () => setShowProgressBar(true);
+  }, []);
 
   useEffect(() => {
     const initialize = async () => {
@@ -214,7 +222,8 @@ export default function QualificationsScreen() {
       const creatorUid = userResult[0].uid;
       console.log('Creator UID:', creatorUid);
       
-      const insertSQL = `
+      // Add to skillsfile table
+      const insertSkillsFileSQL = `
         INSERT INTO skillsfile (
           uid, name, expires_months, created, creator, updated, updator
         ) VALUES (
@@ -227,10 +236,29 @@ export default function QualificationsScreen() {
           ''
         )
       `;
-      console.log('Insert SQL:', insertSQL);
-      
-      db.execSync(insertSQL);
-      console.log('Qualification added successfully');
+      console.log('Insert SkillsFile SQL:', insertSkillsFileSQL);
+      db.execSync(insertSkillsFileSQL);
+
+      // Add to quals_req table
+      const insertQualsReqSQL = `
+        INSERT INTO quals_req (
+          uid, name, intro, requested_by, expires_months, created, creator, updated, updator
+        ) VALUES (
+          '${uid}',
+          '${qual.name}',
+          '${qual.intro}',
+          '${qual.requested_by}',
+          ${qual.expires_months},
+          '${formatToSQLDateTime(now)}',
+          '${creatorUid}',
+          '',
+          ''
+        )
+      `;
+      console.log('Insert QualsReq SQL:', insertQualsReqSQL);
+      db.execSync(insertQualsReqSQL);
+
+      console.log('Qualification added successfully to both tables');
       await loadRecords(); // Reload records after adding
     } catch (err) {
       console.error('Error adding qualification:', err);
@@ -447,7 +475,15 @@ export default function QualificationsScreen() {
             ]}
           >
             <View style={styles.drawerHeader}>
-              <View style={styles.drawerHandle} />
+              <TouchableOpacity 
+                style={styles.addToAchievedButton}
+                onPress={() => {
+                  addQualification(selectedQual);
+                  hideDrawer();
+                }}
+              >
+                <Text style={styles.addToAchievedText}>Add to achieved</Text>
+              </TouchableOpacity>
               <TouchableOpacity 
                 style={styles.closeButton}
                 onPress={hideDrawer}
@@ -524,12 +560,18 @@ export default function QualificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={[styles.container, { paddingBottom: 0 }]} edges={['left', 'right', 'top']}>
       <Image 
         source={require('../../assets/images/bg-light.jpg')}
         style={styles.backgroundImage}
       />
       <View style={styles.headerContainer}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Qualifications</Text>
       </View>
 
@@ -592,6 +634,19 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     backgroundColor: 'transparent',
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    padding: 10,
+  },
+  backButtonText: {
+    fontSize: 24,
+    color: '#0A1929',
+    fontFamily: 'MavenPro-Medium',
   },
   headerTitle: {
     fontSize: 24,
@@ -605,27 +660,30 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#0A1929',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
-    paddingBottom: 15,
+    paddingVertical: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
   activeTabButton: {
-    borderBottomColor: '#ffffff',
+    borderBottomColor: '#4A90E2',
   },
   tabButtonText: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: '#666666',
+    color: '#999999',
   },
   activeTabButtonText: {
-    color: '#ffffff',
+    color: '#4A90E2',
+    fontFamily: 'MavenPro-Medium',
   },
   emptyState: {
     flex: 1,
@@ -717,6 +775,17 @@ const styles = StyleSheet.create({
   closeButtonText: {
     color: '#0A1929',
     fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
+  addToAchievedButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
+  },
+  addToAchievedText: {
+    color: 'white',
+    fontSize: 14,
     fontFamily: 'MavenPro-Medium',
   },
   drawerHandle: {
