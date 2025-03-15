@@ -15,6 +15,18 @@ interface BaseRecord {
   [key: string]: string | number | undefined;
 }
 
+interface SampleQualification {
+  uid: string;
+  name: string;
+  parent_uid: string;
+  reference: string;
+  expires_months: number;
+  created: string;
+  creator: string;
+  updated: string;
+  updator: string;
+}
+
 interface SkillsFileRecord extends BaseRecord {
   name: string;
   expires_months: number;
@@ -165,6 +177,46 @@ export default function TableScreen() {
                     'mriley'
                   );
                 `);
+              }
+              
+              // If skillsfile table was cleared, load sample qualifications
+              if (selectedTable === 'skillsfile') {
+                try {
+                  const sampleQuals: { qualifications: SampleQualification[] } = require('../../api/sample_qualifications.json');
+                  const now = formatToSQLDateTime(new Date());
+                  
+                  // Get the first user's UID to use as creator
+                  const userResult = db.getAllSync<{ uid: string }>(
+                    'SELECT uid FROM users LIMIT 1'
+                  );
+                  
+                  if (userResult.length === 0) {
+                    throw new Error('No users found in database');
+                  }
+                  
+                  const creatorUid = userResult[0].uid;
+                  
+                  sampleQuals.qualifications.forEach((qual: SampleQualification) => {
+                    db.execSync(`
+                      INSERT INTO skillsfile (
+                        uid, name, expires_months, created, creator, updated, updator,
+                        parent_uid, reference
+                      ) VALUES (
+                        '${qual.uid}',
+                        '${qual.name}',
+                        ${qual.expires_months},
+                        '${now}',
+                        '${creatorUid}',
+                        '',
+                        '',
+                        '${qual.parent_uid}',
+                        '${qual.reference}'
+                      )
+                    `);
+                  });
+                } catch (error) {
+                  console.error('Error loading sample qualifications:', error);
+                }
               }
               
               loadRecords();
