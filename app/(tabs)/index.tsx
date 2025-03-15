@@ -18,6 +18,8 @@ interface Qualification {
   creator: string;
   updated: string;
   updator: string;
+  parent_uid?: string;
+  reference?: string;
 }
 
 const db = SQLite.openDatabaseSync('timestamps.db');
@@ -63,7 +65,9 @@ const initializeDatabase = () => {
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
           updated TEXT,
-          updator TEXT
+          updator TEXT,
+          parent_uid TEXT(36),
+          reference TEXT(50)
         );
 
         CREATE TABLE users (
@@ -126,6 +130,27 @@ const initializeDatabase = () => {
       `);
       console.log('Tables created and initial data inserted successfully');
     } else {
+      console.log('Tables already exist, checking for new columns...');
+      
+      // Check if the new columns exist
+      const columns = db.getAllSync<{ name: string }>(
+        "PRAGMA table_info(skillsfile)"
+      );
+      
+      const columnNames = columns.map(col => col.name);
+      
+      // Add parent_uid column if it doesn't exist
+      if (!columnNames.includes('parent_uid')) {
+        console.log('Adding parent_uid column...');
+        db.execSync('ALTER TABLE skillsfile ADD COLUMN parent_uid TEXT(36)');
+      }
+      
+      // Add reference column if it doesn't exist
+      if (!columnNames.includes('reference')) {
+        console.log('Adding reference column...');
+        db.execSync('ALTER TABLE skillsfile ADD COLUMN reference TEXT(50)');
+      }
+      
       console.log('Tables already exist, skipping initialization');
     }
 

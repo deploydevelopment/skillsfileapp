@@ -22,6 +22,8 @@ interface Qualification {
   creator: string;
   updated: string;
   updator: string;
+  parent_uid?: string;
+  reference?: string;
 }
 
 const db = SQLite.openDatabaseSync('timestamps.db');
@@ -263,7 +265,8 @@ export default function QualificationsScreen() {
       // Add to skillsfile table
       const insertSkillsFileSQL = `
         INSERT INTO skillsfile (
-          uid, name, expires_months, created, creator, updated, updator
+          uid, name, expires_months, created, creator, updated, updator,
+          parent_uid, reference
         ) VALUES (
           '${uid}',
           '${qual.name}',
@@ -271,7 +274,9 @@ export default function QualificationsScreen() {
           '${formatToSQLDateTime(now)}',
           '${creatorUid}',
           '',
-          ''
+          '',
+          '${qual.uid}',
+          'REF-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}'
         )
       `;
       

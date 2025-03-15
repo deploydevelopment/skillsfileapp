@@ -12,12 +12,14 @@ interface BaseRecord {
   creator: string;
   updated: string;
   updator: string;
-  [key: string]: string | number;
+  [key: string]: string | number | undefined;
 }
 
 interface SkillsFileRecord extends BaseRecord {
   name: string;
   expires_months: number;
+  parent_uid?: string;
+  reference?: string;
 }
 
 interface UserRecord extends BaseRecord {
@@ -54,6 +56,13 @@ const generateUID = () => {
     const random = Math.random() * 16 | 0;
     return random.toString(16);
   }).join('');
+};
+
+const truncateUID = (uid: string | number | undefined) => {
+  if (typeof uid === 'number') {
+    return uid.toString();
+  }
+  return uid ? `${uid.slice(0, 7)}...` : 'NULL';
 };
 
 export default function TableScreen() {
@@ -202,6 +211,12 @@ export default function TableScreen() {
             <Text style={styles.headerCellText}>name {getSortDirection('name')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
+            style={[styles.headerCell, styles.referenceCell]} 
+            onPress={() => requestSort('reference')}
+          >
+            <Text style={styles.headerCellText}>reference {getSortDirection('reference')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={[styles.headerCell, styles.skillsFileCell]} 
             onPress={() => requestSort('expires_months')}
           >
@@ -230,6 +245,12 @@ export default function TableScreen() {
             onPress={() => requestSort('updator')}
           >
             <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.uidCell]} 
+            onPress={() => requestSort('parent_uid')}
+          >
+            <Text style={styles.headerCellText}>parent_uid {getSortDirection('parent_uid')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -365,42 +386,44 @@ export default function TableScreen() {
       return (
         <View key={record.id} style={styles.tableRow}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.uid}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
+          <Text style={[styles.cell, styles.referenceCell]}>{record.reference || 'NULL'}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.expires_months}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.creator}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.updator || 'NULL'}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.parent_uid)}</Text>
         </View>
       );
     } else if (selectedTable === 'users' && 'first_name' in record) {
       return (
         <View key={record.id} style={styles.tableRow}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.uid}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.first_name}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.last_name}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{record.username}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.creator}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.updator || 'NULL'}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
         </View>
       );
     } else if (selectedTable === 'quals_req' && 'name' in record) {
       return (
         <View key={record.id} style={styles.tableRow}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.uid}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.intro}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.requested_by}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.expires_months}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.creator}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.updator || 'NULL'}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
         </View>
       );
     }
@@ -421,19 +444,20 @@ export default function TableScreen() {
             style={[styles.tabButton, selectedTable === 'skillsfile' && styles.activeTabButton]}
             onPress={() => setSelectedTable('skillsfile')}
           >
-            <Text style={[styles.tabButtonText, selectedTable === 'skillsfile' && styles.activeTabButtonText]}>Skills</Text>
+            <Text style={[styles.tabButtonText, selectedTable === 'skillsfile' && styles.activeTabButtonText]}>Qualifications</Text>
+          </TouchableOpacity>
+         
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTable === 'quals_req' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('quals_req')}
+          >
+            <Text style={[styles.tabButtonText, selectedTable === 'quals_req' && styles.activeTabButtonText]}>Req. Quals</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tabButton, selectedTable === 'users' && styles.activeTabButton]}
             onPress={() => setSelectedTable('users')}
           >
             <Text style={[styles.tabButtonText, selectedTable === 'users' && styles.activeTabButtonText]}>Users</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tabButton, selectedTable === 'quals_req' && styles.activeTabButton]}
-            onPress={() => setSelectedTable('quals_req')}
-          >
-            <Text style={[styles.tabButtonText, selectedTable === 'quals_req' && styles.activeTabButtonText]}>Required Qualifications</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -494,25 +518,23 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 0,
   },
   tabContainer: {
     flexDirection: 'row',
-    padding: 15,
+    padding: 3,
     backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
     alignItems: 'center',
   },
   tabButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 5,
     backgroundColor: '#E5E5EA',
     marginRight: 10,
   },
   activeTabButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#000000',
   },
   tabButtonText: {
     color: '#000',
@@ -521,18 +543,18 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   header: {
-    padding: 20,
+    padding: 10,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
   },
   title: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 13,
     color: '#666',
     marginTop: 5,
   },
@@ -544,8 +566,8 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
+    paddingVertical: 4,
+    paddingHorizontal: 5,
     backgroundColor: '#000',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
@@ -563,10 +585,14 @@ const styles = StyleSheet.create({
   },
   tableRow: {
     flexDirection: 'row',
-    padding: 15,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginBottom: 0,
+    paddingHorizontal: 5,
     backgroundColor: 'white',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
+    alignItems: 'center',
   },
   cell: {
     fontSize: 12,
@@ -624,5 +650,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'MavenPro-Regular',
     color: Colors.charcoal,
+  },
+  referenceCell: {
+    width: 120,
   },
 }); 
