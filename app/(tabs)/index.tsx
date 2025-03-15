@@ -107,7 +107,7 @@ const initializeDatabase = () => {
           '',
           'Matt',
           'Riley',
-          'mriley'
+          'hugosebriley'
         );
 
         -- Insert required qualifications from JSON
@@ -357,15 +357,18 @@ export default function TabOneScreen() {
               source={require('../../assets/images/logo-white.png')}
               style={styles.logo}
             />
-            <TouchableOpacity 
-              onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-              style={styles.menuButton}
-            >
-              <Image 
-                source={require('../../assets/images/avatar.png')}
-                style={styles.avatar}
-              />
-            </TouchableOpacity>
+            <View style={styles.menuButtonContainer}>
+              <Text style={styles.headerName}>Sebastian</Text>
+              <TouchableOpacity 
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+                style={styles.menuButton}
+              >
+                <Image 
+                  source={require('../../assets/images/avatar.png')}
+                  style={styles.avatar}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
 
@@ -437,13 +440,13 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     position: 'absolute',
-    top: 0,
+    top: 115,
     left: 0,
     right: 0,
     bottom: 0,
     width: '100%',
-    height: '100%',
-    opacity: 0.5,
+    height: '80%',
+    opacity: 1,
     zIndex: 0,
   },
   headerContainer: {
@@ -467,7 +470,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingLeft: 15,
+    paddingRight: 10,
     paddingTop: 30,
     paddingBottom: 15,
   },
@@ -476,12 +480,22 @@ const styles = StyleSheet.create({
     height: 36,
     resizeMode: 'contain',
   },
+  menuButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  headerName: {
+    color: Colors.white,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
   menuButton: {
     padding: 5,
   },
   avatar: {
-    width: 29,
-    height: 29,
+    width: 26,
+    height: 26,
     borderRadius: 15,
   },
   content: {

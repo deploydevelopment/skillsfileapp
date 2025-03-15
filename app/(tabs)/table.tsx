@@ -174,7 +174,7 @@ export default function TableScreen() {
                     '',
                     'Matt',
                     'Riley',
-                    'mriley'
+                    'hugosebriley'
                   );
                 `);
               }

@@ -13,8 +13,8 @@ export function CustomDrawerContent(props: any) {
           source={require('../assets/images/avatar.png')}
           style={styles.avatar}
         />
-        <Text style={styles.userName}>Matt Riley</Text>
-        <Text style={styles.userEmail}>@mriley</Text>
+        <Text style={styles.userName}>Sebastian Riley</Text>
+        <Text style={styles.userEmail}>@hugosebriley</Text>
       </View>
       
       <View style={styles.drawerContent}>

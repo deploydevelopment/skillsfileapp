@@ -110,7 +110,7 @@ const initializeDatabase = () => {
           '',
           'Matt',
           'Riley',
-          'mriley'
+          'hugosebriley'
         );
 
         -- Insert required qualifications from JSON
@@ -840,13 +840,14 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     position: 'absolute',
-    top: 0,
+    top: 115,
     left: 0,
     right: 0,
     bottom: 0,
     width: '100%',
-    height: '100%',
+    height: '90%',
     opacity: 1,
+    zIndex: 0,
   },
   headerContainer: {
     backgroundColor: 'transparent',
