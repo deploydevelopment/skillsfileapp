@@ -3,7 +3,6 @@ import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useMediaPreview } from '../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
-import * as Progress from 'react-native-progress';
 import { Colors, Typography } from '../constants/styles';
 
 // Dynamic imports for test media
@@ -76,20 +75,6 @@ export const MediaPreviewTest: React.FC = () => {
           <Text style={styles.buttonText}>PDF</Text>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.progressContainer}>
-        <Text style={styles.progressText}>Nothing to upload</Text>
-        <Progress.Bar 
-          progress={0} 
-          width={null} 
-          height={8}
-          color={Colors.blueMid}
-          unfilledColor={Colors.grayLight}
-          borderWidth={0}
-          borderRadius={4}
-          style={styles.progressBar}
-        />
-      </View>
     </View>
   );
 };
@@ -115,17 +100,5 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 16,
     fontFamily: 'MavenPro-Medium',
-  },
-  progressContainer: {
-    width: '100%',
-  },
-  progressText: {
-    fontSize: 14,
-    color: Colors.charcoal,
-    fontFamily: 'MavenPro-Regular',
-    marginBottom: 8,
-  },
-  progressBar: {
-    width: '100%',
-  },
+  }
 }); 

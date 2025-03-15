@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
@@ -7,7 +7,6 @@ import { useMediaPreview } from '../../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { MediaPreviewModal } from '../../components/MediaPreviewModal';
-import { useProgressBar } from './_layout';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -141,7 +140,6 @@ const initializeDatabase = () => {
 
 export default function QualificationsScreen() {
   const { showPreview } = useMediaPreview();
-  const { setShowProgressBar } = useProgressBar();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
@@ -157,6 +155,31 @@ export default function QualificationsScreen() {
     uri: string | null;
   } | null>(null);
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return gestureState.dy > 0;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (gestureState.dy > 0) {
+          const newValue = 1 - (gestureState.dy / (Dimensions.get('window').height * 0.67));
+          drawerAnimation.setValue(Math.max(0, Math.min(1, newValue)));
+        }
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        if (gestureState.dy > 50) {
+          hideDrawer();
+        } else {
+          Animated.spring(drawerAnimation, {
+            toValue: 1,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   const showDrawer = (qual: Qualification) => {
     setSelectedQual(qual);
     lastQualRef.current = qual;
@@ -168,19 +191,14 @@ export default function QualificationsScreen() {
   };
 
   const hideDrawer = () => {
+    setIsDrawerVisible(false);
     Animated.spring(drawerAnimation, {
       toValue: 0,
       useNativeDriver: true,
-    }).start(() => {
-      setIsDrawerVisible(false);
-      setSelectedQual(null);
-    });
+      damping: 25,
+      stiffness: 300,
+    }).start();
   };
-
-  useEffect(() => {
-    setShowProgressBar(false);
-    return () => setShowProgressBar(true);
-  }, []);
 
   useEffect(() => {
     const initialize = async () => {
@@ -480,7 +498,12 @@ export default function QualificationsScreen() {
 
     const translateY = drawerAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [Dimensions.get('window').height, 0],
+      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.33],
+    });
+
+    const overlayOpacity = drawerAnimation.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: [0, 1, 1],
     });
 
     return (
@@ -491,60 +514,69 @@ export default function QualificationsScreen() {
         onRequestClose={hideDrawer}
         statusBarTranslucent
       >
-        <View style={styles.modalOverlay}>
-          <Animated.View 
-            style={[
-              styles.drawer,
-              {
-                transform: [{ translateY }],
-                zIndex: 2,
-              },
-            ]}
+        <Animated.View 
+          style={[
+            styles.modalOverlay,
+            {
+              opacity: overlayOpacity,
+            }
+          ]}
+        >
+          <TouchableOpacity 
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={hideDrawer}
           >
-            <View style={styles.drawerHeader}>
-              <TouchableOpacity 
-                style={styles.addToAchievedButton}
-                onPress={() => {
-                  addQualification(selectedQual);
-                  hideDrawer();
-                }}
-              >
-                <Text style={styles.addToAchievedText}>Add to achieved</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.closeButton}
-                onPress={hideDrawer}
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.drawerContent}>
-              <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
-              <Text style={styles.drawerSubtitle}>
-                Requested by {selectedQual.requested_by}
-              </Text>
-              <Text style={styles.drawerExpiry}>
-                Expires in {selectedQual.expires_months} months
-              </Text>
-              <Text style={styles.drawerDescription}>
-                {selectedQual.intro}
-              </Text>
-              <View style={styles.previewContainer}>
-                <Text style={styles.previewTitle}>Preview Files</Text>
-                {renderPreviewButtons()}
+            <Animated.View 
+              style={[
+                styles.drawer,
+                {
+                  transform: [{ translateY }],
+                  zIndex: 2,
+                  height: Dimensions.get('window').height * 0.67,
+                  borderTopLeftRadius: 15,
+                  borderTopRightRadius: 15,
+                },
+              ]}
+            >
+              <View {...panResponder.panHandlers}>
+                <View style={styles.drawerHeader}>
+                  <View style={styles.drawerHandle} />
+                </View>
               </View>
               <TouchableOpacity 
-                style={styles.addButton}
-                onPress={() => {
-                  addQualification(selectedQual);
-                  hideDrawer();
-                }}
+                activeOpacity={1} 
+                style={{ flex: 1 }}
+                onPress={() => {}}
               >
-                <Text style={styles.addButtonText}>Add Qualification</Text>
+                <ScrollView style={styles.drawerContent}>
+                  <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
+                  <Text style={styles.drawerSubtitle}>
+                    Requested by {selectedQual.requested_by}
+                  </Text>
+                  <Text style={styles.drawerExpiry}>
+                    Expires in {selectedQual.expires_months} months
+                  </Text>
+                  <Text style={styles.drawerDescription}>
+                    {selectedQual.intro}
+                  </Text>
+                  <View style={styles.previewContainer}>
+                    {renderPreviewButtons()}
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.addButton}
+                    onPress={() => {
+                      addQualification(selectedQual);
+                      hideDrawer();
+                    }}
+                  >
+                    <Text style={styles.addButtonText}>Add Qualification</Text>
+                  </TouchableOpacity>
+                </ScrollView>
               </TouchableOpacity>
-            </ScrollView>
-          </Animated.View>
-        </View>
+            </Animated.View>
+          </TouchableOpacity>
+        </Animated.View>
       </Modal>
     );
   };
@@ -819,40 +851,106 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-  },
-  closeButton: {
-    padding: 10,
-  },
-  closeButtonText: {
-    color: '#0A1929',
-    fontSize: 16,
-    fontFamily: 'MavenPro-Medium',
-  },
-  addToAchievedButton: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  addToAchievedText: {
-    color: 'white',
-    fontSize: 14,
-    fontFamily: 'MavenPro-Medium',
+    paddingVertical: 15,
   },
   drawerHandle: {
     width: 40,
     height: 4,
     backgroundColor: '#E5E5EA',
     borderRadius: 2,
-    alignSelf: 'center',
+  },
+  drawerContent: {
+    padding: 20,
+  },
+  drawerTitle: {
+    fontSize: 24,
+    fontFamily: 'MavenPro-Medium',
+    color: '#0A1929',
+    marginBottom: 15,
+  },
+  drawerSubtitle: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+    marginBottom: 5,
+  },
+  drawerExpiry: {
+    fontSize: 14,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+    marginBottom: 15,
+  },
+  drawerDescription: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#333333',
+    marginBottom: 30,
+    lineHeight: 24,
+  },
+  fullscreenPreview: {
+    flex: 1,
+    backgroundColor: 'black',
+    position: 'relative',
+  },
+  fullscreenPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  previewCloseButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  previewCloseButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontFamily: 'MavenPro-Medium',
+  },
+  helpModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  helpModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  helpModalTitle: {
+    fontSize: 24,
+    fontFamily: 'MavenPro-Bold',
+    color: '#0A1929',
+    marginBottom: 15,
+  },
+  helpModalText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  helpModalButton: {
+    backgroundColor: '#4A90E2',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  helpModalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
   },
   previewContainer: {
     marginTop: 20,
@@ -951,98 +1049,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   addButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontFamily: 'MavenPro-Medium',
-  },
-  drawerContent: {
-    padding: 10,
-  },
-  drawerTitle: {
-    fontSize: 24,
-    fontFamily: 'MavenPro-Medium',
-    color: '#0A1929',
-    marginBottom: 10,
-  },
-  drawerSubtitle: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: '#666666',
-    marginBottom: 5,
-  },
-  drawerExpiry: {
-    fontSize: 14,
-    fontFamily: 'MavenPro-Regular',
-    color: '#666666',
-    marginBottom: 15,
-  },
-  drawerDescription: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: '#333333',
-    marginBottom: 30,
-    lineHeight: 24,
-  },
-  fullscreenPreview: {
-    flex: 1,
-    backgroundColor: 'black',
-    position: 'relative',
-  },
-  fullscreenPreviewImage: {
-    width: '100%',
-    height: '100%',
-  },
-  previewCloseButton: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  previewCloseButtonText: {
-    color: 'white',
-    fontSize: 20,
-    fontFamily: 'MavenPro-Medium',
-  },
-  helpModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  helpModalContent: {
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 20,
-    width: '90%',
-    maxWidth: 400,
-  },
-  helpModalTitle: {
-    fontSize: 24,
-    fontFamily: 'MavenPro-Bold',
-    color: '#0A1929',
-    marginBottom: 15,
-  },
-  helpModalText: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: '#666666',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-  helpModalButton: {
-    backgroundColor: '#4A90E2',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  helpModalButtonText: {
     color: 'white',
     fontSize: 16,
     fontFamily: 'MavenPro-Medium',

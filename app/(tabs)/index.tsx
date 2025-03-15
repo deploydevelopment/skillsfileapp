@@ -4,9 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
-import * as Progress from 'react-native-progress';
-import { useProgressBar } from './_layout';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Colors } from '../../constants/styles';
 
 interface Qualification {
   uid: string;
@@ -144,30 +143,46 @@ const initializeDatabase = () => {
 
 export default function TabOneScreen() {
   const router = useRouter();
-  const { showProgressBar } = useProgressBar();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const slideAnim = useRef(new Animated.Value(Dimensions.get('window').width)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
 
   useEffect(() => {
     if (isDrawerOpen) {
       setIsDrawerVisible(true);
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 250,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: 0,
+          duration: 250,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 250,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        })
+      ]).start();
     } else {
-      Animated.timing(slideAnim, {
-        toValue: Dimensions.get('window').width,
-        duration: 250,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-        useNativeDriver: true,
-      }).start(() => {
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: Dimensions.get('window').width,
+          duration: 250,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 250,
+          easing: Easing.bezier(0.4, 0, 0.2, 1),
+          useNativeDriver: true,
+        })
+      ]).start(() => {
         setIsDrawerVisible(false);
       });
     }
@@ -292,7 +307,7 @@ export default function TabOneScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.container} edges={['left', 'right']}>
       <Animated.View style={[
         styles.mainContent,
         {
@@ -304,6 +319,22 @@ export default function TabOneScreen() {
           }]
         }
       ]}>
+        {isDrawerVisible && (
+          <Animated.View 
+            style={[
+              styles.overlay,
+              {
+                opacity: fadeAnim
+              }
+            ]}
+          >
+            <TouchableOpacity 
+              style={{ width: '100%', height: '100%' }}
+              activeOpacity={1}
+              onPress={() => setIsDrawerOpen(false)}
+            />
+          </Animated.View>
+        )}
         <Image 
           source={require('../../assets/images/bg-light.jpg')}
           style={styles.backgroundImage}
@@ -394,44 +425,68 @@ export default function TabOneScreen() {
             transform: [{ translateX: slideAnim }]
           }
         ]}>
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Menu</Text>
-            <TouchableOpacity 
-              onPress={() => setIsDrawerOpen(false)}
-              style={styles.closeButton}
-            >
-              <Text style={styles.closeButtonText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.drawerItem}>
+          <TouchableOpacity 
+            style={styles.drawerItem}
+            onPress={() => {
+              setIsDrawerOpen(false);
+              // Add profile navigation here
+            }}
+          >
             <Ionicons name="id-card-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
             <Text style={styles.drawerItemText}>My Profile</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.drawerItem}>
+          <TouchableOpacity 
+            style={styles.drawerItem}
+            onPress={() => {
+              setIsDrawerOpen(false);
+              // Add invite friend functionality here
+            }}
+          >
             <Ionicons name="people-circle-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
             <Text style={styles.drawerItemText}>Invite a Friend</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.drawerItem}>
+          <TouchableOpacity 
+            style={styles.drawerItem}
+            onPress={() => {
+              setIsDrawerOpen(false);
+              // Add find training navigation here
+            }}
+          >
             <Ionicons name="rocket-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
             <Text style={styles.drawerItemText}>Find Training</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.drawerItem}>
+          <TouchableOpacity 
+            style={styles.drawerItem}
+            onPress={() => {
+              setIsDrawerOpen(false);
+              // Add about navigation here
+            }}
+          >
             <Ionicons name="alert-circle-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
             <Text style={styles.drawerItemText}>About SkillsFile</Text>
           </TouchableOpacity>
 
-          <Link href="/(tabs)/table" asChild>
+          <Link 
+            href="/(tabs)/table" 
+            asChild
+            onPress={() => setIsDrawerOpen(false)}
+          >
             <TouchableOpacity style={styles.drawerItem}>
               <Ionicons name="bug" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
               <Text style={styles.drawerItemText}>View Storage</Text>
             </TouchableOpacity>
           </Link>
 
-          <TouchableOpacity style={[styles.drawerItem, styles.logoutItem]}>
+          <TouchableOpacity 
+            style={styles.drawerItem}
+            onPress={() => {
+              setIsDrawerOpen(false);
+              // Add logout functionality here
+            }}
+          >
             <Ionicons name="log-out-outline" size={24} color="#FFFFFF" style={styles.drawerItemIcon} />
             <Text style={styles.drawerItemText}>Log Out</Text>
           </TouchableOpacity>
@@ -536,12 +591,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     zIndex: 1,
   },
-  drawerOverlay: {
-    flex: 1,
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  drawerOverlayTouchable: {
-    flex: 1,
+    zIndex: 2,
   },
   drawerContent: {
     position: 'absolute',
@@ -549,30 +606,9 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     width: 280,
-    backgroundColor: '#0A1929',
+    backgroundColor: Colors.blueDark,
     padding: 20,
     paddingTop: 60,
-  },
-  drawerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  drawerTitle: {
-    fontSize: 20,
-    fontFamily: 'MavenPro-Bold',
-    color: '#ffffff',
-  },
-  closeButton: {
-    padding: 5,
-  },
-  closeButtonText: {
-    fontSize: 20,
-    color: '#ffffff',
   },
   drawerItem: {
     flexDirection: 'row',
@@ -588,10 +624,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
     color: '#FFFFFF',
-  },
-  logoutItem: {
-    marginTop: 'auto',
-    borderBottomWidth: 0,
   },
   mainContent: {
     flex: 1,

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity, Alert, Image } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { Colors } from '../../constants/styles';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 interface BaseRecord {
   id: number;
@@ -407,35 +409,37 @@ export default function TableScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.subtitle}>Showing {records.length} records</Text>
+      <View style={styles.headerContainer}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="chevron-back" size={23} color="#000000" />
+        </TouchableOpacity>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTable === 'skillsfile' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('skillsfile')}
+          >
+            <Text style={[styles.tabButtonText, selectedTable === 'skillsfile' && styles.activeTabButtonText]}>Skills</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTable === 'users' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('users')}
+          >
+            <Text style={[styles.tabButtonText, selectedTable === 'users' && styles.activeTabButtonText]}>Users</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTable === 'quals_req' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('quals_req')}
+          >
+            <Text style={[styles.tabButtonText, selectedTable === 'quals_req' && styles.activeTabButtonText]}>Required Qualifications</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={styles.tableSelector}>
-        <TouchableOpacity 
-          style={[styles.tableButton, selectedTable === 'skillsfile' && styles.selectedTableButton]}
-          onPress={() => setSelectedTable('skillsfile')}
-        >
-          <Text style={[styles.tableButtonText, selectedTable === 'skillsfile' && styles.selectedTableButtonText]}>
-            SkillsFile
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tableButton, selectedTable === 'users' && styles.selectedTableButton]}
-          onPress={() => setSelectedTable('users')}
-        >
-          <Text style={[styles.tableButtonText, selectedTable === 'users' && styles.selectedTableButtonText]}>
-            Users
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.tableButton, selectedTable === 'quals_req' && styles.selectedTableButton]}
-          onPress={() => setSelectedTable('quals_req')}
-        >
-          <Text style={[styles.tableButtonText, selectedTable === 'quals_req' && styles.selectedTableButtonText]}>
-            Required Qualifications
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.header}>
+        <Text style={styles.subtitle}>Showing {records.length} records</Text>
       </View>
 
       <ScrollView horizontal style={styles.tableWrapper}>
@@ -477,6 +481,45 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F5F5',
   },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
+    backgroundColor: '#fff',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    padding: 15,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
+    alignItems: 'center',
+  },
+  tabButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 5,
+    backgroundColor: '#E5E5EA',
+    marginRight: 10,
+  },
+  activeTabButton: {
+    backgroundColor: '#007AFF',
+  },
+  tabButtonText: {
+    color: '#000',
+  },
+  activeTabButtonText: {
+    color: 'white',
+  },
   header: {
     padding: 20,
     backgroundColor: 'white',
@@ -492,34 +535,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 5,
-  },
-  tableSelector: {
-    flexDirection: 'row',
-    padding: 15,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5EA',
-    alignItems: 'center',
-  },
-  selectorLabel: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  tableButton: {
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 5,
-    backgroundColor: '#E5E5EA',
-    marginRight: 10,
-  },
-  selectedTableButton: {
-    backgroundColor: '#007AFF',
-  },
-  tableButtonText: {
-    color: '#000',
-  },
-  selectedTableButtonText: {
-    color: 'white',
   },
   tableWrapper: {
     flex: 1,
