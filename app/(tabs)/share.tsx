@@ -5,13 +5,13 @@ import { useFocusEffect } from '@react-navigation/native';
 
 export default function ShareScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(-20)).current;
 
   useFocusEffect(
     React.useCallback(() => {
       // Reset animations to initial values
       fadeAnim.setValue(0);
-      slideAnim.setValue(20);
+      slideAnim.setValue(-20);
       
       // Start animations
       Animated.parallel([
@@ -30,7 +30,7 @@ export default function ShareScreen() {
       return () => {
         // Optional cleanup
         fadeAnim.setValue(0);
-        slideAnim.setValue(20);
+        slideAnim.setValue(-20);
       };
     }, [])
   );

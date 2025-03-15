@@ -14,13 +14,14 @@ export default function TabLayout() {
           height: 100,
           paddingBottom: 35,
           paddingTop: 8,
-          backgroundColor: 'transparent',
+          backgroundColor: '#08263c',
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
           elevation: 0,
           borderTopWidth: 0,
+          shadowOpacity: 0,
         },
         tabBarBackground: () => (
           <ImageBackground

@@ -153,7 +153,7 @@ export default function QualificationsScreen() {
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(-20)).current;
   const [activePreview, setActivePreview] = useState<{
     type: 'image' | 'video' | 'audio' | 'pdf';
     uri: string | null;
@@ -188,7 +188,7 @@ export default function QualificationsScreen() {
     React.useCallback(() => {
       // Reset animations to initial values
       fadeAnim.setValue(0);
-      slideAnim.setValue(20);
+      slideAnim.setValue(-20);
       
       // Start animations
       Animated.parallel([
@@ -207,7 +207,7 @@ export default function QualificationsScreen() {
       return () => {
         // Optional cleanup
         fadeAnim.setValue(0);
-        slideAnim.setValue(20);
+        slideAnim.setValue(-20);
       };
     }, [])
   );
@@ -750,6 +750,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#E6F3FF',
+    marginTop: -35,
   },
   backgroundImage: {
     position: 'absolute',
@@ -763,9 +764,11 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     backgroundColor: 'transparent',
-    position: 'relative',
-    overflow: 'hidden',
-    height: 120,
+    position: 'relative', 
+    paddingTop: 100,
+    paddingBottom: 0,
+    marginTop: 5,
+    height: 220,
   },
   headerBackground: {
     position: 'absolute',
@@ -781,8 +784,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingTop: 10,
-    paddingBottom: 10,
+    marginTop: -30,
   },
   backButton: {
     width: 40,
@@ -814,6 +816,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
+    marginTop: -100,
   },
   tabButton: {
     flex: 1,

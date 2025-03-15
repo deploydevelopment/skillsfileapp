@@ -149,13 +149,13 @@ export default function TabOneScreen() {
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(20)).current;
+  const slideAnim = useRef(new Animated.Value(-20)).current;
 
   useFocusEffect(
     React.useCallback(() => {
       // Reset animations to initial values
       fadeAnim.setValue(0);
-      slideAnim.setValue(20);
+      slideAnim.setValue(-20);
       
       // Start animations
       Animated.parallel([
@@ -191,7 +191,7 @@ export default function TabOneScreen() {
       return () => {
         // Optional cleanup
         fadeAnim.setValue(0);
-        slideAnim.setValue(20);
+        slideAnim.setValue(-20);
       };
     }, [])
   );
