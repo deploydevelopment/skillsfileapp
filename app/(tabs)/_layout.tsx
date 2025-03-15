@@ -1,12 +1,12 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Image, ImageBackground } from 'react-native';
+import { Image, ImageBackground, Platform } from 'react-native';
 import { Colors } from '../../constants/styles';
 
 export default function TabLayout() {
   return (
     <Tabs
-      screenOptions={({ route }) => ({
+      screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: Colors.white,
         tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.5)',
@@ -22,7 +22,6 @@ export default function TabLayout() {
           elevation: 0,
           borderTopWidth: 0,
           shadowOpacity: 0,
-          display: ['index', 'messages', 'companies', 'share'].includes(route.name) ? 'flex' : 'none',
         },
         tabBarBackground: () => (
           <ImageBackground
@@ -41,7 +40,8 @@ export default function TabLayout() {
           fontFamily: 'MavenPro-Medium',
           fontSize: 12,
         },
-      })}
+        animation: 'fade',
+      }}
     >
       <Tabs.Screen
         name="index"

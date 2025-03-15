@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing } from 'react-native';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
@@ -149,6 +149,7 @@ export default function QualificationsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [qualifications, setQualifications] = useState<Qualification[]>([]);
   const [activeTab, setActiveTab] = useState('achieved');
+  const [searchText, setSearchText] = useState('');
   const [selectedQual, setSelectedQual] = useState<Qualification | null>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
@@ -622,6 +623,24 @@ export default function QualificationsScreen() {
     );
   };
 
+  const filteredQualifications = useMemo(() => {
+    const searchLower = searchText.toLowerCase();
+    if (activeTab === 'achieved') {
+      return qualifications.filter(qual => 
+        qual.name.toLowerCase().includes(searchLower) ||
+        qual.reference?.toLowerCase().includes(searchLower) ||
+        String(qual.expires_months).includes(searchLower)
+      );
+    } else {
+      return requiredQualifications.qualifications.filter(qual =>
+        qual.name.toLowerCase().includes(searchLower) ||
+        qual.intro.toLowerCase().includes(searchLower) ||
+        qual.requested_by.toLowerCase().includes(searchLower) ||
+        String(qual.expires_months).includes(searchLower)
+      ) as Qualification[];
+    }
+  }, [searchText, activeTab, qualifications]);
+
   const renderTabContent = () => {
     if (activeTab === 'achieved') {
       if (qualifications.length === 0) {
@@ -633,9 +652,18 @@ export default function QualificationsScreen() {
         );
       }
 
+      if (filteredQualifications.length === 0) {
+        return (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No matches found</Text>
+            <Text style={styles.emptyStateSubtext}>Try adjusting your search</Text>
+          </View>
+        );
+      }
+      
       return (
         <ScrollView style={styles.qualificationList}>
-          {qualifications.map((qual, index) => (
+          {filteredQualifications.map((qual, index) => (
             <TouchableOpacity
               key={index}
               style={[
@@ -661,7 +689,7 @@ export default function QualificationsScreen() {
 
     return (
       <ScrollView style={styles.qualificationList}>
-        {requiredQualifications.qualifications.map((qual, index) => (
+        {filteredQualifications.map((qual, index) => (
           <TouchableOpacity
             key={index}
             style={[
@@ -752,6 +780,27 @@ export default function QualificationsScreen() {
             </TouchableOpacity>
           </View>
 
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <Ionicons name="search" size={20} color={Colors.blueDark} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search qualifications..."
+                placeholderTextColor={Colors.blueDark}
+                value={searchText}
+                onChangeText={setSearchText}
+              />
+              {searchText.length > 0 && (
+                <TouchableOpacity 
+                  style={styles.clearButton}
+                  onPress={() => setSearchText('')}
+                >
+                  <Ionicons name="close-circle" size={20} color={Colors.charcoal} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
           <View style={styles.content}>
             {renderTabContent()}
             {error && (
@@ -770,7 +819,9 @@ export default function QualificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.blueLight,
+    //background img bg-light.jpg
+    backgroundImage: require('../../assets/images/bg-light.jpg'),
+    backgroundAttachment: 'fixed',
     marginTop: -35,
   },
   backgroundImage: {
@@ -827,14 +878,15 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 8,
     backgroundColor: 'transparent',
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: 'transparent',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: 15,
+    paddingTop: 15,
     marginTop: -100,
     gap: 10,
   },
@@ -882,11 +934,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
     borderRadius: 10,
-    paddingHorizontal: 5,
-    paddingVertical: 5,
+    paddingHorizontal: 0,
+    paddingVertical: 2,
   },
   qualificationButton: {
-    padding: 15,
+    padding: 12,
+    paddingHorizontal: 12,
     backgroundColor: Colors.white,
     borderRadius: 10,
     marginBottom: 10,
@@ -1150,5 +1203,33 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
     fontFamily: 'MavenPro-Regular',
     marginTop: 4,
+  },
+  searchContainer: {
+    paddingHorizontal: 15,
+    paddingBottom: 10,
+    marginTop: 10,
+    backgroundColor: 'transparent',
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    height: 45,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+    padding: 8,
+  },
+  clearButton: {
+    padding: 5,
   },
 }); 
