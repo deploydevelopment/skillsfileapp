@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system';
 import { MediaPreviewModal } from '../../components/MediaPreviewModal';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 
 interface Qualification {
   uid: string;
@@ -154,6 +155,7 @@ export default function QualificationsScreen() {
     type: 'image' | 'video' | 'audio' | 'pdf';
     uri: string | null;
   } | null>(null);
+  const slideAnim = React.useRef(new Animated.Value(0)).current;
 
   const panResponder = useRef(
     PanResponder.create({
@@ -218,6 +220,14 @@ export default function QualificationsScreen() {
     initialize();
   }, []);
 
+  useEffect(() => {
+    Animated.timing(slideAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
   const addQualification = async (qual: Qualification) => {
     setIsLoading(true);
     setError(null);
@@ -256,33 +266,52 @@ export default function QualificationsScreen() {
           ''
         )
       `;
-      console.log('Insert SkillsFile SQL:', insertSkillsFileSQL);
+      
       db.execSync(insertSkillsFileSQL);
+      console.log('Successfully added qualification');
+      
+      // Reload records to update the UI
+      await loadRecords();
+      
+      // Show success toast
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: `${qual.name} has been added to your qualifications`,
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Bold'
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular'
+        }
+      });
 
-      // Add to quals_req table
-      const insertQualsReqSQL = `
-        INSERT INTO quals_req (
-          uid, name, intro, requested_by, expires_months, created, creator, updated, updator
-        ) VALUES (
-          '${uid}',
-          '${qual.name}',
-          '${qual.intro}',
-          '${qual.requested_by}',
-          ${qual.expires_months},
-          '${formatToSQLDateTime(now)}',
-          '${creatorUid}',
-          '',
-          ''
-        )
-      `;
-      console.log('Insert QualsReq SQL:', insertQualsReqSQL);
-      db.execSync(insertQualsReqSQL);
-
-      console.log('Qualification added successfully to both tables');
-      await loadRecords(); // Reload records after adding
-    } catch (err) {
-      console.error('Error adding qualification:', err);
+    } catch (error) {
+      console.error('Error adding qualification:', error);
       setError('Failed to add qualification');
+      
+      // Show error toast
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add qualification. Please try again.',
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Bold'
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular'
+        }
+      });
     } finally {
       setIsLoading(false);
     }
@@ -619,71 +648,81 @@ export default function QualificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingBottom: 0 }]} edges={['left', 'right']}>
-      <Image 
-        source={require('../../assets/images/bg-light.jpg')}
-        style={styles.backgroundImage}
-      />
-      <View style={styles.headerContainer}>
+    <Animated.View style={{
+      flex: 1,
+      transform: [{
+        translateX: slideAnim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [300, 0]
+        })
+      }]
+    }}>
+      <SafeAreaView style={[styles.container, { paddingBottom: 0 }]} edges={['left', 'right']}>
         <Image 
-          source={require('../../assets/images/bg-gradient.png')}
-          style={styles.headerBackground}
-          resizeMode="cover"
+          source={require('../../assets/images/bg-light.jpg')}
+          style={styles.backgroundImage}
         />
-        <View style={styles.headerRow}>
+        <View style={styles.headerContainer}>
+          <Image 
+            source={require('../../assets/images/bg-gradient.png')}
+            style={styles.headerBackground}
+            resizeMode="cover"
+          />
+          <View style={styles.headerRow}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Qualifications</Text>
+            <TouchableOpacity 
+              style={styles.helpButton}
+              onPress={() => setIsHelpModalVisible(true)}
+            >
+              <Ionicons name="help-circle-outline" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.tabContainer}>
           <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => router.back()}
+            style={[
+              styles.tabButton,
+              activeTab === 'achieved' && styles.activeTabButton
+            ]}
+            onPress={() => setActiveTab('achieved')}
           >
-            <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+            <Text style={[
+              styles.tabButtonText,
+              activeTab === 'achieved' && styles.activeTabButtonText
+            ]}>Achieved</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Qualifications</Text>
           <TouchableOpacity 
-            style={styles.helpButton}
-            onPress={() => setIsHelpModalVisible(true)}
+            style={[
+              styles.tabButton,
+              activeTab === 'required' && styles.activeTabButton
+            ]}
+            onPress={() => setActiveTab('required')}
           >
-            <Ionicons name="help-circle-outline" size={24} color="#FFFFFF" />
+            <Text style={[
+              styles.tabButtonText,
+              activeTab === 'required' && styles.activeTabButtonText
+            ]}>Required</Text>
           </TouchableOpacity>
         </View>
-      </View>
 
-      <View style={styles.tabContainer}>
-        <TouchableOpacity 
-          style={[
-            styles.tabButton,
-            activeTab === 'achieved' && styles.activeTabButton
-          ]}
-          onPress={() => setActiveTab('achieved')}
-        >
-          <Text style={[
-            styles.tabButtonText,
-            activeTab === 'achieved' && styles.activeTabButtonText
-          ]}>Achieved</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[
-            styles.tabButton,
-            activeTab === 'required' && styles.activeTabButton
-          ]}
-          onPress={() => setActiveTab('required')}
-        >
-          <Text style={[
-            styles.tabButtonText,
-            activeTab === 'required' && styles.activeTabButtonText
-          ]}>Required</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.content}>
-        {renderTabContent()}
-        {error && (
-          <Text style={styles.errorText}>{error}</Text>
-        )}
-      </View>
-      {renderQualificationDrawer()}
-      {renderTestModal()}
-      {renderHelpModal()}
-    </SafeAreaView>
+        <View style={styles.content}>
+          {renderTabContent()}
+          {error && (
+            <Text style={styles.errorText}>{error}</Text>
+          )}
+        </View>
+        {renderQualificationDrawer()}
+        {renderTestModal()}
+        {renderHelpModal()}
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 
@@ -732,7 +771,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontFamily: 'MavenPro-Medium',
     color: '#FFFFFF',
     flex: 1,
