@@ -521,13 +521,17 @@ export default function QualificationsScreen() {
     >
       <View style={styles.helpModalOverlay}>
         <View style={styles.helpModalContent}>
-          <Text style={styles.helpModalTitle}>Help</Text>
+          <View style={styles.helpModalTitleContainer}>
+            <Ionicons name="help-circle-outline" size={24} color={Colors.blueDark} />
+            <Text style={styles.helpModalTitle}>Qualifications</Text>
+          </View>
           <Text style={styles.helpModalText}>
             View and manage your qualifications here. You can see both achieved and required qualifications.
             Tap on any qualification to view more details or add it to your achieved list.
           </Text>
           <TouchableOpacity 
-            style={styles.helpModalButton}
+            style={[styles.helpModalButton, { backgroundColor: Colors.blueDark }]}
+            activeOpacity={1}
             onPress={() => setIsHelpModalVisible(false)}
           >
             <Text style={styles.helpModalButtonText}>Got it</Text>
@@ -662,7 +666,10 @@ export default function QualificationsScreen() {
       }
       
       return (
-        <ScrollView style={styles.qualificationList}>
+        <ScrollView 
+          style={styles.qualificationList}
+          showsVerticalScrollIndicator={false}
+        >
           {filteredQualifications.map((qual, index) => (
             <TouchableOpacity
               key={index}
@@ -670,6 +677,7 @@ export default function QualificationsScreen() {
                 styles.qualificationButton,
                 isLoading && styles.buttonDisabled
               ]}
+              activeOpacity={1}
               disabled={isLoading}
             >
               <Text style={styles.qualificationButtonText}>
@@ -688,7 +696,10 @@ export default function QualificationsScreen() {
     }
 
     return (
-      <ScrollView style={styles.qualificationList}>
+      <ScrollView 
+        style={styles.qualificationList}
+        showsVerticalScrollIndicator={false}
+      >
         {filteredQualifications.map((qual, index) => (
           <TouchableOpacity
             key={index}
@@ -696,6 +707,7 @@ export default function QualificationsScreen() {
               styles.qualificationButton,
               isLoading && styles.buttonDisabled
             ]}
+            activeOpacity={1}
             onPress={() => showDrawer(qual)}
             disabled={isLoading}
           >
@@ -753,33 +765,6 @@ export default function QualificationsScreen() {
             </View>
           </View>
 
-          <View style={styles.tabContainer}>
-            <TouchableOpacity 
-              style={[
-                styles.tabButton,
-                activeTab === 'achieved' && styles.activeTabButton
-              ]}
-              onPress={() => setActiveTab('achieved')}
-            >
-              <Text style={[
-                styles.tabButtonText,
-                activeTab === 'achieved' && styles.activeTabButtonText
-              ]}>Achieved</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[
-                styles.tabButton,
-                activeTab === 'required' && styles.activeTabButton
-              ]}
-              onPress={() => setActiveTab('required')}
-            >
-              <Text style={[
-                styles.tabButtonText,
-                activeTab === 'required' && styles.activeTabButtonText
-              ]}>Required</Text>
-            </TouchableOpacity>
-          </View>
-
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
               <Ionicons name="search" size={20} color={Colors.blueDark} style={styles.searchIcon} />
@@ -795,10 +780,39 @@ export default function QualificationsScreen() {
                   style={styles.clearButton}
                   onPress={() => setSearchText('')}
                 >
-                  <Ionicons name="close-circle" size={20} color={Colors.charcoal} />
+                  <Ionicons name="close-circle" size={20} color={Colors.blueDark} />
                 </TouchableOpacity>
               )}
             </View>
+          </View>
+
+          <View style={styles.tabContainer}>
+            <TouchableOpacity 
+              style={[
+                styles.tabButton,
+                activeTab === 'achieved' && styles.activeTabButton
+              ]}
+              activeOpacity={1}
+              onPress={() => setActiveTab('achieved')}
+            >
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'achieved' && styles.activeTabButtonText
+              ]}>Achieved</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[
+                styles.tabButton,
+                activeTab === 'required' && styles.activeTabButton
+              ]}
+              activeOpacity={1}
+              onPress={() => setActiveTab('required')}
+            >
+              <Text style={[
+                styles.tabButtonText,
+                activeTab === 'required' && styles.activeTabButtonText
+              ]}>Required</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.content}>
@@ -832,7 +846,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: '100%',
     height: '100%',
-    opacity: 0.5,
+    opacity: 1,
   },
   headerContainer: {
     backgroundColor: 'transparent',
@@ -878,8 +892,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingVertical: 20,
-    paddingHorizontal: 8,
+    paddingTop: 5,
+    paddingBottom: 60,
+    paddingHorizontal: 15,
     backgroundColor: 'transparent',
   },
   tabContainer: {
@@ -887,7 +902,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingHorizontal: 15,
     paddingTop: 15,
-    marginTop: -100,
+    marginTop: 0,
+    marginBottom: 8,
     gap: 10,
   },
   tabButton: {
@@ -897,7 +913,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.blueDark,
+    borderColor: `${Colors.blueDark}50`,
   },
   activeTabButton: {
     backgroundColor: Colors.blueDark,
@@ -1073,11 +1089,16 @@ const styles = StyleSheet.create({
     width: '90%',
     maxWidth: 400,
   },
-  helpModalTitle: {
-    fontSize: 24,
-    fontFamily: 'MavenPro-Bold',
-    color: '#0A1929',
+  helpModalTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 15,
+    gap: 5,
+  },
+  helpModalTitle: {
+    fontSize: 22,
+    fontFamily: 'MavenPro-SemiBold',
+    color: Colors.blueDark,
   },
   helpModalText: {
     fontSize: 16,
@@ -1206,8 +1227,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 15,
-    paddingBottom: 10,
-    marginTop: 10,
+    paddingBottom: 0,
+    marginTop: -85,
     backgroundColor: 'transparent',
   },
   searchInputContainer: {
@@ -1228,8 +1249,10 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Regular',
     color: Colors.blueDark,
     padding: 8,
+    paddingLeft: 0,
   },
   clearButton: {
     padding: 5,
+    marginRight: -8,
   },
 }); 
