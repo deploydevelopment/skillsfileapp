@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { Colors } from '../constants/styles';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 export function CustomDrawerContent(props: any) {
   return (
@@ -13,43 +14,56 @@ export function CustomDrawerContent(props: any) {
           style={styles.avatar}
         />
         <Text style={styles.userName}>Matt Riley</Text>
-        <Text style={styles.userEmail}>mriley@example.com</Text>
+        <Text style={styles.userEmail}>@mriley</Text>
       </View>
       
       <View style={styles.drawerContent}>
         <TouchableOpacity 
           style={styles.drawerItem}
-          onPress={() => router.push('/')}
+          onPress={() => {}}
         >
-          <Text style={styles.drawerItemText}>Home</Text>
+          <Ionicons name="id-card-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>My Profile</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.drawerItem}
-          onPress={() => router.push('/qualifications')}
+          onPress={() => {}}
         >
-          <Text style={styles.drawerItemText}>Qualifications</Text>
+          <Ionicons name="people-circle-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Invite a Friend</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.drawerItem}
-          onPress={() => router.push('/messages')}
+          onPress={() => {}}
         >
-          <Text style={styles.drawerItemText}>Messages</Text>
+          <Ionicons name="rocket-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Find Training</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.drawerItem}
-          onPress={() => router.push('/companies')}
+          onPress={() => {}}
         >
-          <Text style={styles.drawerItemText}>Companies</Text>
+          <Ionicons name="information-circle-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>About SkillsFile</Text>
         </TouchableOpacity>
         
         <TouchableOpacity 
           style={styles.drawerItem}
-          onPress={() => router.push('/share')}
+          onPress={() => router.push('/table')}
         >
-          <Text style={styles.drawerItemText}>Share</Text>
+          <Ionicons name="bug-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>View Storage</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={[styles.drawerItem, styles.logoutItem]}
+          onPress={() => {}}
+        >
+          <Ionicons name="exit-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Log Out</Text>
         </TouchableOpacity>
       </View>
     </DrawerContentScrollView>
@@ -60,7 +74,7 @@ const styles = StyleSheet.create({
   drawerHeader: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
   },
   avatar: {
@@ -72,13 +86,13 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontFamily: 'MavenPro-Medium',
-    color: Colors.blueDark,
+    color: Colors.white,
     marginBottom: 5,
   },
   userEmail: {
     fontSize: 14,
     fontFamily: 'MavenPro-Regular',
-    color: Colors.blueDark,
+    color: Colors.white,
     opacity: 0.7,
   },
   drawerContent: {
@@ -89,10 +103,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 10,
     marginBottom: 5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    marginRight: 12,
   },
   drawerItemText: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: Colors.blueDark,
+    color: Colors.white,
   },
+  logoutItem: {
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    paddingTop: 20,
+  }
 }); 

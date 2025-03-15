@@ -15,6 +15,7 @@ import {
 } from '@expo-google-fonts/maven-pro';
 import Toast from 'react-native-toast-message';
 import { CustomDrawerContent } from '../components/CustomDrawerContent';
+import { Colors } from '../constants/styles';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -45,9 +46,10 @@ function RootLayoutNav() {
         screenOptions={{
           headerShown: false,
           drawerStyle: {
-            backgroundColor: '#fff',
+            backgroundColor: Colors.blueDark,
             width: 280,
           },
+          drawerPosition: 'right'
         }}
         drawerContent={(props) => <CustomDrawerContent {...props} />}
       >
