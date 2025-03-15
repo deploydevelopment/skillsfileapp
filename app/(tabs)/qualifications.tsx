@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system';
 import { MediaPreviewModal } from '../../components/MediaPreviewModal';
 import { useProgressBar } from './_layout';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Qualification {
   uid: string;
@@ -148,6 +149,7 @@ export default function QualificationsScreen() {
   const [selectedQual, setSelectedQual] = useState<Qualification | null>(null);
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
+  const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
   const [activePreview, setActivePreview] = useState<{
@@ -448,6 +450,31 @@ export default function QualificationsScreen() {
     </Modal>
   );
 
+  const renderHelpModal = () => (
+    <Modal
+      visible={isHelpModalVisible}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setIsHelpModalVisible(false)}
+    >
+      <View style={styles.helpModalOverlay}>
+        <View style={styles.helpModalContent}>
+          <Text style={styles.helpModalTitle}>Help</Text>
+          <Text style={styles.helpModalText}>
+            View and manage your qualifications here. You can see both achieved and required qualifications.
+            Tap on any qualification to view more details or add it to your achieved list.
+          </Text>
+          <TouchableOpacity 
+            style={styles.helpModalButton}
+            onPress={() => setIsHelpModalVisible(false)}
+          >
+            <Text style={styles.helpModalButtonText}>Got it</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderQualificationDrawer = () => {
     if (!selectedQual) return null;
 
@@ -560,19 +587,32 @@ export default function QualificationsScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { paddingBottom: 0 }]} edges={['left', 'right', 'top']}>
+    <SafeAreaView style={[styles.container, { paddingBottom: 0 }]} edges={['left', 'right']}>
       <Image 
         source={require('../../assets/images/bg-light.jpg')}
         style={styles.backgroundImage}
       />
       <View style={styles.headerContainer}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Text style={styles.backButtonText}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Qualifications</Text>
+        <Image 
+          source={require('../../assets/images/bg-gradient.png')}
+          style={styles.headerBackground}
+          resizeMode="cover"
+        />
+        <View style={styles.headerRow}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <Ionicons name="chevron-back" size={23} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Qualifications</Text>
+          <TouchableOpacity 
+            style={styles.helpButton}
+            onPress={() => setIsHelpModalVisible(true)}
+          >
+            <Ionicons name="help-circle-outline" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tabContainer}>
@@ -610,6 +650,7 @@ export default function QualificationsScreen() {
       </View>
       {renderQualificationDrawer()}
       {renderTestModal()}
+      {renderHelpModal()}
     </SafeAreaView>
   );
 }
@@ -630,28 +671,46 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   headerContainer: {
-    padding: 20,
-    paddingTop: 80,
     backgroundColor: 'transparent',
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
     position: 'relative',
+    overflow: 'hidden',
+   
+  },
+  headerBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingTop: 70,
+    paddingBottom: 10,
   },
   backButton: {
-    position: 'absolute',
-    left: 20,
-    padding: 10,
-  },
-  backButtonText: {
-    fontSize: 24,
-    color: '#0A1929',
-    fontFamily: 'MavenPro-Medium',
+    width: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 24,
     fontFamily: 'MavenPro-Medium',
-    color: '#0A1929',
+    color: '#FFFFFF',
+    flex: 1,
+    textAlign: 'center',
+  },
+  helpButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
@@ -948,6 +1007,44 @@ const styles = StyleSheet.create({
   previewCloseButtonText: {
     color: 'white',
     fontSize: 20,
+    fontFamily: 'MavenPro-Medium',
+  },
+  helpModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  helpModalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+  },
+  helpModalTitle: {
+    fontSize: 24,
+    fontFamily: 'MavenPro-Bold',
+    color: '#0A1929',
+    marginBottom: 15,
+  },
+  helpModalText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: '#666666',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  helpModalButton: {
+    backgroundColor: '#4A90E2',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  helpModalButtonText: {
+    color: 'white',
+    fontSize: 16,
     fontFamily: 'MavenPro-Medium',
   },
 }); 
