@@ -699,7 +699,7 @@ export default function QualificationsScreen() {
         <SafeAreaView style={styles.container}>
           <View style={styles.headerContainer}>
             <Image
-              source={require('../../assets/images/bg-gradient.png')}
+              source={require('../../assets/images/bg-light.jpg')}
               style={styles.headerBackground}
               resizeMode="cover"
             />
