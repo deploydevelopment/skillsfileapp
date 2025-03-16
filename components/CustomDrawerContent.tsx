@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { Colors } from '../constants/styles';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { AnimatedButton } from './AnimatedButton';
 
 export function CustomDrawerContent(props: any) {
   return (
@@ -18,59 +19,45 @@ export function CustomDrawerContent(props: any) {
       </View>
       
       <View style={styles.drawerContent}>
-        <TouchableOpacity 
+        <AnimatedButton 
           style={styles.drawerItem}
           onPress={() => {}}
-          activeOpacity={1}
         >
-          <Ionicons name="id-card-outline" size={22} color={Colors.white} style={styles.icon} />
-          <Text style={styles.drawerItemText}>My Profile</Text>
-        </TouchableOpacity>
+          <Ionicons name="person-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Profile</Text>
+        </AnimatedButton>
         
-        <TouchableOpacity 
+        <AnimatedButton 
           style={styles.drawerItem}
           onPress={() => {}}
-          activeOpacity={1}
         >
-          <Ionicons name="people-circle-outline" size={22} color={Colors.white} style={styles.icon} />
-          <Text style={styles.drawerItemText}>Invite a Friend</Text>
-        </TouchableOpacity>
+          <Ionicons name="settings-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Settings</Text>
+        </AnimatedButton>
         
-        <TouchableOpacity 
+        <AnimatedButton 
           style={styles.drawerItem}
           onPress={() => {}}
-          activeOpacity={1}
-        >
-          <Ionicons name="rocket-outline" size={22} color={Colors.white} style={styles.icon} />
-          <Text style={styles.drawerItemText}>Find Training</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.drawerItem}
-          onPress={() => {}}
-          activeOpacity={1}
         >
           <Ionicons name="information-circle-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>About SkillsFile</Text>
-        </TouchableOpacity>
+        </AnimatedButton>
         
-        <TouchableOpacity 
+        <AnimatedButton 
           style={styles.drawerItem}
           onPress={() => router.push('/table')}
-          activeOpacity={1}
         >
           <Ionicons name="bug-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>View Storage</Text>
-        </TouchableOpacity>
+        </AnimatedButton>
         
-        <TouchableOpacity 
+        <AnimatedButton 
           style={[styles.drawerItem, styles.logoutItem]}
           onPress={() => {}}
-          activeOpacity={1}
         >
           <Ionicons name="exit-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>Log Out</Text>
-        </TouchableOpacity>
+        </AnimatedButton>
       </View>
     </DrawerContentScrollView>
   );

@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/styles';
+import { AnimatedButton } from '../../components/AnimatedButton';
 
 interface Qualification {
   uid: string;
@@ -470,37 +471,21 @@ export default function QualificationsScreen() {
 
   const renderPreviewButtons = () => (
     <View style={styles.previewButtons}>
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('image')}
-        activeOpacity={1}
-      >
+      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('image')}>
         <Text style={styles.previewButtonText}>Image</Text>
-      </TouchableOpacity>
+      </AnimatedButton>
 
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('video')}
-        activeOpacity={1}
-      >
+      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('video')}>
         <Text style={styles.previewButtonText}>Video</Text>
-      </TouchableOpacity>
+      </AnimatedButton>
 
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('audio')}
-        activeOpacity={1}
-      >
+      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('audio')}>
         <Text style={styles.previewButtonText}>Audio</Text>
-      </TouchableOpacity>
+      </AnimatedButton>
 
-      <TouchableOpacity
-        style={styles.previewButton}
-        onPress={() => handlePreview('pdf')}
-        activeOpacity={1}
-      >
+      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('pdf')}>
         <Text style={styles.previewButtonText}>PDF</Text>
-      </TouchableOpacity>
+      </AnimatedButton>
     </View>
   );
 
@@ -542,13 +527,12 @@ export default function QualificationsScreen() {
             View and manage your qualifications here. You can see both achieved and required qualifications.
             Tap on any qualification to view more details or add it to your achieved list.
           </Text>
-          <TouchableOpacity 
-            style={[styles.helpModalButton, { backgroundColor: Colors.blueDark }]}
-            activeOpacity={1}
+          <AnimatedButton 
+            style={styles.helpModalButton}
             onPress={() => setIsHelpModalVisible(false)}
           >
             <Text style={styles.helpModalButtonText}>Got it</Text>
-          </TouchableOpacity>
+          </AnimatedButton>
         </View>
       </View>
     </Modal>
@@ -601,7 +585,9 @@ export default function QualificationsScreen() {
               ]}
             >
               <View style={styles.drawerHeader}>
-                <View style={styles.drawerHandle} />
+                <AnimatedButton style={styles.drawerButton} onPress={hideDrawer}>
+                  <Ionicons name="close" size={24} color={Colors.white} />
+                </AnimatedButton>
               </View>
               <TouchableOpacity 
                 activeOpacity={1} 
@@ -680,61 +666,50 @@ export default function QualificationsScreen() {
       }
       
       return (
-        <ScrollView 
-          style={styles.qualificationList}
-          showsVerticalScrollIndicator={false}
-        >
-          {filteredQualifications.map((qual, index) => (
-            <TouchableOpacity
+        <ScrollView style={styles.scrollView}>
+          {qualifications.map((qual, index) => (
+            <AnimatedButton 
               key={index}
-              style={[
-                styles.qualificationButton,
-                isLoading && styles.buttonDisabled
-              ]}
-              activeOpacity={1}
-              disabled={isLoading}
+              style={styles.qualificationButton} 
+              onPress={() => showDrawer(qual)}
             >
-              <Text style={styles.qualificationButtonText}>
-                {qual.name}
-              </Text>
-              <Text style={styles.qualificationSubtext}>
-                Expires in {qual.expires_months} months
-              </Text>
-              <Text style={styles.qualificationReference}>
-                {qual.reference}
-              </Text>
-            </TouchableOpacity>
+              <View style={styles.qualificationContent}>
+                <View style={styles.qualificationRow}>
+                  <Text style={styles.qualificationName}>{qual.name}</Text>
+                  <Text style={styles.qualificationDate}>
+                    Renewal: {qual.expires_months} months
+                  </Text>
+                </View>
+                <Text style={styles.qualificationCompany}>
+                  {qual.reference}
+                </Text>
+              </View>
+            </AnimatedButton>
           ))}
         </ScrollView>
       );
     }
 
     return (
-      <ScrollView 
-        style={styles.qualificationList}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.scrollView}>
         {filteredQualifications.map((qual, index) => (
-          <TouchableOpacity
+          <AnimatedButton 
             key={index}
-            style={[
-              styles.qualificationButton,
-              isLoading && styles.buttonDisabled
-            ]}
-            activeOpacity={1}
+            style={styles.qualificationButton} 
             onPress={() => showDrawer(qual)}
-            disabled={isLoading}
           >
-            <Text style={styles.qualificationButtonText}>
-              {qual.name}
-            </Text>
-            <Text style={styles.qualificationSubtext}>
-              {qual.requested_by} • Expires in {qual.expires_months} months
-            </Text>
-            <Text style={styles.qualificationIntro}>
-              {qual.intro}
-            </Text>
-          </TouchableOpacity>
+            <View style={styles.qualificationContent}>
+              <View style={styles.qualificationRow}>
+                <Text style={styles.qualificationName}>{qual.name}</Text>
+                <Text style={styles.qualificationDate}>
+                  Renews: {qual.expires_months} months
+                </Text>
+              </View>
+              <Text style={styles.qualificationCompany}>
+                Requested by {qual.requested_by}
+              </Text>
+            </View>
+          </AnimatedButton>
         ))}
       </ScrollView>
     );
@@ -843,9 +818,9 @@ export default function QualificationsScreen() {
       {renderQualificationDrawer()}
       {renderTestModal()}
       {renderHelpModal()}
-      <TouchableOpacity style={styles.fab} activeOpacity={1}>
-        <Ionicons name="add" size={25} color={Colors.white} />
-      </TouchableOpacity>
+      <AnimatedButton style={styles.fab}>
+        <Ionicons name="add" size={24} color={Colors.white} />
+      </AnimatedButton>
     </View>
   );
 }
@@ -958,7 +933,7 @@ const styles = StyleSheet.create({
   emptyStateText: {
     fontSize: 18,
     fontFamily: 'MavenPro-Bold',
-    color: '#666666',
+    color: Colors.blueDark,
     marginBottom: 8,
   },
   emptyStateSubtext: {
@@ -967,7 +942,7 @@ const styles = StyleSheet.create({
     color: '#999999',
     textAlign: 'center',
   },
-  qualificationList: {
+  scrollView: {
     flex: 1,
     backgroundColor: 'transparent',
     paddingHorizontal: 5,
@@ -977,36 +952,38 @@ const styles = StyleSheet.create({
     marginHorizontal: -5,
   },
   qualificationButton: {
-    padding: 12,
-    paddingHorizontal: 12,
     backgroundColor: Colors.white,
-    borderRadius: 10,
-    marginBottom: 10,
-    shadowColor: Colors.blueDark,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 7,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  qualificationButtonText: {
+  qualificationContent: {
+    flex: 1,
+    gap: 6,
+  },
+  qualificationRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  qualificationName: {
     fontSize: 16,
     color: Colors.blueDark,
-    marginBottom: 4,
     fontFamily: 'MavenPro-Medium',
   },
-  qualificationSubtext: {
+  qualificationDate: {
     fontSize: 14,
     color: Colors.blueDark,
-    marginBottom: 4,
     fontFamily: 'MavenPro-Regular',
   },
-  qualificationIntro: {
-    fontSize: 12,
+  qualificationCompany: {
+    fontSize: 14,
     color: Colors.blueDark,
-    fontStyle: 'italic',
     fontFamily: 'MavenPro-Regular',
   },
   buttonDisabled: {
@@ -1038,11 +1015,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 15,
   },
-  drawerHandle: {
+  drawerButton: {
     width: 40,
-    height: 4,
-    backgroundColor: '#E5E5EA',
-    borderRadius: 2,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   drawerContent: {
     padding: 20,
@@ -1126,15 +1103,16 @@ const styles = StyleSheet.create({
   helpModalText: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: '#666666',
+    color: Colors.blueDark,
     lineHeight: 24,
     marginBottom: 20,
   },
   helpModalButton: {
-    backgroundColor: '#4A90E2',
-    padding: 15,
-    borderRadius: 10,
+    backgroundColor: Colors.blueDark,
+    padding: 12,
+    borderRadius: 8,
     alignItems: 'center',
+    marginTop: 20,
   },
   helpModalButtonText: {
     color: 'white',

@@ -7,6 +7,7 @@ import requiredQualifications from '../../api/required_qualifications.json';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/styles';
 import { DrawerActions } from '@react-navigation/native';
+import { AnimatedButton } from '../../components/AnimatedButton';
 
 interface Qualification {
   uid: string;
@@ -359,16 +360,15 @@ export default function TabOneScreen() {
             />
             <View style={styles.menuButtonContainer}>
               <Text style={styles.headerName}>Sebastian</Text>
-              <TouchableOpacity 
+              <AnimatedButton 
                 onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                 style={styles.menuButton}
-                activeOpacity={1}
               >
                 <Image 
                   source={require('../../assets/images/avatar.png')}
                   style={styles.avatar}
                 />
-              </TouchableOpacity>
+              </AnimatedButton>
             </View>
           </View>
         </View>
