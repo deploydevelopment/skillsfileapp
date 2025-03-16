@@ -76,7 +76,8 @@ const initializeDatabase = () => {
           updator TEXT,
           parent_uid TEXT(36),
           reference TEXT(50),
-          achieved TEXT
+          achieved TEXT,
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
         );
 
         CREATE TABLE users (
@@ -88,7 +89,8 @@ const initializeDatabase = () => {
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
           updated TEXT,
-          updator TEXT
+          updator TEXT,
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
         );
 
         CREATE TABLE quals_req (
@@ -101,7 +103,8 @@ const initializeDatabase = () => {
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
           updated TEXT,
-          updator TEXT
+          updator TEXT,
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
         );
 
         CREATE TABLE companies (
@@ -118,23 +121,27 @@ const initializeDatabase = () => {
         -- Insert default user
         INSERT INTO users (
           uid, created, creator, updated, updator,
-          first_name, last_name, username
+          first_name, last_name, username, status
         ) VALUES (
-          '${generateUID()}', 
+          '${generateUID()}',
           '${formatToSQLDateTime(new Date())}',
           'system',
           '',
           '',
           'Matt',
           'Riley',
-          'hugosebriley'
+          'hugosebriley',
+          0
         );
+      `);
 
-        -- Insert required qualifications from JSON
-        ${requiredQualifications.qualifications.map(q => `
+      // Insert required qualifications from JSON
+      const reqQuals = requiredQualifications.qualifications;
+      reqQuals.forEach(q => {
+        db.execSync(`
           INSERT INTO quals_req (
             uid, name, intro, requested_by, expires_months,
-            created, creator, updated, updator
+            created, creator, updated, updator, status
           ) VALUES (
             '${q.uid}',
             '${q.name}',
@@ -144,12 +151,16 @@ const initializeDatabase = () => {
             '${q.created}',
             '${q.creator}',
             '${q.updated}',
-            '${q.updator}'
+            '${q.updator}',
+            ${q.status}
           );
-        `).join('\n')}
+        `);
+      });
 
-        -- Insert companies from JSON
-        ${companies.companies.map(c => `
+      // Insert companies from JSON
+      const companiesList = companies.companies;
+      companiesList.forEach(c => {
+        db.execSync(`
           INSERT INTO companies (
             uid, name, status,
             created, creator, updated, updator
@@ -162,8 +173,9 @@ const initializeDatabase = () => {
             '',
             ''
           );
-        `).join('\n')}
-      `);
+        `);
+      });
+
       console.log('Tables created and initial data inserted successfully');
     } else {
       console.log('Tables exist, checking for migrations...');
@@ -186,7 +198,8 @@ const initializeDatabase = () => {
             updator TEXT,
             parent_uid TEXT(36),
             reference TEXT(50),
-            achieved TEXT
+            achieved TEXT,
+            status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
           );
           
           INSERT INTO qualifications 
@@ -219,6 +232,11 @@ const initializeDatabase = () => {
         if (!columnNames.includes('achieved')) {
           console.log('Adding achieved column...');
           db.execSync('ALTER TABLE qualifications ADD COLUMN achieved TEXT');
+        }
+
+        if (!columnNames.includes('status')) {
+          console.log('Adding status column...');
+          db.execSync('ALTER TABLE qualifications ADD COLUMN status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))');
         }
       }
 
@@ -263,6 +281,30 @@ const initializeDatabase = () => {
       "PRAGMA table_info(qualifications)"
     );
     console.log('Qualifications table structure:', tableInfo);
+
+    // Check for new columns in users table
+    const usersColumns = db.getAllSync<{ name: string }>(
+      "PRAGMA table_info(users)"
+    );
+
+    const userColumnNames = usersColumns.map(col => col.name);
+
+    if (!userColumnNames.includes('status')) {
+      console.log('Adding status column to users table...');
+      db.execSync('ALTER TABLE users ADD COLUMN status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))');
+    }
+
+    // Check for status column in quals_req table
+    const qualsReqColumns = db.getAllSync<{ name: string }>(
+      "PRAGMA table_info(quals_req)"
+    );
+
+    const qualsReqColumnNames = qualsReqColumns.map(col => col.name);
+
+    if (!qualsReqColumnNames.includes('status')) {
+      console.log('Adding status column to quals_req table...');
+      db.execSync('ALTER TABLE quals_req ADD COLUMN status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))');
+    }
 
     console.log('Database initialization completed successfully');
   } catch (error) {

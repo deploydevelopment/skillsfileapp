@@ -103,7 +103,8 @@ const initializeDatabase = () => {
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
           updated TEXT,
-          updator TEXT
+          updator TEXT,
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
         );
 
         CREATE TABLE companies (
@@ -136,7 +137,7 @@ const initializeDatabase = () => {
         ${requiredQualifications.qualifications.map(q => `
           INSERT INTO quals_req (
             uid, name, intro, requested_by, expires_months,
-            created, creator, updated, updator
+            created, creator, updated, updator, status
           ) VALUES (
             '${q.uid}',
             '${q.name}',
@@ -146,7 +147,8 @@ const initializeDatabase = () => {
             '${q.created}',
             '${q.creator}',
             '${q.updated}',
-            '${q.updator}'
+            '${q.updator}',
+            ${q.status}
           );
         `).join('\n')}
 

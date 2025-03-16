@@ -10,7 +10,8 @@
       "creator": "system",
       "updated": "",
       "updator": "",
-      "achieved": "2023-06-15 14:30:00.000"
+      "achieved": "2023-06-15 14:30:00.000",
+      "status": 0
     },
     {
       "uid": "ach-a1b2c3d4e5f6g7h8",
@@ -22,7 +23,8 @@
       "creator": "system",
       "updated": "",
       "updator": "",
-      "achieved": "2022-03-22 09:15:00.000"
+      "achieved": "2022-03-22 09:15:00.000",
+      "status": 0
     },
     {
       "uid": "ach-d4e5f6g7h8i9j0k1",
@@ -34,7 +36,8 @@
       "creator": "system",
       "updated": "",
       "updator": "",
-      "achieved": "2024-01-10 11:45:00.000"
+      "achieved": "2024-01-10 11:45:00.000",
+      "status": 0
     },
     {
       "uid": "ach-j0k1l2m3n4o5p6q7",
@@ -46,7 +49,8 @@
       "creator": "system",
       "updated": "",
       "updator": "",
-      "achieved": "2024-11-30 16:20:00.000"
+      "achieved": "2024-11-30 16:20:00.000",
+      "status": 0
     },
     {
       "uid": "ach-k1l2m3n4o5p6q7r8",
@@ -58,7 +62,8 @@
       "creator": "system",
       "updated": "",
       "updator": "",
-      "achieved": "2023-09-05 13:40:00.000"
+      "achieved": "2023-09-05 13:40:00.000",
+      "status": 0
     }
   ]
 } 
