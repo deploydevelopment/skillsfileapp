@@ -171,7 +171,8 @@ export default function QualificationsScreen() {
   const isBack = useRef(false);
   const [achievedDate, setAchievedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [referenceNumber, setReferenceNumber] = useState('');
+  const [reference, setReference] = useState('');
+  const [referenceError, setReferenceError] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
   const [renewsMonths, setRenewsMonths] = useState<number | null>(0);
@@ -244,6 +245,7 @@ export default function QualificationsScreen() {
 
   const hideDrawer = () => {
     setIsDrawerVisible(false);
+    setShowDatePicker(false);
     Animated.spring(drawerAnimation, {
       toValue: 0,
       useNativeDriver: true,
@@ -319,57 +321,67 @@ export default function QualificationsScreen() {
     }
   };
 
-  const addQualification = async (qual: Qualification) => {
-    if (!referenceNumber.trim()) {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Please enter a reference number',
-      });
+  const handleAddQualification = () => {
+    // Validate reference
+    if (!reference.trim()) {
+      setReferenceError('Reference is required');
+      return;
+    }
+    setReferenceError('');
+
+    // Proceed with adding qualification
+    addQualification();
+  };
+
+  const addQualification = async () => {
+    if (!reference.trim()) {
+      setReferenceError('Reference is required');
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
-      const now = new Date();
-      const uid = generateUID();
+      const uid = Date.now().toString(36) + Math.random().toString(36).substr(2);
+      const now = formatToSQLDateTime(new Date());
       
-      const userResult = db.getAllSync<{ uid: string }>(
-        'SELECT uid FROM users LIMIT 1'
-      );
-      
+      // Get the current user's UID
+      const userResult = db.getAllSync<{ uid: string }>('SELECT uid FROM users LIMIT 1');
       if (userResult.length === 0) {
         throw new Error('No users found in database');
       }
-
       const creatorUid = userResult[0].uid;
-      
-      // Add to qualifications table
-      const insertQualificationsSQL = `
+
+      const query = `
         INSERT INTO qualifications (
-          uid, name, expires_months, created, creator, updated, updator,
-          parent_uid, reference, achieved
+          uid,
+          name,
+          expires_months,
+          created,
+          creator,
+          updated,
+          updator,
+          reference,
+          achieved
         ) VALUES (
           '${uid}',
-          '${qual.name}',
-          ${qual.expires_months},
-          '${formatToSQLDateTime(now)}',
+          '',
+          ${renewsMonths || 0},
+          '${now}',
           '${creatorUid}',
           '',
           '',
-          '${qual.uid}',
-          '${referenceNumber}',
+          '${reference}',
           '${formatToSQLDateTime(achievedDate)}'
         )
       `;
-      
-      db.execSync(insertQualificationsSQL);
+
+      // Execute the query
+      db.execSync(query);
 
       // Handle file uploads if needed
       if (selectedImage) {
-        // Copy image to app's documents directory
         const imageExt = selectedImage.split('.').pop();
         const imageName = `${uid}_image.${imageExt}`;
         const imageDestination = `${FileSystem.documentDirectory}${imageName}`;
@@ -380,7 +392,6 @@ export default function QualificationsScreen() {
       }
 
       if (selectedDocument) {
-        // Copy document to app's documents directory
         const docExt = selectedDocument.split('.').pop();
         const docName = `${uid}_doc.${docExt}`;
         const docDestination = `${FileSystem.documentDirectory}${docName}`;
@@ -389,60 +400,23 @@ export default function QualificationsScreen() {
           to: docDestination
         });
       }
-      
-      await loadRecords();
-      
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: `${qual.name} has been added to your qualifications`,
-        position: 'top',
-        topOffset: 60,
-        visibilityTime: 3000,
-        text1Style: {
-          fontSize: 18,
-          fontFamily: 'MavenPro-Medium',
-          color: Colors.blueDark,
-          marginBottom: 4
-        },
-        text2Style: {
-          fontSize: 16,
-          fontFamily: 'MavenPro-Regular',
-          color: Colors.blueDark,
-          lineHeight: 20
-        }
-      });
 
       // Reset form
-      setReferenceNumber('');
+      setReference('');
       setSelectedImage(null);
       setSelectedDocument(null);
       setAchievedDate(new Date());
+      setRenewsMonths(null);
+      
+      // Refresh the qualifications list
+      await loadRecords();
+      
+      // Hide drawer only on success
+      hideDrawer();
 
     } catch (error) {
       console.error('Error adding qualification:', error);
       setError('Failed to add qualification');
-      
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: 'Failed to add qualification. Please try again.',
-        position: 'top',
-        topOffset: 60,
-        visibilityTime: 3000,
-        text1Style: {
-          fontSize: 18,
-          fontFamily: 'MavenPro-Medium',
-          color: Colors.blueDark,
-          marginBottom: 4
-        },
-        text2Style: {
-          fontSize: 16,
-          fontFamily: 'MavenPro-Regular',
-          color: Colors.blueDark,
-          lineHeight: 20
-        }
-      });
     } finally {
       setIsLoading(false);
     }
@@ -696,6 +670,13 @@ export default function QualificationsScreen() {
     }
   };
 
+  const handleReferenceChange = (text: string) => {
+    setReference(text);
+    if (text.trim()) {
+      setReferenceError('');
+    }
+  };
+
   const renderQualificationDrawer = () => {
     if (!selectedQual) return null;
 
@@ -764,14 +745,21 @@ export default function QualificationsScreen() {
                     </Text>
 
                     <View style={styles.formSection}>
-                      <Text style={styles.formLabel}>Reference Number</Text>
-                      <TextInput
-                        style={styles.formInput}
-                        value={referenceNumber}
-                        onChangeText={setReferenceNumber}
-                        placeholder="Enter reference number"
-                        placeholderTextColor={Colors.blueDark + '80'}
-                      />
+                      <View style={styles.inputContainer}>
+                        <Text style={styles.label}>Reference</Text>
+                        <View style={styles.inputWrapper}>
+                          <TextInput
+                            style={[styles.formInput, referenceError ? styles.inputError : null]}
+                            value={reference}
+                            onChangeText={handleReferenceChange}
+                            placeholder="Enter reference"
+                            placeholderTextColor={Colors.blueDark + '4D'}
+                          />
+                          {referenceError ? (
+                            <Text style={styles.errorText}>{referenceError}</Text>
+                          ) : null}
+                        </View>
+                      </View>
 
                       <View style={styles.dateRow}>
                         <View style={[styles.dateColumn, { flex: 0.40 }]}>
@@ -932,10 +920,7 @@ export default function QualificationsScreen() {
                   </ScrollView>
                   <TouchableOpacity 
                     style={[styles.addButton, { position: 'absolute', bottom: 10, left: 20, right: 20 }]}
-                    onPress={() => {
-                      addQualification(selectedQual);
-                      hideDrawer();
-                    }}
+                    onPress={handleAddQualification}
                     activeOpacity={1}
                   >
                     <Text style={styles.addButtonText}>Add Qualification</Text>
@@ -1002,6 +987,9 @@ export default function QualificationsScreen() {
                 <View style={styles.qualificationBottomRow}>
                   <Text style={styles.qualificationCompany}>
                     {qual.reference}
+                  </Text>
+                  <Text style={styles.achievedDate}>
+                    {formatDisplayDate(new Date(qual.achieved))}
                   </Text>
                   <View style={styles.checkCircle}>
                     <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
@@ -1306,14 +1294,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.blueDark,
     fontFamily: 'MavenPro-Regular',
+    flex: 1,
   },
   buttonDisabled: {
     opacity: 0.5,
   },
   errorText: {
-    color: 'red',
-    marginBottom: 20,
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: -8 }],
+    color: Colors.red,
+    fontSize: 12,
     fontFamily: 'MavenPro-Regular',
+    backgroundColor: Colors.white,
+    paddingHorizontal: 4,
+    zIndex: 1,
   },
   modalOverlay: {
     flex: 1,
@@ -1606,10 +1602,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  achievedDate: {
+    fontSize: 14,
+    color: Colors.blueDark,
+    fontFamily: 'MavenPro-Regular',
+    marginRight: 20,
+  },
   checkCircle: {
-   position: 'absolute',
-    right: 0,
-    top: 0,
+    marginLeft: 'auto',
   },
   showDebugButton: {
     flexDirection: 'row',
@@ -1646,6 +1646,12 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
     marginBottom: 8,
   },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
   formInput: {
     backgroundColor: Colors.white,
     borderRadius: 8,
@@ -1655,12 +1661,27 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
     borderWidth: 1,
     borderColor: Colors.blueDark + '20',
-    marginBottom: 16,
+  },
+  inputError: {
+    borderColor: Colors.red,
+    borderWidth: 1,
+  },
+  errorText: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: -8 }],
+    color: Colors.red,
+    fontSize: 12,
+    fontFamily: 'MavenPro-Regular',
+    backgroundColor: Colors.white,
+    paddingHorizontal: 4,
+    zIndex: 1,
   },
   dateRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     gap: 10,
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
   dateColumn: {
@@ -1672,12 +1693,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderRadius: 8,
-    paddingTop: 12,
-    paddingBottom: 12,
-    paddingLeft: 12,
-    paddingRight: 1,
+    padding: 12,
     borderWidth: 1,
     borderColor: Colors.blueDark + '20',
+    height: 46,
   },
   dateButtonText: {
     fontSize: 16,
@@ -1822,7 +1841,7 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Regular',
     color: Colors.blueDark,
     textAlign: 'center',
-    height: 48,
+    height: 46,
   },
   monthsText: {
     fontSize: 16,
@@ -1847,5 +1866,11 @@ const styles = StyleSheet.create({
   },
   neverExpiresTextActive: {
     color: Colors.white,
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
+    marginBottom: 8,
   },
 }); 
