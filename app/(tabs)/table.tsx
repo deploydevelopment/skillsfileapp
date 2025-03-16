@@ -49,7 +49,12 @@ interface QualsReqRecord extends BaseRecord {
   expires_months: number;
 }
 
-type TableType = 'qualifications' | 'users' | 'quals_req';
+interface CompanyRecord extends BaseRecord {
+  name: string;
+  status: number;
+}
+
+type TableType = 'qualifications' | 'users' | 'quals_req' | 'companies';
 
 const db = SQLite.openDatabaseSync('timestamps.db');
 
@@ -81,7 +86,7 @@ const truncateUID = (uid: string | number | undefined) => {
 
 export default function TableScreen() {
   const [selectedTable, setSelectedTable] = useState<TableType>('qualifications');
-  const [records, setRecords] = useState<(SkillsFileRecord | UserRecord | QualsReqRecord)[]>([]);
+  const [records, setRecords] = useState<(SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -99,6 +104,10 @@ export default function TableScreen() {
         result = db.getAllSync<UserRecord>(
           'SELECT * FROM users ORDER BY id DESC'
         );
+      } else if (selectedTable === 'companies') {
+        result = db.getAllSync<CompanyRecord>(
+          'SELECT * FROM companies ORDER BY name ASC'
+        );
       } else {
         result = db.getAllSync<QualsReqRecord>(
           'SELECT * FROM quals_req ORDER BY id ASC'
@@ -110,10 +119,10 @@ export default function TableScreen() {
     }
   };
 
-  const sortRecords = (records: (SkillsFileRecord | UserRecord | QualsReqRecord)[], config: { key: string; direction: 'asc' | 'desc' }) => {
+  const sortRecords = (records: (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)[], config: { key: string; direction: 'asc' | 'desc' }) => {
     return [...records].sort((a, b) => {
-      const aValue = a[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord)] as string | number;
-      const bValue = b[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord)] as string | number;
+      const aValue = a[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)] as string | number;
+      const bValue = b[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)] as string | number;
       
       if (aValue < bValue) {
         return config.direction === 'asc' ? -1 : 1;
@@ -374,6 +383,41 @@ export default function TableScreen() {
           </TouchableOpacity>
         </View>
       );
+    } else if (selectedTable === 'companies') {
+      return (
+        <View style={styles.tableHeader}>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.idCell]} 
+            onPress={() => requestSort('id')}
+          >
+            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.uidCell]} 
+            onPress={() => requestSort('uid')}
+          >
+            <Text style={styles.headerCellText}>uid {getSortDirection('uid')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.nameCell]} 
+            onPress={() => requestSort('name')}
+          >
+            <Text style={styles.headerCellText}>name {getSortDirection('name')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.statusCell]} 
+            onPress={() => requestSort('status')}
+          >
+            <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('created')}
+          >
+            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
+          </TouchableOpacity>
+        </View>
+      );
     } else {
       return (
         <View style={styles.tableHeader}>
@@ -442,7 +486,7 @@ export default function TableScreen() {
     }
   };
 
-  const renderTableRow = (record: SkillsFileRecord | UserRecord | QualsReqRecord) => {
+  const renderTableRow = (record: SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord) => {
     if (selectedTable === 'qualifications' && 'name' in record && 'uid' in record) {
       return (
         <View key={record.id} style={styles.tableRow}>
@@ -471,6 +515,25 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
+        </View>
+      );
+    } else if (selectedTable === 'companies' && 'status' in record) {
+      const getStatusText = (status: number) => {
+        switch (status) {
+          case 0: return 'Live';
+          case 1: return 'Archived';
+          case 2: return 'Deleted';
+          default: return 'Unknown';
+        }
+      };
+      
+      return (
+        <View key={record.id} style={styles.tableRow}>
+          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
+          <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
+          <Text style={[styles.cell, styles.statusCell]}>{getStatusText(Number(record.status))}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
         </View>
       );
     } else if (selectedTable === 'quals_req' && 'name' in record) {
@@ -520,6 +583,12 @@ export default function TableScreen() {
             onPress={() => setSelectedTable('users')}
           >
             <Text style={[styles.tabButtonText, selectedTable === 'users' && styles.activeTabButtonText]}>Users</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTable === 'companies' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('companies')}
+          >
+            <Text style={[styles.tabButtonText, selectedTable === 'companies' && styles.activeTabButtonText]}>Companies</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -723,5 +792,9 @@ const styles = StyleSheet.create({
   achievedCell: {
     width: 120,
     textAlign: 'left',
+  },
+  statusCell: {
+    flex: 0.8,
+    paddingHorizontal: 8,
   },
 }); 

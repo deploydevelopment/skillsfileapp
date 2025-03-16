@@ -16,6 +16,11 @@ export const Colors = {
   white: '#ffffff',
   black: '#000000',
   charcoal: '#333333',
+  // New colors
+  orange: '#f5a623',
+  gray: '#8e8e93',
+  background: '#f5f5f5',
+  border: '#e5e5e5'
 } as const;
 
 export const Typography = {

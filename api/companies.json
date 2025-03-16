@@ -1,0 +1,79 @@
+{
+  "companies": [
+    {
+      "uid": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7",
+      "name": "Ørsted UK",
+      "status": 0
+    },
+    {
+      "uid": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8",
+      "name": "SSE Renewables",
+      "status": 0
+    },
+    {
+      "uid": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9",
+      "name": "RWE Renewables",
+      "status": 0
+    },
+    {
+      "uid": "d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+      "name": "Siemens Gamesa",
+      "status": 0
+    },
+    {
+      "uid": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
+      "name": "Vestas Wind Systems",
+      "status": 0
+    },
+    {
+      "uid": "f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2",
+      "name": "Ocean Winds",
+      "status": 0
+    },
+    {
+      "uid": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3",
+      "name": "Equinor",
+      "status": 0
+    },
+    {
+      "uid": "h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4",
+      "name": "ScottishPower Renewables",
+      "status": 0
+    },
+    {
+      "uid": "i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5",
+      "name": "Shell New Energies",
+      "status": 0
+    },
+    {
+      "uid": "j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+      "name": "BP Wind Energy",
+      "status": 0
+    },
+    {
+      "uid": "k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7",
+      "name": "Van Oord Offshore Wind",
+      "status": 0
+    },
+    {
+      "uid": "l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8",
+      "name": "Boskalis Offshore Energy",
+      "status": 0
+    },
+    {
+      "uid": "m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9",
+      "name": "GE Renewable Energy",
+      "status": 0
+    },
+    {
+      "uid": "n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0",
+      "name": "Vattenfall Wind Power",
+      "status": 0
+    },
+    {
+      "uid": "o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1",
+      "name": "EDF Renewables",
+      "status": 0
+    }
+  ]
+} 

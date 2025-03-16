@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter, useNavigation } from 'expo-router';
 import requiredQualifications from '../../api/required_qualifications.json';
+import companies from '../../api/companies.json';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/styles';
 import { DrawerActions } from '@react-navigation/native';
@@ -21,6 +22,12 @@ interface Qualification {
   updator: string;
   parent_uid?: string;
   reference?: string;
+}
+
+interface Company {
+  uid: string;
+  name: string;
+  status: number;
 }
 
 const db = SQLite.openDatabaseSync('timestamps.db');
@@ -51,7 +58,7 @@ const initializeDatabase = () => {
     
     // Check if tables exist
     const tables = db.getAllSync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'skillsfile', 'users', 'quals_req')"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'skillsfile', 'users', 'quals_req', 'companies')"
     );
     
     if (tables.length === 0) {
@@ -97,6 +104,17 @@ const initializeDatabase = () => {
           updator TEXT
         );
 
+        CREATE TABLE companies (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uid TEXT NOT NULL,
+          name TEXT NOT NULL,
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+          created TEXT NOT NULL,
+          creator TEXT NOT NULL,
+          updated TEXT,
+          updator TEXT
+        );
+
         -- Insert default user
         INSERT INTO users (
           uid, created, creator, updated, updator,
@@ -127,6 +145,22 @@ const initializeDatabase = () => {
             '${q.creator}',
             '${q.updated}',
             '${q.updator}'
+          );
+        `).join('\n')}
+
+        -- Insert companies from JSON
+        ${companies.companies.map(c => `
+          INSERT INTO companies (
+            uid, name, status,
+            created, creator, updated, updator
+          ) VALUES (
+            '${c.uid}',
+            '${c.name}',
+            ${c.status},
+            '${formatToSQLDateTime(new Date())}',
+            'system',
+            '',
+            ''
           );
         `).join('\n')}
       `);
@@ -186,6 +220,41 @@ const initializeDatabase = () => {
           console.log('Adding achieved column...');
           db.execSync('ALTER TABLE qualifications ADD COLUMN achieved TEXT');
         }
+      }
+
+      // Check if companies table exists
+      const hasCompaniesTable = tables.some(t => t.name === 'companies');
+      if (!hasCompaniesTable) {
+        console.log('Creating companies table...');
+        db.execSync(`
+          CREATE TABLE companies (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uid TEXT NOT NULL,
+            name TEXT NOT NULL,
+            status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+            created TEXT NOT NULL,
+            creator TEXT NOT NULL,
+            updated TEXT,
+            updator TEXT
+          );
+
+          -- Insert companies from JSON
+          ${companies.companies.map(c => `
+            INSERT INTO companies (
+              uid, name, status,
+              created, creator, updated, updator
+            ) VALUES (
+              '${c.uid}',
+              '${c.name}',
+              ${c.status},
+              '${formatToSQLDateTime(new Date())}',
+              'system',
+              '',
+              ''
+            );
+          `).join('\n')}
+        `);
+        console.log('Companies table created and populated successfully');
       }
     }
 

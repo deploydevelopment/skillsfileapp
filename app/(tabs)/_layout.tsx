@@ -95,20 +95,6 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="table"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' }
-        }}
-      />
-      <Tabs.Screen
-        name="qualifications"
-        options={{
-          href: null,
-          tabBarStyle: { display: 'none' }
-        }}
-      />
     </Tabs>
   );
 }

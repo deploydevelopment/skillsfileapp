@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Ani
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
+import companies from '../../api/companies.json';
 import { useMediaPreview } from '../../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
@@ -60,7 +61,7 @@ const initializeDatabase = () => {
     
     // Check if tables exist
     const tables = db.getAllSync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'users', 'quals_req')"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'users', 'quals_req', 'companies')"
     );
     
     if (tables.length === 0) {
@@ -105,6 +106,17 @@ const initializeDatabase = () => {
           updator TEXT
         );
 
+        CREATE TABLE companies (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          uid TEXT NOT NULL,
+          name TEXT NOT NULL,
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+          created TEXT NOT NULL,
+          creator TEXT NOT NULL,
+          updated TEXT,
+          updator TEXT
+        );
+
         -- Insert default user
         INSERT INTO users (
           uid, created, creator, updated, updator,
@@ -135,6 +147,22 @@ const initializeDatabase = () => {
             '${q.creator}',
             '${q.updated}',
             '${q.updator}'
+          );
+        `).join('\n')}
+
+        -- Insert companies from JSON
+        ${companies.companies.map(c => `
+          INSERT INTO companies (
+            uid, name, status,
+            created, creator, updated, updator
+          ) VALUES (
+            '${c.uid}',
+            '${c.name}',
+            ${c.status},
+            '${formatToSQLDateTime(new Date())}',
+            'system',
+            '',
+            ''
           );
         `).join('\n')}
       `);
