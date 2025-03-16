@@ -8,6 +8,7 @@ import ImageViewer from 'react-native-image-zoom-viewer';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import Slider from '@react-native-community/slider';
 import { Colors } from '../constants/styles';
+import { WebView } from 'react-native-webview';
 
 const { width, height } = Dimensions.get('window');
 
@@ -280,10 +281,15 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       case 'pdf':
         return (
           <View style={styles.pdfContainer}>
-            <TouchableOpacity onPress={handlePDFOpen} style={styles.pdfButton} activeOpacity={1}>
-              <Ionicons name="document" size={50} color="#007AFF" />
-              <Text style={styles.pdfButtonText}>Open PDF</Text>
-            </TouchableOpacity>
+            <WebView
+              source={{ uri: mediaUrl }}
+              style={styles.webview}
+              originWhitelist={['file://*']}
+              onError={(syntheticEvent) => {
+                const { nativeEvent } = syntheticEvent;
+                console.warn('WebView error: ', nativeEvent);
+              }}
+            />
           </View>
         );
       default:
@@ -378,19 +384,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   pdfContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    alignItems: 'center',
   },
-  pdfButton: {
-    backgroundColor: Colors.blueDark,
-    padding: 15,
-    borderRadius: 5,
-  },
-  pdfButtonText: {
-    color: 'white',
-    fontFamily: 'MavenPro-Medium',
-    fontSize: 16,
+  webview: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
 }); 
