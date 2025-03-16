@@ -599,7 +599,7 @@ export default function QualificationsScreen() {
                       {selectedQual.requested_by} requested
                     </Text>
                     <Text style={styles.drawerExpiry}>
-                      Expires in {selectedQual.expires_months} months
+                      Renews: {selectedQual.expires_months} months
                     </Text>
                     <Text style={styles.drawerDescription}>
                       {selectedQual.intro}
@@ -675,14 +675,16 @@ export default function QualificationsScreen() {
             >
               <View style={styles.qualificationContent}>
                 <View style={styles.qualificationRow}>
-                  <Text style={styles.qualificationName}>{qual.name}</Text>
-                  <Text style={styles.qualificationDate}>
-                    Renewal: {qual.expires_months} months
-                  </Text>
+                  <Text style={[styles.qualificationName, { flex: 1 }]}>{qual.name}</Text>
                 </View>
-                <Text style={styles.qualificationCompany}>
-                  {qual.reference}
-                </Text>
+                <View style={styles.qualificationBottomRow}>
+                  <Text style={styles.qualificationCompany}>
+                    {qual.reference}
+                  </Text>
+                  <View style={styles.checkCircle}>
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
+                  </View>
+                </View>
               </View>
             </AnimatedButton>
           ))}
@@ -700,10 +702,7 @@ export default function QualificationsScreen() {
           >
             <View style={styles.qualificationContent}>
               <View style={styles.qualificationRow}>
-                <Text style={styles.qualificationName}>{qual.name}</Text>
-                <Text style={styles.qualificationDate}>
-                  Renews: {qual.expires_months} months
-                </Text>
+                <Text style={[styles.qualificationName, { flex: 1 }]}>{qual.name}</Text>
               </View>
               <Text style={styles.qualificationCompany}>
                 {qual.requested_by} requested
@@ -1279,5 +1278,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     zIndex: 1000,
+  },
+  qualificationBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  checkCircle: {
+    marginLeft: 8,
   },
 }); 
