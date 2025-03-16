@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing, TextInput } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing, TextInput, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import requiredQualifications from '../../api/required_qualifications.json';
@@ -13,6 +13,9 @@ import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/styles';
 import { AnimatedButton } from '../../components/AnimatedButton';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 
 interface Qualification {
   uid: string;
@@ -166,6 +169,11 @@ export default function QualificationsScreen() {
   } | null>(null);
   const navigation = useNavigation();
   const isBack = useRef(false);
+  const [achievedDate, setAchievedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [referenceNumber, setReferenceNumber] = useState('');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
 
   // Add navigation listener for back button
   useEffect(() => {
@@ -243,29 +251,81 @@ export default function QualificationsScreen() {
     initialize();
   }, []);
 
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
+
+  const takePhoto = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Toast.show({
+        type: 'error',
+        text1: 'Camera permission not granted',
+        text2: 'Please enable camera access in your device settings.',
+      });
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
+
+  const pickDocument = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: 'application/pdf',
+      });
+
+      if (result.assets && result.assets.length > 0) {
+        setSelectedDocument(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.error('Error picking document:', err);
+    }
+  };
+
   const addQualification = async (qual: Qualification) => {
+    if (!referenceNumber.trim()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Please enter a reference number',
+      });
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     
     try {
-      console.log('Adding qualification:', qual);
-      
       const now = new Date();
       const uid = generateUID();
-      console.log('Generated UID:', uid);
       
-      // Get the first user's UID to use as creator
       const userResult = db.getAllSync<{ uid: string }>(
         'SELECT uid FROM users LIMIT 1'
       );
-      console.log('User result:', userResult);
       
       if (userResult.length === 0) {
         throw new Error('No users found in database');
       }
 
       const creatorUid = userResult[0].uid;
-      console.log('Creator UID:', creatorUid);
       
       // Add to qualifications table
       const insertQualificationsSQL = `
@@ -281,18 +341,38 @@ export default function QualificationsScreen() {
           '',
           '',
           '${qual.uid}',
-          'REF-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}',
-          '${qual.achieved}'
+          '${referenceNumber}',
+          '${formatToSQLDateTime(achievedDate)}'
         )
       `;
       
       db.execSync(insertQualificationsSQL);
-      console.log('Successfully added qualification');
+
+      // Handle file uploads if needed
+      if (selectedImage) {
+        // Copy image to app's documents directory
+        const imageExt = selectedImage.split('.').pop();
+        const imageName = `${uid}_image.${imageExt}`;
+        const imageDestination = `${FileSystem.documentDirectory}${imageName}`;
+        await FileSystem.copyAsync({
+          from: selectedImage,
+          to: imageDestination
+        });
+      }
+
+      if (selectedDocument) {
+        // Copy document to app's documents directory
+        const docExt = selectedDocument.split('.').pop();
+        const docName = `${uid}_doc.${docExt}`;
+        const docDestination = `${FileSystem.documentDirectory}${docName}`;
+        await FileSystem.copyAsync({
+          from: selectedDocument,
+          to: docDestination
+        });
+      }
       
-      // Reload records to update the UI
       await loadRecords();
       
-      // Show success toast
       Toast.show({
         type: 'success',
         text1: 'Success',
@@ -314,11 +394,16 @@ export default function QualificationsScreen() {
         }
       });
 
+      // Reset form
+      setReferenceNumber('');
+      setSelectedImage(null);
+      setSelectedDocument(null);
+      setAchievedDate(new Date());
+
     } catch (error) {
       console.error('Error adding qualification:', error);
       setError('Failed to add qualification');
       
-      // Show error toast
       Toast.show({
         type: 'error',
         text1: 'Error',
@@ -634,6 +719,104 @@ export default function QualificationsScreen() {
                     <Text style={styles.drawerDescription}>
                       {selectedQual.intro}
                     </Text>
+
+                    <View style={styles.formSection}>
+                      <Text style={styles.formLabel}>Reference Number</Text>
+                      <TextInput
+                        style={styles.formInput}
+                        value={referenceNumber}
+                        onChangeText={setReferenceNumber}
+                        placeholder="Enter reference number"
+                        placeholderTextColor={Colors.blueDark + '80'}
+                      />
+
+                      <Text style={styles.formLabel}>Achieved Date</Text>
+                      <TouchableOpacity
+                        style={styles.dateButton}
+                        onPress={() => setShowDatePicker(true)}
+                      >
+                        <Text style={styles.dateButtonText}>
+                          {achievedDate.toLocaleDateString()}
+                        </Text>
+                        <Ionicons name="calendar-outline" size={20} color={Colors.blueDark} />
+                      </TouchableOpacity>
+
+                      {showDatePicker && (
+                        <DateTimePicker
+                          value={achievedDate}
+                          mode="date"
+                          display="default"
+                          onChange={(event, selectedDate) => {
+                            setShowDatePicker(false);
+                            if (selectedDate) {
+                              setAchievedDate(selectedDate);
+                            }
+                          }}
+                        />
+                      )}
+
+                      <View style={styles.mediaSection}>
+                        <Text style={styles.formLabel}>Add Media</Text>
+                        <View style={styles.mediaButtons}>
+                          <TouchableOpacity
+                            style={styles.mediaButton}
+                            onPress={takePhoto}
+                          >
+                            <Ionicons name="camera-outline" size={24} color={Colors.blueDark} />
+                            <Text style={styles.mediaButtonText}>Take Photo</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={styles.mediaButton}
+                            onPress={pickImage}
+                          >
+                            <Ionicons name="image-outline" size={24} color={Colors.blueDark} />
+                            <Text style={styles.mediaButtonText}>Choose Image</Text>
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            style={styles.mediaButton}
+                            onPress={pickDocument}
+                          >
+                            <Ionicons name="document-outline" size={24} color={Colors.blueDark} />
+                            <Text style={styles.mediaButtonText}>Select PDF</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        {selectedImage && (
+                          <View style={styles.selectedMedia}>
+                            <Image
+                              source={{ uri: selectedImage }}
+                              style={styles.selectedImage}
+                            />
+                            <TouchableOpacity
+                              style={styles.removeMediaButton}
+                              onPress={() => setSelectedImage(null)}
+                            >
+                              <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
+                            </TouchableOpacity>
+                          </View>
+                        )}
+
+                        {selectedDocument && (
+                          <View style={styles.selectedMedia}>
+                            <View style={styles.documentPreview}>
+                              <Ionicons name="document" size={32} color={Colors.blueDark} />
+                              <Text style={styles.documentName}>
+                                {selectedDocument.split('/').pop()}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              style={styles.removeMediaButton}
+                              onPress={() => setSelectedDocument(null)}
+                            >
+                              <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
+                    </View>
+
                     {renderPreviewButtons()}
                   </ScrollView>
                   <TouchableOpacity 
@@ -1054,25 +1237,25 @@ const styles = StyleSheet.create({
   drawerTitle: {
     fontSize: 24,
     fontFamily: 'MavenPro-Medium',
-    color: '#0A1929',
+    color: Colors.blueDark,
     marginBottom: 15,
   },
   drawerSubtitle: {
     fontSize: 18,
-    fontFamily: 'MavenPro-Regular',
-    color: Colors.black,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
     marginBottom: 5,
   },
   drawerExpiry: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: Colors.black,
+    color: Colors.blueDark,
     marginBottom: 15,
   },
   drawerDescription: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: Colors.black,
+    color: Colors.blueDark,
     marginBottom: 30,
     lineHeight: 24,
   },
@@ -1153,7 +1336,7 @@ const styles = StyleSheet.create({
   previewTitle: {
     fontSize: 18,
     fontFamily: 'MavenPro-Medium',
-    color: '#0A1929',
+    color: Colors.blueDark,
     marginBottom: 15,
   },
   previewWrapper: {
@@ -1321,6 +1504,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: 40,
     alignItems: 'center',
+
   },
   showDebugText: {
     color: Colors.blueDark,
@@ -1339,6 +1523,97 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
   },
   hideDebugButton: {
+    padding: 4,
+  },
+  formSection: {
+    marginTop: 0,
+    marginBottom: 20,
+  },
+  formLabel: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
+    marginBottom: 8,
+  },
+  formInput: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+    marginBottom: 16,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+    marginBottom: 16,
+  },
+  dateButtonText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+  },
+  mediaSection: {
+    marginTop: 8,
+  },
+  mediaButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 16,
+  },
+  mediaButton: {
+    flex: 1,
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+  },
+  mediaButtonText: {
+    fontSize: 12,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
+    marginTop: 4,
+  },
+  selectedMedia: {
+    marginTop: 8,
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+  },
+  selectedImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 4,
+  },
+  documentPreview: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  documentName: {
+    fontSize: 14,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+    flex: 1,
+  },
+  removeMediaButton: {
     padding: 4,
   },
 }); 
