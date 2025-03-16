@@ -543,7 +543,7 @@ export default function QualificationsScreen() {
 
     const translateY = drawerAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.33],
+      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.2],
     });
 
     const overlayOpacity = drawerAnimation.interpolate({
@@ -578,38 +578,38 @@ export default function QualificationsScreen() {
                 {
                   transform: [{ translateY }],
                   zIndex: 2,
-                  height: Dimensions.get('window').height * 0.67,
+                  height: Dimensions.get('window').height * 0.8,
                   borderTopLeftRadius: 15,
                   borderTopRightRadius: 15,
                 },
               ]}
             >
               <View style={styles.drawerHeader}>
-                <AnimatedButton style={styles.drawerButton} onPress={hideDrawer}>
-                  <Ionicons name="close" size={24} color={Colors.white} />
-                </AnimatedButton>
+                <View style={styles.drawerHandle} />
               </View>
               <TouchableOpacity 
                 activeOpacity={1} 
                 style={{ flex: 1 }}
                 onPress={() => {}}
               >
-                <ScrollView style={styles.drawerContent}>
-                  <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
-                  <Text style={styles.drawerSubtitle}>
-                    Requested by {selectedQual.requested_by}
-                  </Text>
-                  <Text style={styles.drawerExpiry}>
-                    Expires in {selectedQual.expires_months} months
-                  </Text>
-                  <Text style={styles.drawerDescription}>
-                    {selectedQual.intro}
-                  </Text>
-                  <View style={styles.previewContainer}>
-                    {renderPreviewButtons()}
-                  </View>
+                <View style={{ flex: 1 }}>
+                  <ScrollView style={[styles.drawerContent, { marginBottom: 80 }]}>
+                    <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
+                    <Text style={styles.drawerSubtitle}>
+                      {selectedQual.requested_by} requested
+                    </Text>
+                    <Text style={styles.drawerExpiry}>
+                      Expires in {selectedQual.expires_months} months
+                    </Text>
+                    <Text style={styles.drawerDescription}>
+                      {selectedQual.intro}
+                    </Text>
+                    <View style={styles.previewContainer}>
+                      {renderPreviewButtons()}
+                    </View>
+                  </ScrollView>
                   <TouchableOpacity 
-                    style={styles.addButton}
+                    style={[styles.addButton, { position: 'absolute', bottom: 10, left: 20, right: 20 }]}
                     onPress={() => {
                       addQualification(selectedQual);
                       hideDrawer();
@@ -618,7 +618,7 @@ export default function QualificationsScreen() {
                   >
                     <Text style={styles.addButtonText}>Add Qualification</Text>
                   </TouchableOpacity>
-                </ScrollView>
+                </View>
               </TouchableOpacity>
             </Animated.View>
           </TouchableOpacity>
@@ -706,7 +706,7 @@ export default function QualificationsScreen() {
                 </Text>
               </View>
               <Text style={styles.qualificationCompany}>
-                Requested by {qual.requested_by}
+                {qual.requested_by} requested
               </Text>
             </View>
           </AnimatedButton>
@@ -1013,13 +1013,13 @@ const styles = StyleSheet.create({
   },
   drawerHeader: {
     alignItems: 'center',
-    paddingVertical: 15,
+    paddingVertical: 12,
   },
-  drawerButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+  drawerHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: '#E5E5EA',
+    borderRadius: 2,
   },
   drawerContent: {
     padding: 20,
@@ -1209,15 +1209,16 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Medium',
   },
   addButton: {
-    backgroundColor: '#0A1929',
+    backgroundColor: Colors.blueDark,
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
+    marginBottom: 40,
   },
   addButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'MavenPro-Medium',
   },
   qualificationReference: {
