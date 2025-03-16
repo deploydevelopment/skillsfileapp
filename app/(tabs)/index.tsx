@@ -14,7 +14,7 @@ interface Qualification {
   uid: string;
   name: string;
   intro: string;
-  requested_by: string;
+  category_name: string;
   expires_months: number;
   created: string;
   creator: string;
@@ -30,7 +30,7 @@ interface Company {
   status: number;
 }
 
-const db = SQLite.openDatabaseSync('timestamps.db');
+const db = SQLite.openDatabaseSync('skillsfile.db');
 
 const formatToSQLDateTime = (date: Date): string => {
   const year = date.getFullYear();
@@ -98,7 +98,7 @@ const initializeDatabase = () => {
           uid TEXT NOT NULL,
           name TEXT NOT NULL,
           intro TEXT NOT NULL,
-          requested_by TEXT NOT NULL,
+          category_name TEXT NOT NULL,
           expires_months INTEGER NOT NULL,
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
@@ -140,13 +140,13 @@ const initializeDatabase = () => {
       reqQuals.forEach(q => {
         db.execSync(`
           INSERT INTO quals_req (
-            uid, name, intro, requested_by, expires_months,
+            uid, name, intro, category_name, expires_months,
             created, creator, updated, updator, status
           ) VALUES (
             '${q.uid}',
             '${q.name}',
             '${q.intro}',
-            '${q.requested_by}',
+            '${q.category_name}',
             ${q.expires_months},
             '${q.created}',
             '${q.creator}',
@@ -304,6 +304,21 @@ const initializeDatabase = () => {
     if (!qualsReqColumnNames.includes('status')) {
       console.log('Adding status column to quals_req table...');
       db.execSync('ALTER TABLE quals_req ADD COLUMN status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))');
+    }
+
+    if (!qualsReqColumnNames.includes('category_name')) {
+      console.log('Adding category_name column to quals_req table...');
+      db.execSync('ALTER TABLE quals_req ADD COLUMN category_name TEXT NOT NULL DEFAULT ""');
+      
+      // Repopulate the category_name from JSON
+      const reqQuals = requiredQualifications.qualifications;
+      reqQuals.forEach(q => {
+        db.execSync(`
+          UPDATE quals_req 
+          SET category_name = '${q.category_name}'
+          WHERE uid = '${q.uid}'
+        `);
+      });
     }
 
     console.log('Database initialization completed successfully');

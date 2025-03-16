@@ -22,7 +22,7 @@ interface Qualification {
   uid: string;
   name: string;
   intro: string;
-  requested_by: string;
+  category_name: string;
   expires_months: number;
   created: string;
   creator: string;
@@ -33,7 +33,7 @@ interface Qualification {
   achieved: string;
 }
 
-const db = SQLite.openDatabaseSync('timestamps.db');
+const db = SQLite.openDatabaseSync('skillsfile.db');
 
 const formatToSQLDateTime = (date: Date): string => {
   const year = date.getFullYear();
@@ -98,7 +98,7 @@ const initializeDatabase = () => {
           uid TEXT NOT NULL,
           name TEXT NOT NULL,
           intro TEXT NOT NULL,
-          requested_by TEXT NOT NULL,
+          category_name TEXT NOT NULL,
           expires_months INTEGER NOT NULL,
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
@@ -136,13 +136,13 @@ const initializeDatabase = () => {
         -- Insert required qualifications from JSON
         ${requiredQualifications.qualifications.map(q => `
           INSERT INTO quals_req (
-            uid, name, intro, requested_by, expires_months,
+            uid, name, intro, category_name, expires_months,
             created, creator, updated, updator, status
           ) VALUES (
             '${q.uid}',
             '${q.name}',
             '${q.intro}',
-            '${q.requested_by}',
+            '${q.category_name}',
             ${q.expires_months},
             '${q.created}',
             '${q.creator}',
@@ -816,7 +816,7 @@ export default function QualificationsScreen() {
               <ScrollView style={[styles.drawerContent, { marginBottom: 80 }]}>
                 <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
                 <Text style={styles.drawerSubtitle}>
-                  {selectedQual.requested_by} requested
+                  {selectedQual.category_name} category_name
                 </Text>
                 <Text style={styles.drawerExpiry}>
                   Renews: {selectedQual.expires_months} months
@@ -1038,7 +1038,7 @@ export default function QualificationsScreen() {
       return requiredQualifications.qualifications.filter(qual =>
         qual.name.toLowerCase().includes(searchLower) ||
         qual.intro.toLowerCase().includes(searchLower) ||
-        qual.requested_by.toLowerCase().includes(searchLower) ||
+        qual.category_name.toLowerCase().includes(searchLower) ||
         String(qual.expires_months).includes(searchLower)
       ) as Qualification[];
     }
@@ -1107,7 +1107,7 @@ export default function QualificationsScreen() {
                 <Text style={[styles.qualificationName, { flex: 1 }]}>{qual.name}</Text>
               </View>
               <Text style={styles.qualificationCompany}>
-                {qual.requested_by} requested
+                {qual.category_name} category_name
               </Text>
             </View>
           </AnimatedButton>

@@ -3,7 +3,7 @@
     {
       "uid": "f8a9b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
       "name": "First Aid at Work",
-      "category_names": ["Medical", "Emergency Response"],
+      "category_name": "Medical, Emergency Response",
       "intro": "Comprehensive first aid training for workplace emergencies",
       "accreditor": "Health and Safety Executive (HSE)",
       "expires_months": 36,
@@ -32,7 +32,7 @@
     {
       "uid": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7",
       "name": "Emergency First Aid",
-      "category_names": ["Medical", "Emergency Response"],
+      "category_name": "Medical, Emergency Response",
       "intro": "Basic first aid skills for immediate response",
       "accreditor": "Health and Safety Executive (HSE)",
       "expires_months": 36,
@@ -54,7 +54,7 @@
     {
       "uid": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8",
       "name": "Fire Marshal Training",
-      "category_names": ["Emergency Response", "Safety"],
+      "category_name": "Emergency Response, Safety",
       "intro": "Fire safety and emergency response procedures",
       "accreditor": "Fire Protection Association (FPA)",
       "expires_months": 24,
@@ -90,7 +90,7 @@
     {
       "uid": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9",
       "name": "Manual Handling",
-      "category_names": ["Safety", "Physical"],
+      "category_name": "Safety, Physical",
       "intro": "Safe lifting and handling techniques",
       "accreditor": "ROSPA (Royal Society for the Prevention of Accidents)",
       "expires_months": 24,
@@ -119,7 +119,7 @@
     {
       "uid": "d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
       "name": "Working at Heights",
-      "category_names": ["Safety", "Physical", "Specialized"],
+      "category_name": "Safety, Physical, Specialized",
       "intro": "Safety procedures for working at height",
       "accreditor": "IPAF (International Powered Access Federation)",
       "expires_months": 24,
@@ -141,7 +141,7 @@
     {
       "uid": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
       "name": "Confined Space Entry",
-      "category_names": ["Safety", "Physical", "Specialized"],
+      "category_name": "Safety, Physical, Specialized",
       "intro": "Safety procedures for confined space work",
       "accreditor": "City & Guilds",
       "expires_months": 24,
@@ -170,7 +170,7 @@
     {
       "uid": "f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2",
       "name": "Scaffold Inspection",
-      "category_names": ["Safety", "Inspection", "Construction"],
+      "category_name": "Safety, Inspection, Construction",
       "intro": "Scaffold safety and inspection procedures",
       "accreditor": "CISRS (Construction Industry Scaffolders Record Scheme)",
       "expires_months": 24,
@@ -199,7 +199,7 @@
     {
       "uid": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3",
       "name": "Crane Operation",
-      "category_names": ["Equipment", "Construction", "Specialized"],
+      "category_name": "Equipment, Construction, Specialized",
       "intro": "Safe crane operation and maintenance",
       "accreditor": "CPCS (Construction Plant Competence Scheme)",
       "expires_months": 12,
@@ -221,7 +221,7 @@
     {
       "uid": "h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4",
       "name": "Forklift Operation",
-      "category_names": ["Equipment", "Warehouse", "Specialized"],
+      "category_name": "Equipment, Warehouse, Specialized",
       "intro": "Safe forklift operation and maintenance",
       "accreditor": "RTITB (Road Transport Industry Training Board)",
       "expires_months": 12,
@@ -257,7 +257,7 @@
     {
       "uid": "i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5",
       "name": "Welding Certification",
-      "category_names": ["Technical", "Construction", "Specialized"],
+      "category_name": "Technical, Construction, Specialized",
       "intro": "Advanced welding techniques and safety",
       "accreditor": "TWI (The Welding Institute)",
       "expires_months": 12,
@@ -286,7 +286,7 @@
     {
       "uid": "j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
       "name": "Electrical Safety",
-      "category_names": ["Technical", "Safety", "Specialized"],
+      "category_name": "Technical, Safety, Specialized",
       "intro": "Electrical safety procedures and protocols",
       "accreditor": "NICEIC (National Inspection Council for Electrical Installation Contracting)",
       "expires_months": 24,
@@ -315,7 +315,7 @@
     {
       "uid": "k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7",
       "name": "COSHH Training",
-      "category_names": ["Safety", "Chemical", "Regulatory"],
+      "category_name": "Safety, Chemical, Regulatory",
       "intro": "Control of Substances Hazardous to Health",
       "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
@@ -337,7 +337,7 @@
     {
       "uid": "l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8",
       "name": "Asbestos Awareness",
-      "category_names": ["Safety", "Chemical", "Specialized"],
+      "category_name": "Safety, Chemical, Specialized",
       "intro": "Asbestos identification and safety procedures",
       "accreditor": "UKATA (UK Asbestos Training Association)",
       "expires_months": 24,
@@ -373,7 +373,7 @@
     {
       "uid": "m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9",
       "name": "Working with Chemicals",
-      "category_names": ["Safety", "Chemical", "Specialized"],
+      "category_name": "Safety, Chemical, Specialized",
       "intro": "Chemical safety and handling procedures",
       "accreditor": "NEBOSH (National Examination Board in Occupational Safety and Health)",
       "expires_months": 24,
@@ -395,7 +395,7 @@
     {
       "uid": "n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0",
       "name": "Ladder Safety",
-      "category_names": ["Safety", "Equipment"],
+      "category_name": "Safety, Equipment",
       "intro": "Safe ladder use and inspection",
       "accreditor": "Ladder Association",
       "expires_months": 24,
@@ -417,7 +417,7 @@
     {
       "uid": "o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1",
       "name": "PPE Training",
-      "category_names": ["Safety", "Equipment"],
+      "category_name": "Safety, Equipment",
       "intro": "Personal Protective Equipment use and care",
       "accreditor": "British Safety Industry Federation (BSIF)",
       "expires_months": 24,
@@ -439,7 +439,7 @@
     {
       "uid": "p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
       "name": "Risk Assessment",
-      "category_names": ["Safety", "Management"],
+      "category_name": "Safety, Management",
       "intro": "Workplace risk assessment procedures",
       "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
@@ -461,7 +461,7 @@
     {
       "uid": "q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3",
       "name": "Health and Safety Level 2",
-      "category_names": ["Safety", "Management", "Certification"],
+      "category_name": "Safety, Management, Certification",
       "intro": "Intermediate health and safety principles",
       "accreditor": "NEBOSH (National Examination Board in Occupational Safety and Health)",
       "expires_months": 36,
@@ -483,7 +483,7 @@
     {
       "uid": "r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4",
       "name": "Health and Safety Level 3",
-      "category_names": ["Safety", "Management", "Certification"],
+      "category_name": "Safety, Management, Certification",
       "intro": "Advanced health and safety management",
       "accreditor": "NEBOSH (National Examination Board in Occupational Safety and Health)",
       "expires_months": 36,
@@ -505,7 +505,7 @@
     {
       "uid": "s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5",
       "name": "Environmental Awareness",
-      "category_names": ["Environmental", "Safety"],
+      "category_name": "Environmental, Safety",
       "intro": "Environmental protection procedures",
       "accreditor": "IEMA (Institute of Environmental Management and Assessment)",
       "expires_months": 24,
@@ -527,7 +527,7 @@
     {
       "uid": "t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6",
       "name": "Noise at Work",
-      "category_names": ["Safety", "Health"],
+      "category_name": "Safety, Health",
       "intro": "Noise safety and hearing protection",
       "accreditor": "BOHS (British Occupational Hygiene Society)",
       "expires_months": 24,
@@ -549,7 +549,7 @@
     {
       "uid": "u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7",
       "name": "Vibration Training",
-      "category_names": ["Safety", "Health"],
+      "category_name": "Safety, Health",
       "intro": "Hand-arm vibration safety",
       "accreditor": "BOHS (British Occupational Hygiene Society)",
       "expires_months": 24,
@@ -571,7 +571,7 @@
     {
       "uid": "v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8",
       "name": "Working in Hot Conditions",
-      "category_names": ["Safety", "Environmental", "Health"],
+      "category_name": "Safety, Environmental, Health",
       "intro": "Heat stress prevention and management",
       "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
@@ -593,7 +593,7 @@
     {
       "uid": "w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9",
       "name": "Working in Cold Conditions",
-      "category_names": ["Safety", "Environmental", "Health"],
+      "category_name": "Safety, Environmental, Health",
       "intro": "Cold stress prevention and management",
       "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
@@ -615,7 +615,7 @@
     {
       "uid": "x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0",
       "name": "Lone Working",
-      "category_names": ["Safety", "Specialized"],
+      "category_name": "Safety, Specialized",
       "intro": "Safety procedures for lone workers",
       "accreditor": "British Safety Council",
       "expires_months": 24,
@@ -637,7 +637,7 @@
     {
       "uid": "y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1",
       "name": "Stress Management",
-      "category_names": ["Health", "Mental Health", "Management"],
+      "category_name": "Health, Mental Health, Management",
       "intro": "Workplace stress prevention and management",
       "accreditor": "Mental Health First Aid England",
       "expires_months": 24,
@@ -659,7 +659,7 @@
     {
       "uid": "z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2",
       "name": "Mental Health First Aid",
-      "category_names": ["Medical", "Mental Health", "Emergency Response"],
+      "category_name": "Medical, Mental Health, Emergency Response",
       "intro": "Mental health awareness and support",
       "accreditor": "Mental Health First Aid England",
       "expires_months": 36,
@@ -681,7 +681,7 @@
     {
       "uid": "a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3",
       "name": "Drug and Alcohol Awareness Course",
-      "category_names": ["Health", "Safety", "Mental Health"],
+      "category_name": "Health, Safety, Mental Health",
       "intro": "Substance abuse prevention and support",
       "accreditor": "British Safety Council",
       "expires_months": 24,
@@ -703,7 +703,7 @@
     {
       "uid": "b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4",
       "name": "Security Clearance",
-      "category_names": ["Security", "Regulatory", "Certification"],
+      "category_name": "Security, Regulatory, Certification",
       "intro": "Security procedures and clearance requirements",
       "accreditor": "Security Industry Authority (SIA)",
       "expires_months": 12,
@@ -725,7 +725,7 @@
     {
       "uid": "c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5",
       "name": "DBS Check",
-      "category_names": ["Security", "Regulatory", "Certification"],
+      "category_name": "Security, Regulatory, Certification",
       "intro": "Criminal record check and verification",
       "accreditor": "Disclosure and Barring Service (DBS)",
       "expires_months": 12,

@@ -19,13 +19,14 @@ interface RequiredQualification {
   uid: string;
   name: string;
   intro: string;
-  requested_by: string;
+  category_name: string;
   expires_months: number;
   created: string;
   creator: string;
   updated: string;
   updator: string;
   status: number;
+  accreditor: string;
 }
 
 interface SampleQualification {
@@ -55,7 +56,7 @@ interface UserRecord extends BaseRecord {
 interface QualsReqRecord extends BaseRecord {
   name: string;
   intro: string;
-  requested_by: string;
+  category_name: string;
   expires_months: number;
   status: number;
 }
@@ -73,7 +74,7 @@ interface CompanyRecord extends BaseRecord {
 
 type TableType = 'qualifications' | 'users' | 'quals_req' | 'companies';
 
-const db = SQLite.openDatabaseSync('timestamps.db');
+const db = SQLite.openDatabaseSync('skillsfile.db');
 
 const formatToSQLDateTime = (date: Date): string => {
   const year = date.getFullYear();
@@ -283,13 +284,13 @@ export default function TableScreen() {
                   reqQuals.qualifications.forEach((qual) => {
                     db.execSync(`
                       INSERT INTO quals_req (
-                        uid, name, intro, requested_by, expires_months,
+                        uid, name, intro, category_name, expires_months,
                         created, creator, updated, updator, status
                       ) VALUES (
                         '${qual.uid}',
                         '${qual.name}',
                         '${qual.intro}',
-                        '${qual.requested_by}',
+                        '${qual.category_name}',
                         ${qual.expires_months},
                         '${qual.created}',
                         '${qual.creator}',
@@ -532,9 +533,9 @@ export default function TableScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.skillsFileCell]} 
-            onPress={() => requestSort('requested_by')}
+            onPress={() => requestSort('category_name')}
           >
-            <Text style={styles.headerCellText}>requested by {getSortDirection('requested_by')}</Text>
+            <Text style={styles.headerCellText}>category {getSortDirection('category_name')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.skillsFileCell]} 
@@ -636,7 +637,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.intro}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.requested_by}</Text>
+          <Text style={[styles.cell, styles.skillsFileCell]}>{record.category_name}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.expires_months}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
