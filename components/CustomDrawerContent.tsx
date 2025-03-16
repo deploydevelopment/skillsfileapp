@@ -23,7 +23,7 @@ export function CustomDrawerContent(props: any) {
           style={styles.drawerItem}
           onPress={() => {}}
         >
-          <Ionicons name="person-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Ionicons name="id-card-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>Profile</Text>
         </AnimatedButton>
         
@@ -31,10 +31,10 @@ export function CustomDrawerContent(props: any) {
           style={styles.drawerItem}
           onPress={() => {}}
         >
-          <Ionicons name="settings-outline" size={22} color={Colors.white} style={styles.icon} />
-          <Text style={styles.drawerItemText}>Settings</Text>
+          <Ionicons name="rocket-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Find Training</Text>
         </AnimatedButton>
-        
+
         <AnimatedButton 
           style={styles.drawerItem}
           onPress={() => {}}
@@ -49,6 +49,14 @@ export function CustomDrawerContent(props: any) {
         >
           <Ionicons name="bug-outline" size={22} color={Colors.white} style={styles.icon} />
           <Text style={styles.drawerItemText}>View Storage</Text>
+        </AnimatedButton>
+
+        <AnimatedButton 
+          style={styles.drawerItem}
+          onPress={() => {}}
+        >
+          <Ionicons name="settings-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Settings</Text>
         </AnimatedButton>
         
         <AnimatedButton 
