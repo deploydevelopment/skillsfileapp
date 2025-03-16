@@ -248,6 +248,13 @@ export default function QualificationsScreen() {
   const hideDrawer = () => {
     setIsDrawerVisible(false);
     setShowDatePicker(false);
+    // Clear all validation statuses
+    setReferenceError('');
+    setReference('');
+    setSelectedImage(null);
+    setSelectedDocument(null);
+    setAchievedDate(new Date());
+    setRenewsMonths(null);
     Animated.spring(drawerAnimation, {
       toValue: 0,
       useNativeDriver: true,
@@ -844,7 +851,7 @@ export default function QualificationsScreen() {
                       <Text style={styles.formLabel}>Expiry Date</Text>
                       <View style={[styles.dateButton, styles.expiryDate]}>
                         <Text style={styles.dateButtonText}>
-                          {renewsMonths === null ? 'Never expires' : formatDisplayDate(calculateExpiryDate(achievedDate, renewsMonths) || new Date())}
+                          {renewsMonths === null ? 'Never' : formatDisplayDate(calculateExpiryDate(achievedDate, renewsMonths) || new Date())}
                         </Text>
                       </View>
                     </View>
@@ -877,23 +884,26 @@ export default function QualificationsScreen() {
                     onRequestClose={() => setIsRenewsInfoVisible(false)}
                   >
                     <TouchableOpacity 
-                      style={styles.modalOverlay}
+                      style={styles.helpModalOverlay}
                       activeOpacity={1}
                       onPress={() => setIsRenewsInfoVisible(false)}
                     >
-                      <View style={styles.infoModalContent}>
-                        <Text style={styles.infoModalTitle}>Renews Information</Text>
-                        <Text style={styles.infoModalText}>
+                      <View style={styles.helpModalContent}>
+                        <View style={styles.helpModalTitleContainer}>
+                          <Ionicons name="help-circle-outline" size={24} color={Colors.blueDark} />
+                          <Text style={styles.helpModalTitle}>Renews Information</Text>
+                        </View>
+                        <Text style={styles.helpModalText}>
                           This value indicates how often this qualification needs to be renewed.
                           The expiry date is automatically calculated based on the achieved date
-                          and renewal period.
+                          and renewal period. If you leave the renewal period blank the qualification will never expire.
                         </Text>
-                        <TouchableOpacity
-                          style={styles.infoModalButton}
+                        <AnimatedButton 
+                          style={styles.helpModalButton}
                           onPress={() => setIsRenewsInfoVisible(false)}
                         >
-                          <Text style={styles.infoModalButtonText}>Got it</Text>
-                        </TouchableOpacity>
+                          <Text style={styles.helpModalButtonText}>Got it</Text>
+                        </AnimatedButton>
                       </View>
                     </TouchableOpacity>
                   </Modal>
@@ -963,7 +973,7 @@ export default function QualificationsScreen() {
                 {renderPreviewButtons()}
               </ScrollView>
               <View style={styles.buttonRow}>
-                <TouchableOpacity
+                <AnimatedButton
                   style={styles.cancelButton}
                   onPress={hideDrawer}
                 >
@@ -971,13 +981,13 @@ export default function QualificationsScreen() {
                     <Ionicons style={styles.cancelButtonIcon} name="chevron-down" size={20} color={Colors.blueDark} />
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                   </View>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </AnimatedButton>
+                <AnimatedButton
                   style={styles.addButton}
                   onPress={handleAddQualification}
                 >
                   <Text style={styles.addButtonText}>Add Qualification</Text>
-                </TouchableOpacity>
+                </AnimatedButton>
               </View>
             </TouchableOpacity>
           </Animated.View>
@@ -1580,13 +1590,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -20,
     left: 0,
-    right: 0,
     flexDirection: 'row',
     paddingHorizontal: 20,
     gap: 10,
+    alignItems: 'center',
+    width: '100%',
+    paddingEnd: 10,
+
   },
   cancelButton: {
-    flex: 1.3,
+    flex: 1,
     backgroundColor: Colors.white,
     borderRadius: 8,
     height: 46,
@@ -1594,15 +1607,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: Colors.blueDark,
+    minWidth: '30%',
   },
   cancelButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flex: 1,
+    justifyContent: 'center',
   },
   cancelButtonIcon: {
-    position: 'relative',
-    left: -5,
+    marginRight: 4,
   },
   cancelButtonText: {
     color: Colors.blueDark,
@@ -1616,6 +1631,9 @@ const styles = StyleSheet.create({
     height: 46,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: '60%',
+    position: 'relative',
+    right: -17,
   },
   addButtonText: {
     color: Colors.white,
@@ -1935,5 +1953,5 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Medium',
     color: Colors.blueDark,
     marginBottom: 8,
-  },
+  }
 }); 
