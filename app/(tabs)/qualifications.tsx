@@ -175,6 +175,23 @@ export default function QualificationsScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
 
+  const formatDisplayDate = (date: Date) => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const month = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    return `${month} ${day}, ${year}`;
+  };
+
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (selectedDate) {
+      setAchievedDate(selectedDate);
+    }
+  };
+
   // Add navigation listener for back button
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', () => {
@@ -736,23 +753,29 @@ export default function QualificationsScreen() {
                         onPress={() => setShowDatePicker(true)}
                       >
                         <Text style={styles.dateButtonText}>
-                          {achievedDate.toLocaleDateString()}
+                          {formatDisplayDate(achievedDate)}
                         </Text>
                         <Ionicons name="calendar-outline" size={20} color={Colors.blueDark} />
                       </TouchableOpacity>
 
                       {showDatePicker && (
-                        <DateTimePicker
-                          value={achievedDate}
-                          mode="date"
-                          display="default"
-                          onChange={(event, selectedDate) => {
-                            setShowDatePicker(false);
-                            if (selectedDate) {
-                              setAchievedDate(selectedDate);
-                            }
-                          }}
-                        />
+                        <View style={styles.datePickerContainer}>
+                          {Platform.OS === 'ios' && (
+                            <TouchableOpacity
+                              style={styles.datePickerDoneButton}
+                              onPress={() => setShowDatePicker(false)}
+                            >
+                              <Text style={styles.datePickerDoneButtonText}>Done</Text>
+                            </TouchableOpacity>
+                          )}
+                          <DateTimePicker
+                            value={achievedDate}
+                            mode="date"
+                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                            onChange={onDateChange}
+                            style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
+                          />
+                        </View>
                       )}
 
                       <View style={styles.mediaSection}>
@@ -1561,6 +1584,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
     color: Colors.blueDark,
+  },
+  datePickerContainer: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+  },
+  datePickerDoneButton: {
+    alignSelf: 'flex-end',
+    padding: 12,
+    position: 'absolute',
+    zIndex: 1000,
+  },
+  datePickerDoneButtonText: {
+    color: Colors.blueDark,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+  },
+  iosDatePicker: {
+    height: 200,
+    marginTop: -10,
   },
   mediaSection: {
     marginTop: 8,
