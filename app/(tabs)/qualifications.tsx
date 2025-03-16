@@ -156,6 +156,7 @@ export default function QualificationsScreen() {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [isTestModalVisible, setIsTestModalVisible] = useState(false);
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
+  const [showDebugButtons, setShowDebugButtons] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
@@ -471,25 +472,52 @@ export default function QualificationsScreen() {
     }
   };
 
-  const renderPreviewButtons = () => (
-    <View style={styles.previewButtons}>
-      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('image')}>
-        <Text style={styles.previewButtonText}>Image</Text>
-      </AnimatedButton>
+  const renderPreviewButtons = () => {
+    if (!showDebugButtons) {
+      return (
+        <TouchableOpacity 
+          style={styles.showDebugButton} 
+          onPress={() => setShowDebugButtons(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="bug-outline" size={20} color={Colors.blueDark} />
+          <Text style={styles.showDebugText}></Text>
+        </TouchableOpacity>
+      );
+    }
 
-      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('video')}>
-        <Text style={styles.previewButtonText}>Video</Text>
-      </AnimatedButton>
+    return (
+      <View style={styles.previewContainer}>
+        <View style={styles.debugHeader}>
+          <Text style={styles.debugTitle}>Debug Tools</Text>
+          <TouchableOpacity 
+            onPress={() => setShowDebugButtons(false)}
+            style={styles.hideDebugButton}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="close-circle-outline" size={24} color={Colors.blueDark} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.previewButtons}>
+          <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('image')}>
+            <Text style={styles.previewButtonText}>Image</Text>
+          </AnimatedButton>
 
-      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('audio')}>
-        <Text style={styles.previewButtonText}>Audio</Text>
-      </AnimatedButton>
+          <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('video')}>
+            <Text style={styles.previewButtonText}>Video</Text>
+          </AnimatedButton>
 
-      <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('pdf')}>
-        <Text style={styles.previewButtonText}>PDF</Text>
-      </AnimatedButton>
-    </View>
-  );
+          <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('audio')}>
+            <Text style={styles.previewButtonText}>Audio</Text>
+          </AnimatedButton>
+
+          <AnimatedButton style={styles.previewButton} onPress={() => handlePreview('pdf')}>
+            <Text style={styles.previewButtonText}>PDF</Text>
+          </AnimatedButton>
+        </View>
+      </View>
+    );
+  };
 
   const renderTestModal = () => (
     <Modal
@@ -606,9 +634,7 @@ export default function QualificationsScreen() {
                     <Text style={styles.drawerDescription}>
                       {selectedQual.intro}
                     </Text>
-                    <View style={styles.previewContainer}>
-                      {renderPreviewButtons()}
-                    </View>
+                    {renderPreviewButtons()}
                   </ScrollView>
                   <TouchableOpacity 
                     style={[styles.addButton, { position: 'absolute', bottom: 10, left: 20, right: 20 }]}
@@ -1287,6 +1313,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   checkCircle: {
-    marginLeft: 8,
+   position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  showDebugButton: {
+    flexDirection: 'row',
+    width: 40,
+    alignItems: 'center',
+  },
+  showDebugText: {
+    color: Colors.blueDark,
+    fontSize: 14,
+    fontFamily: 'MavenPro-Medium',
+  },
+  debugHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  debugTitle: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
+  },
+  hideDebugButton: {
+    padding: 4,
   },
 }); 
