@@ -1789,7 +1789,7 @@ const styles = StyleSheet.create({
   },
   helpIcon: {
     padding: 2,
-    top: -1,
+    top: -2,
     right: 0,
     position: 'absolute',
   },
@@ -1912,6 +1912,8 @@ const styles = StyleSheet.create({
     height: 48,
   },
   renewsInput: {
+    position: 'relative',
+    top: -1,
     backgroundColor: Colors.white,
     borderRadius: 8,
     padding: 12,
