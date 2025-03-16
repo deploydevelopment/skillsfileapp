@@ -30,7 +30,15 @@ interface Qualification {
   updator: string;
   parent_uid?: string;
   reference?: string;
-  achieved: string;
+  achieved?: string;
+  comp_requests?: { 
+    creator: string;
+    creator_name: string;
+    created: string;
+    updated: string;
+    updator: string;
+  }[];
+  accreditor: string;
 }
 
 const db = SQLite.openDatabaseSync('skillsfile.db');
@@ -201,7 +209,11 @@ export default function QualificationsScreen() {
   } | null>(null);
   const navigation = useNavigation();
   const isBack = useRef(false);
-  const [achievedDate, setAchievedDate] = useState(new Date());
+  const [achievedDate, setAchievedDate] = useState(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [reference, setReference] = useState('');
   const [referenceError, setReferenceError] = useState('');
@@ -209,6 +221,7 @@ export default function QualificationsScreen() {
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
   const [renewsMonths, setRenewsMonths] = useState<number | null>(0);
   const [isRenewsInfoVisible, setIsRenewsInfoVisible] = useState(false);
+  const [achievedDateError, setAchievedDateError] = useState<string | null>(null);
 
   const formatDisplayDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -218,12 +231,38 @@ export default function QualificationsScreen() {
     return `${month} ${day}, ${year}`;
   };
 
+  const validateAchievedDate = (date: Date): boolean => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    
+    // Check if date is in the future
+    if (checkDate > today) {
+      setAchievedDateError('Achievement date cannot be in the future');
+      return false;
+    }
+    
+    // Check if date is valid
+    if (isNaN(checkDate.getTime())) {
+      setAchievedDateError('Please enter a valid date');
+      return false;
+    }
+
+    setAchievedDateError(null);
+    return true;
+  };
+
   const onDateChange = (event: any, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
     if (selectedDate) {
-      setAchievedDate(selectedDate);
+      const isValid = validateAchievedDate(selectedDate);
+      if (isValid) {
+        setAchievedDate(selectedDate);
+      }
     }
   };
 
@@ -360,7 +399,20 @@ export default function QualificationsScreen() {
     }
   };
 
-  const handleAddQualification = () => {
+  const handleAddQualification = async () => {
+    // Validate date before proceeding
+    if (!validateAchievedDate(achievedDate)) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Date',
+        text2: achievedDateError || 'Please check the achievement date',
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+      });
+      return;
+    }
+
     // Validate reference
     if (!reference.trim()) {
       setReferenceError('Reference is required');
@@ -819,7 +871,7 @@ export default function QualificationsScreen() {
                   {selectedQual.category_name}
                 </Text>
                 <Text style={styles.drawerExpiry}>
-                  Renews: {selectedQual.expires_months} months
+                  Accreditor: {selectedQual.accreditor}
                 </Text>
                 <Text style={styles.drawerDescription}>
                   {selectedQual.intro}
@@ -846,13 +898,16 @@ export default function QualificationsScreen() {
                     <View style={[styles.dateColumn, { flex: 0.40 }]}>
                       <Text style={styles.formLabel}>Achieved Date</Text>
                       <TouchableOpacity
-                        style={styles.dateButton}
+                        style={[styles.dateButton, achievedDateError ? styles.dateButtonError : null]}
                         onPress={() => setShowDatePicker(true)}
                       >
                         <Text style={styles.dateButtonText}>
                           {formatDisplayDate(achievedDate)}
                         </Text>
                       </TouchableOpacity>
+                      {achievedDateError && (
+                        <Text style={styles.errorText}>{achievedDateError}</Text>
+                      )}
                     </View>
 
                     <View style={[styles.dateColumn, { flex: 0.3 }]}>
@@ -881,7 +936,7 @@ export default function QualificationsScreen() {
                       <Text style={styles.formLabel}>Expiry Date</Text>
                       <View style={[styles.dateButton, styles.expiryDate]}>
                         <Text style={styles.dateButtonText}>
-                          {renewsMonths === null ? 'Never' : formatDisplayDate(calculateExpiryDate(achievedDate, renewsMonths) || new Date())}
+                          {renewsMonths === null ? 'Never' : formatDisplayDate(calculateExpiryDate(selectedQual.achieved ? new Date(selectedQual.achieved) : new Date(), renewsMonths) || new Date())}
                         </Text>
                       </View>
                     </View>
@@ -903,6 +958,7 @@ export default function QualificationsScreen() {
                         display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                         onChange={onDateChange}
                         style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
+                        maximumDate={new Date()}
                       />
                     </View>
                   )}
@@ -939,7 +995,7 @@ export default function QualificationsScreen() {
                   </Modal>
 
                   <View style={styles.mediaSection}>
-                    <Text style={styles.formLabel}>Add Media</Text>
+                    <Text style={styles.formLabel}>Add Evidence</Text>
                     <View style={styles.mediaButtons}>
                       <TouchableOpacity
                         style={styles.mediaButton}
@@ -1081,7 +1137,7 @@ export default function QualificationsScreen() {
                     {qual.reference}
                   </Text>
                   <Text style={styles.achievedDate}>
-                    {formatDisplayDate(new Date(qual.achieved))}
+                    {qual.achieved ? formatDisplayDate(new Date(qual.achieved)) : ''}
                   </Text>
                   <View style={styles.checkCircle}>
                     <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
@@ -1107,7 +1163,7 @@ export default function QualificationsScreen() {
                 <Text style={[styles.qualificationName, { flex: 1 }]}>{qual.name}</Text>
               </View>
               <Text style={styles.qualificationCompany}>
-                {qual.category_name} category_name
+                {qual.comp_requests?.map(req => req.creator_name).join(', ') || 'No companies requesting'}
               </Text>
             </View>
           </AnimatedButton>
@@ -1791,7 +1847,7 @@ const styles = StyleSheet.create({
   },
   dateRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 8,
     justifyContent: 'space-between',
     marginBottom: 16,
   },
@@ -1804,7 +1860,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderRadius: 8,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: Colors.blueDark + '20',
     height: 46,
@@ -1985,5 +2041,9 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Medium',
     color: Colors.blueDark,
     marginBottom: 8,
-  }
+  },
+  dateButtonError: {
+    borderColor: Colors.red,
+    borderWidth: 1,
+  },
 }); 
