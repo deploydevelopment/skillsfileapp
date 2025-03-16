@@ -569,7 +569,7 @@ export default function TableScreen() {
             style={[styles.tabButton, selectedTable === 'qualifications' && styles.activeTabButton]}
             onPress={() => setSelectedTable('qualifications')}
           >
-            <Text style={[styles.tabButtonText, selectedTable === 'qualifications' && styles.activeTabButtonText]}>Qualifications</Text>
+            <Text style={[styles.tabButtonText, selectedTable === 'qualifications' && styles.activeTabButtonText]}>Quals</Text>
           </TouchableOpacity>
          
           <TouchableOpacity
@@ -588,7 +588,7 @@ export default function TableScreen() {
             style={[styles.tabButton, selectedTable === 'companies' && styles.activeTabButton]}
             onPress={() => setSelectedTable('companies')}
           >
-            <Text style={[styles.tabButtonText, selectedTable === 'companies' && styles.activeTabButtonText]}>Companies</Text>
+            <Text style={[styles.tabButtonText, selectedTable === 'companies' && styles.activeTabButtonText]}>Comps</Text>
           </TouchableOpacity>
         </View>
       </View>

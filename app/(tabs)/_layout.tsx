@@ -6,11 +6,11 @@ import { Colors } from '../../constants/styles';
 export default function TabLayout() {
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: Colors.white,
         tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.5)',
-        tabBarStyle: {
+        tabBarStyle: (route.name === 'qualifications' || route.name === 'table') ? { display: 'none' } : {
           height: 100,
           paddingBottom: 35,
           paddingTop: 8,
@@ -41,7 +41,7 @@ export default function TabLayout() {
           fontSize: 12,
         },
         animation: 'fade',
-      }}
+      })}
     >
       <Tabs.Screen
         name="index"
