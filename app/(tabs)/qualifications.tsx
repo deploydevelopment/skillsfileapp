@@ -737,7 +737,7 @@ export default function QualificationsScreen() {
 
     const translateY = drawerAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.1],
+      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.15],
     });
 
     const overlayOpacity = drawerAnimation.interpolate({
@@ -753,238 +753,235 @@ export default function QualificationsScreen() {
         onRequestClose={hideDrawer}
         statusBarTranslucent
       >
-        <Animated.View 
+        <TouchableOpacity 
           style={[
             styles.modalOverlay,
-            {
-              opacity: overlayOpacity,
-            }
+            { opacity: overlayOpacity }
           ]}
+          activeOpacity={1}
+          onPress={hideDrawer}
         >
-          <TouchableOpacity 
-            style={{ flex: 1 }}
-            activeOpacity={1}
-            onPress={hideDrawer}
+          <Animated.View 
+            style={[
+              styles.drawer,
+              {
+                transform: [{ translateY }],
+                height: Dimensions.get('window').height * 0.85,
+                borderTopLeftRadius: 15,
+                borderTopRightRadius: 15,
+              },
+            ]}
           >
-            <Animated.View 
-              style={[
-                styles.drawer,
-                {
-                  transform: [{ translateY }],
-                  zIndex: 2,
-                  height: Dimensions.get('window').height * 0.9,
-                  borderTopLeftRadius: 15,
-                  borderTopRightRadius: 15,
-                },
-              ]}
-            >
+            <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
               <View style={styles.drawerHeader}>
                 <View style={styles.drawerHandle} />
               </View>
-              <TouchableOpacity 
-                activeOpacity={1} 
-                style={{ flex: 1 }}
-                onPress={() => {}}
-              >
-                <View style={{ flex: 1 }}>
-                  <ScrollView style={[styles.drawerContent, { marginBottom: 80 }]}>
-                    <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
-                    <Text style={styles.drawerSubtitle}>
-                      {selectedQual.requested_by} requested
-                    </Text>
-                    <Text style={styles.drawerExpiry}>
-                      Renews: {selectedQual.expires_months} months
-                    </Text>
-                    <Text style={styles.drawerDescription}>
-                      {selectedQual.intro}
-                    </Text>
+              <ScrollView style={[styles.drawerContent, { marginBottom: 80 }]}>
+                <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
+                <Text style={styles.drawerSubtitle}>
+                  {selectedQual.requested_by} requested
+                </Text>
+                <Text style={styles.drawerExpiry}>
+                  Renews: {selectedQual.expires_months} months
+                </Text>
+                <Text style={styles.drawerDescription}>
+                  {selectedQual.intro}
+                </Text>
 
-                    <View style={styles.formSection}>
-                      <View style={styles.inputContainer}>
-                        <Text style={styles.label}>Reference</Text>
-                        <View style={styles.inputWrapper}>
-                          <TextInput
-                            style={[styles.formInput, referenceError ? styles.inputError : null]}
-                            value={reference}
-                            onChangeText={handleReferenceChange}
-                            placeholder="Enter reference"
-                            placeholderTextColor={Colors.blueDark + '4D'}
-                          />
-                          {referenceError ? (
-                            <Text style={styles.errorText}>{referenceError}</Text>
-                          ) : null}
-                        </View>
-                      </View>
+                <View style={styles.formSection}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.label}>Reference</Text>
+                    <View style={styles.inputWrapper}>
+                      <TextInput
+                        style={[styles.formInput, referenceError ? styles.inputError : null]}
+                        value={reference}
+                        onChangeText={handleReferenceChange}
+                        placeholder="Enter reference"
+                        placeholderTextColor={Colors.blueDark + '4D'}
+                      />
+                      {referenceError ? (
+                        <Text style={styles.errorText}>{referenceError}</Text>
+                      ) : null}
+                    </View>
+                  </View>
 
-                      <View style={styles.dateRow}>
-                        <View style={[styles.dateColumn, { flex: 0.40 }]}>
-                          <Text style={styles.formLabel}>Achieved Date</Text>
-                          <TouchableOpacity
-                            style={styles.dateButton}
-                            onPress={() => setShowDatePicker(true)}
-                          >
-                            <Text style={styles.dateButtonText}>
-                              {formatDisplayDate(achievedDate)}
-                            </Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        <View style={[styles.dateColumn, { flex: 0.3 }]}>
-                          <View style={styles.renewsLabelContainer}>
-                            <Text style={styles.formLabel}>Renews</Text>
-                            <TouchableOpacity
-                              onPress={() => setIsRenewsInfoVisible(true)}
-                              style={styles.helpIcon}
-                            >
-                              <Ionicons name="help-circle-outline" size={20} color={Colors.blueDark} />
-                            </TouchableOpacity>
-                          </View>
-                          <View style={styles.renewsInputContainer}>
-                            <TextInput
-                              style={styles.renewsInput}
-                              value={renewsMonths === null ? '' : renewsMonths.toString()}
-                              onChangeText={handleRenewsChange}
-                              keyboardType="numeric"
-                              placeholder="∞"
-                              placeholderTextColor={Colors.blueDark + '80'}
-                            />
-                          </View>
-                        </View>
-
-                        <View style={[styles.dateColumn, { flex: 0.40 }]}>
-                          <Text style={styles.formLabel}>Expiry Date</Text>
-                          <View style={[styles.dateButton, styles.expiryDate]}>
-                            <Text style={styles.dateButtonText}>
-                              {renewsMonths === null ? 'Never expires' : formatDisplayDate(calculateExpiryDate(achievedDate, renewsMonths) || new Date())}
-                            </Text>
-                          </View>
-                        </View>
-                      </View>
-
-                      {showDatePicker && (
-                        <View style={styles.datePickerContainer}>
-                          {Platform.OS === 'ios' && (
-                            <TouchableOpacity
-                              style={styles.datePickerDoneButton}
-                              onPress={() => setShowDatePicker(false)}
-                            >
-                              <Text style={styles.datePickerDoneButtonText}>Done</Text>
-                            </TouchableOpacity>
-                          )}
-                          <DateTimePicker
-                            value={achievedDate}
-                            mode="date"
-                            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                            onChange={onDateChange}
-                            style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
-                          />
-                        </View>
-                      )}
-
-                      <Modal
-                        visible={isRenewsInfoVisible}
-                        transparent
-                        animationType="fade"
-                        onRequestClose={() => setIsRenewsInfoVisible(false)}
+                  <View style={styles.dateRow}>
+                    <View style={[styles.dateColumn, { flex: 0.40 }]}>
+                      <Text style={styles.formLabel}>Achieved Date</Text>
+                      <TouchableOpacity
+                        style={styles.dateButton}
+                        onPress={() => setShowDatePicker(true)}
                       >
-                        <TouchableOpacity 
-                          style={styles.modalOverlay}
-                          activeOpacity={1}
-                          onPress={() => setIsRenewsInfoVisible(false)}
+                        <Text style={styles.dateButtonText}>
+                          {formatDisplayDate(achievedDate)}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={[styles.dateColumn, { flex: 0.3 }]}>
+                      <View style={styles.renewsLabelContainer}>
+                        <Text style={styles.formLabel}>Renews</Text>
+                        <TouchableOpacity
+                          onPress={() => setIsRenewsInfoVisible(true)}
+                          style={styles.helpIcon}
                         >
-                          <View style={styles.infoModalContent}>
-                            <Text style={styles.infoModalTitle}>Renews Information</Text>
-                            <Text style={styles.infoModalText}>
-                              This value indicates how often this qualification needs to be renewed.
-                              The expiry date is automatically calculated based on the achieved date
-                              and renewal period.
-                            </Text>
-                            <TouchableOpacity
-                              style={styles.infoModalButton}
-                              onPress={() => setIsRenewsInfoVisible(false)}
-                            >
-                              <Text style={styles.infoModalButtonText}>Got it</Text>
-                            </TouchableOpacity>
-                          </View>
+                          <Ionicons name="help-circle-outline" size={20} color={Colors.blueDark} />
                         </TouchableOpacity>
-                      </Modal>
-
-                      <View style={styles.mediaSection}>
-                        <Text style={styles.formLabel}>Add Media</Text>
-                        <View style={styles.mediaButtons}>
-                          <TouchableOpacity
-                            style={styles.mediaButton}
-                            onPress={takePhoto}
-                          >
-                            <Ionicons name="camera-outline" size={24} color={Colors.blueDark} />
-                            <Text style={styles.mediaButtonText}>Take Photo</Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={styles.mediaButton}
-                            onPress={pickImage}
-                          >
-                            <Ionicons name="image-outline" size={24} color={Colors.blueDark} />
-                            <Text style={styles.mediaButtonText}>Choose Image</Text>
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            style={styles.mediaButton}
-                            onPress={pickDocument}
-                          >
-                            <Ionicons name="document-outline" size={24} color={Colors.blueDark} />
-                            <Text style={styles.mediaButtonText}>Select PDF</Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        {selectedImage && (
-                          <View style={styles.selectedMedia}>
-                            <Image
-                              source={{ uri: selectedImage }}
-                              style={styles.selectedImage}
-                            />
-                            <TouchableOpacity
-                              style={styles.removeMediaButton}
-                              onPress={() => setSelectedImage(null)}
-                            >
-                              <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
-                            </TouchableOpacity>
-                          </View>
-                        )}
-
-                        {selectedDocument && (
-                          <View style={styles.selectedMedia}>
-                            <View style={styles.documentPreview}>
-                              <Ionicons name="document" size={32} color={Colors.blueDark} />
-                              <Text style={styles.documentName}>
-                                {selectedDocument.split('/').pop()}
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              style={styles.removeMediaButton}
-                              onPress={() => setSelectedDocument(null)}
-                            >
-                              <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
-                            </TouchableOpacity>
-                          </View>
-                        )}
+                      </View>
+                      <View style={styles.renewsInputContainer}>
+                        <TextInput
+                          style={styles.renewsInput}
+                          value={renewsMonths === null ? '' : renewsMonths.toString()}
+                          onChangeText={handleRenewsChange}
+                          keyboardType="numeric"
+                          placeholder="∞"
+                          placeholderTextColor={Colors.blueDark + '80'}
+                        />
                       </View>
                     </View>
 
-                    {renderPreviewButtons()}
-                  </ScrollView>
-                  <TouchableOpacity 
-                    style={[styles.addButton, { position: 'absolute', bottom: 10, left: 20, right: 20 }]}
-                    onPress={handleAddQualification}
-                    activeOpacity={1}
+                    <View style={[styles.dateColumn, { flex: 0.40 }]}>
+                      <Text style={styles.formLabel}>Expiry Date</Text>
+                      <View style={[styles.dateButton, styles.expiryDate]}>
+                        <Text style={styles.dateButtonText}>
+                          {renewsMonths === null ? 'Never expires' : formatDisplayDate(calculateExpiryDate(achievedDate, renewsMonths) || new Date())}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {showDatePicker && (
+                    <View style={styles.datePickerContainer}>
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          style={styles.datePickerDoneButton}
+                          onPress={() => setShowDatePicker(false)}
+                        >
+                          <Text style={styles.datePickerDoneButtonText}>Done</Text>
+                        </TouchableOpacity>
+                      )}
+                      <DateTimePicker
+                        value={achievedDate}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={onDateChange}
+                        style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
+                      />
+                    </View>
+                  )}
+
+                  <Modal
+                    visible={isRenewsInfoVisible}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setIsRenewsInfoVisible(false)}
                   >
-                    <Text style={styles.addButtonText}>Add Qualification</Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.modalOverlay}
+                      activeOpacity={1}
+                      onPress={() => setIsRenewsInfoVisible(false)}
+                    >
+                      <View style={styles.infoModalContent}>
+                        <Text style={styles.infoModalTitle}>Renews Information</Text>
+                        <Text style={styles.infoModalText}>
+                          This value indicates how often this qualification needs to be renewed.
+                          The expiry date is automatically calculated based on the achieved date
+                          and renewal period.
+                        </Text>
+                        <TouchableOpacity
+                          style={styles.infoModalButton}
+                          onPress={() => setIsRenewsInfoVisible(false)}
+                        >
+                          <Text style={styles.infoModalButtonText}>Got it</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  </Modal>
+
+                  <View style={styles.mediaSection}>
+                    <Text style={styles.formLabel}>Add Media</Text>
+                    <View style={styles.mediaButtons}>
+                      <TouchableOpacity
+                        style={styles.mediaButton}
+                        onPress={takePhoto}
+                      >
+                        <Ionicons name="camera-outline" size={24} color={Colors.blueDark} />
+                        <Text style={styles.mediaButtonText}>Take Photo</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.mediaButton}
+                        onPress={pickImage}
+                      >
+                        <Ionicons name="image-outline" size={24} color={Colors.blueDark} />
+                        <Text style={styles.mediaButtonText}>Choose Image</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.mediaButton}
+                        onPress={pickDocument}
+                      >
+                        <Ionicons name="document-outline" size={24} color={Colors.blueDark} />
+                        <Text style={styles.mediaButtonText}>Select PDF</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {selectedImage && (
+                      <View style={styles.selectedMedia}>
+                        <Image
+                          source={{ uri: selectedImage }}
+                          style={styles.selectedImage}
+                        />
+                        <TouchableOpacity
+                          style={styles.removeMediaButton}
+                          onPress={() => setSelectedImage(null)}
+                        >
+                          <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+
+                    {selectedDocument && (
+                      <View style={styles.selectedMedia}>
+                        <View style={styles.documentPreview}>
+                          <Ionicons name="document" size={32} color={Colors.blueDark} />
+                          <Text style={styles.documentName}>
+                            {selectedDocument.split('/').pop()}
+                          </Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.removeMediaButton}
+                          onPress={() => setSelectedDocument(null)}
+                        >
+                          <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
                 </View>
-              </TouchableOpacity>
-            </Animated.View>
-          </TouchableOpacity>
-        </Animated.View>
+
+                {renderPreviewButtons()}
+              </ScrollView>
+              <View style={styles.buttonRow}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={hideDrawer}
+                >
+                  <View style={styles.cancelButtonContent}>
+                    <Ionicons style={styles.cancelButtonIcon} name="chevron-down" size={20} color={Colors.blueDark} />
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={handleAddQualification}
+                >
+                  <Text style={styles.addButtonText}>Add Qualification</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </Animated.View>
+        </TouchableOpacity>
       </Modal>
     );
   };
@@ -1192,7 +1189,6 @@ export default function QualificationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //background img bg-light.jpg
     backgroundImage: require('../../assets/images/bg-light.jpg'),
     backgroundAttachment: 'fixed',
     marginTop: -35,
@@ -1580,27 +1576,51 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'MavenPro-Medium',
   },
-  addButton: {
-    backgroundColor: Colors.blueDark,
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
+  buttonRow: {
+    position: 'absolute',
+    bottom: -20,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 10,
   },
-  addButtonText: {
-    color: 'white',
-    fontSize: 18,
+  cancelButton: {
+    flex: 1.3,
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    height: 46,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.blueDark,
+  },
+  cancelButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cancelButtonIcon: {
+    position: 'relative',
+    left: -5,
+  },
+  cancelButtonText: {
+    color: Colors.blueDark,
+    fontSize: 16,
     fontFamily: 'MavenPro-Medium',
   },
-  qualificationReference: {
-    fontSize: 12,
-    color: Colors.blueDark,
-    fontFamily: 'MavenPro-Regular',
-    textAlign: 'right',
-    position: 'absolute',
-    right: 12,
-    top: 12,
+  addButton: {
+    flex: 3,
+    backgroundColor: Colors.blueDark,
+    borderRadius: 8,
+    height: 46,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
   },
   searchContainer: {
     paddingHorizontal: 15,
@@ -1634,8 +1654,8 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 20,
+    right: 30,
+    bottom: 30,
     width: 50,
     height: 50,
     borderRadius: 28,
@@ -1654,14 +1674,15 @@ const styles = StyleSheet.create({
   },
   qualificationBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 4,
   },
   achievedDate: {
-    fontSize: 14,
+    position: 'absolute',
+    right: 25,
     color: Colors.blueDark,
+    fontSize: 14,
     fontFamily: 'MavenPro-Regular',
-    marginRight: 20,
   },
   checkCircle: {
     marginLeft: 'auto',
@@ -1670,7 +1691,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: 40,
     alignItems: 'center',
-
   },
   showDebugText: {
     color: Colors.blueDark,
@@ -1721,18 +1741,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.red,
     borderWidth: 1,
   },
-  errorText: {
-    position: 'absolute',
-    right: 12,
-    top: '50%',
-    transform: [{ translateY: -8 }],
-    color: Colors.red,
-    fontSize: 12,
-    fontFamily: 'MavenPro-Regular',
-    backgroundColor: Colors.white,
-    paddingHorizontal: 4,
-    zIndex: 1,
-  },
   dateRow: {
     flexDirection: 'row',
     gap: 10,
@@ -1759,7 +1767,7 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
   },
   renewsLabelContainer: {
-    marginBottom:0,
+    marginBottom: 0,
   },
   helpIcon: {
     padding: 2,
