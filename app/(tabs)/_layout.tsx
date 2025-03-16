@@ -10,7 +10,7 @@ export default function TabLayout() {
         headerShown: false,
         tabBarActiveTintColor: Colors.white,
         tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.5)',
-        tabBarStyle: (route.name === 'qualifications' || route.name === 'table') ? { display: 'none' } : {
+        tabBarStyle: route.name === 'qualifications' || route.name === 'table' ? { display: 'none' } : {
           height: 100,
           paddingBottom: 35,
           paddingTop: 8,
@@ -93,6 +93,20 @@ export default function TabLayout() {
               resizeMode="contain"
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="qualifications"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }}
+      />
+      <Tabs.Screen
+        name="table"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' }
         }}
       />
     </Tabs>
