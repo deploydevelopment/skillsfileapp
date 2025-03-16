@@ -174,6 +174,8 @@ export default function QualificationsScreen() {
   const [referenceNumber, setReferenceNumber] = useState('');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
+  const [renewsMonths, setRenewsMonths] = useState<number | null>(0);
+  const [isRenewsInfoVisible, setIsRenewsInfoVisible] = useState(false);
 
   const formatDisplayDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -670,12 +672,36 @@ export default function QualificationsScreen() {
     </Modal>
   );
 
+  const calculateExpiryDate = (achievedDate: Date, months: number | null) => {
+    if (months === null) return null;
+    const expiryDate = new Date(achievedDate);
+    expiryDate.setMonth(expiryDate.getMonth() + months);
+    return expiryDate;
+  };
+
+  useEffect(() => {
+    if (selectedQual) {
+      setRenewsMonths(selectedQual.expires_months);
+    }
+  }, [selectedQual]);
+
+  const handleRenewsChange = (text: string) => {
+    if (text === '') {
+      setRenewsMonths(null);
+    } else {
+      const number = parseInt(text, 10);
+      if (!isNaN(number) && number >= 0) {
+        setRenewsMonths(number);
+      }
+    }
+  };
+
   const renderQualificationDrawer = () => {
     if (!selectedQual) return null;
 
     const translateY = drawerAnimation.interpolate({
       inputRange: [0, 1],
-      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.2],
+      outputRange: [Dimensions.get('window').height, Dimensions.get('window').height * 0.1],
     });
 
     const overlayOpacity = drawerAnimation.interpolate({
@@ -710,7 +736,7 @@ export default function QualificationsScreen() {
                 {
                   transform: [{ translateY }],
                   zIndex: 2,
-                  height: Dimensions.get('window').height * 0.8,
+                  height: Dimensions.get('window').height * 0.9,
                   borderTopLeftRadius: 15,
                   borderTopRightRadius: 15,
                 },
@@ -747,16 +773,50 @@ export default function QualificationsScreen() {
                         placeholderTextColor={Colors.blueDark + '80'}
                       />
 
-                      <Text style={styles.formLabel}>Achieved Date</Text>
-                      <TouchableOpacity
-                        style={styles.dateButton}
-                        onPress={() => setShowDatePicker(true)}
-                      >
-                        <Text style={styles.dateButtonText}>
-                          {formatDisplayDate(achievedDate)}
-                        </Text>
-                        <Ionicons name="calendar-outline" size={20} color={Colors.blueDark} />
-                      </TouchableOpacity>
+                      <View style={styles.dateRow}>
+                        <View style={[styles.dateColumn, { flex: 0.40 }]}>
+                          <Text style={styles.formLabel}>Achieved Date</Text>
+                          <TouchableOpacity
+                            style={styles.dateButton}
+                            onPress={() => setShowDatePicker(true)}
+                          >
+                            <Text style={styles.dateButtonText}>
+                              {formatDisplayDate(achievedDate)}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <View style={[styles.dateColumn, { flex: 0.3 }]}>
+                          <View style={styles.renewsLabelContainer}>
+                            <Text style={styles.formLabel}>Renews</Text>
+                            <TouchableOpacity
+                              onPress={() => setIsRenewsInfoVisible(true)}
+                              style={styles.helpIcon}
+                            >
+                              <Ionicons name="help-circle-outline" size={20} color={Colors.blueDark} />
+                            </TouchableOpacity>
+                          </View>
+                          <View style={styles.renewsInputContainer}>
+                            <TextInput
+                              style={styles.renewsInput}
+                              value={renewsMonths === null ? '' : renewsMonths.toString()}
+                              onChangeText={handleRenewsChange}
+                              keyboardType="numeric"
+                              placeholder="∞"
+                              placeholderTextColor={Colors.blueDark + '80'}
+                            />
+                          </View>
+                        </View>
+
+                        <View style={[styles.dateColumn, { flex: 0.40 }]}>
+                          <Text style={styles.formLabel}>Expiry Date</Text>
+                          <View style={[styles.dateButton, styles.expiryDate]}>
+                            <Text style={styles.dateButtonText}>
+                              {renewsMonths === null ? 'Never expires' : formatDisplayDate(calculateExpiryDate(achievedDate, renewsMonths) || new Date())}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
 
                       {showDatePicker && (
                         <View style={styles.datePickerContainer}>
@@ -777,6 +837,34 @@ export default function QualificationsScreen() {
                           />
                         </View>
                       )}
+
+                      <Modal
+                        visible={isRenewsInfoVisible}
+                        transparent
+                        animationType="fade"
+                        onRequestClose={() => setIsRenewsInfoVisible(false)}
+                      >
+                        <TouchableOpacity 
+                          style={styles.modalOverlay}
+                          activeOpacity={1}
+                          onPress={() => setIsRenewsInfoVisible(false)}
+                        >
+                          <View style={styles.infoModalContent}>
+                            <Text style={styles.infoModalTitle}>Renews Information</Text>
+                            <Text style={styles.infoModalText}>
+                              This value indicates how often this qualification needs to be renewed.
+                              The expiry date is automatically calculated based on the achieved date
+                              and renewal period.
+                            </Text>
+                            <TouchableOpacity
+                              style={styles.infoModalButton}
+                              onPress={() => setIsRenewsInfoVisible(false)}
+                            >
+                              <Text style={styles.infoModalButtonText}>Got it</Text>
+                            </TouchableOpacity>
+                          </View>
+                        </TouchableOpacity>
+                      </Modal>
 
                       <View style={styles.mediaSection}>
                         <Text style={styles.formLabel}>Add Media</Text>
@@ -1569,21 +1657,77 @@ const styles = StyleSheet.create({
     borderColor: Colors.blueDark + '20',
     marginBottom: 16,
   },
+  dateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 16,
+  },
+  dateColumn: {
+    height: 80,
+  },
   dateButton: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: Colors.white,
     borderRadius: 8,
-    padding: 12,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 12,
+    paddingRight: 1,
     borderWidth: 1,
     borderColor: Colors.blueDark + '20',
-    marginBottom: 16,
   },
   dateButtonText: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
     color: Colors.blueDark,
+  },
+  renewsLabelContainer: {
+    marginBottom:0,
+  },
+  helpIcon: {
+    padding: 2,
+    top: -1,
+    right: 0,
+    position: 'absolute',
+  },
+  expiryDate: {
+    backgroundColor: Colors.blueDark + '10',
+  },
+  infoModalContent: {
+    backgroundColor: Colors.white,
+    borderRadius: 15,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignSelf: 'center',
+    marginTop: '40%',
+  },
+  infoModalTitle: {
+    fontSize: 18,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
+    marginBottom: 12,
+  },
+  infoModalText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  infoModalButton: {
+    backgroundColor: Colors.blueDark,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  infoModalButtonText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Medium',
   },
   datePickerContainer: {
     backgroundColor: Colors.white,
@@ -1661,5 +1805,47 @@ const styles = StyleSheet.create({
   },
   removeMediaButton: {
     padding: 4,
+  },
+  renewsInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+  },
+  renewsInput: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+    flex: 1,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+    textAlign: 'center',
+    height: 48,
+  },
+  monthsText: {
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+  },
+  neverExpiresButton: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+  },
+  neverExpiresButtonActive: {
+    backgroundColor: Colors.blueDark,
+    borderColor: Colors.blueDark,
+  },
+  neverExpiresText: {
+    fontSize: 14,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+  },
+  neverExpiresTextActive: {
+    color: Colors.white,
   },
 }); 
