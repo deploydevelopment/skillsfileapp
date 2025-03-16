@@ -75,7 +75,9 @@ const initializeDatabase = () => {
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
           updated TEXT,
-          updator TEXT
+          updator TEXT,
+          parent_uid TEXT,
+          reference TEXT
         );
 
         CREATE TABLE users (
@@ -353,6 +355,10 @@ export default function QualificationsScreen() {
       }
       const creatorUid = userResult[0].uid;
 
+      // Get the name from the selected required qualification
+      const qualName = selectedQual ? selectedQual.name : '';
+      const parentUid = selectedQual ? selectedQual.uid : null;
+
       const query = `
         INSERT INTO qualifications (
           uid,
@@ -363,17 +369,19 @@ export default function QualificationsScreen() {
           updated,
           updator,
           reference,
-          achieved
+          achieved,
+          parent_uid
         ) VALUES (
           '${uid}',
-          '',
+          '${qualName}',
           ${renewsMonths || 0},
           '${now}',
           '${creatorUid}',
           '',
           '',
           '${reference}',
-          '${formatToSQLDateTime(achievedDate)}'
+          '${formatToSQLDateTime(achievedDate)}',
+          ${parentUid ? `'${parentUid}'` : 'NULL'}
         )
       `;
 
@@ -411,12 +419,59 @@ export default function QualificationsScreen() {
       // Refresh the qualifications list
       await loadRecords();
       
+      // Switch to achieved tab
+      setActiveTab('achieved');
+      
+      // Show success toast
+      Toast.show({
+        type: 'success',
+        text1: 'Success',
+        text2: `${qualName || 'Qualification'} has been added to your qualifications`,
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
+        }
+      });
+
       // Hide drawer only on success
       hideDrawer();
 
     } catch (error) {
       console.error('Error adding qualification:', error);
       setError('Failed to add qualification');
+      
+      // Show error toast
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to add qualification. Please try again.',
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
+        }
+      });
     } finally {
       setIsLoading(false);
     }
