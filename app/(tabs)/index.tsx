@@ -104,6 +104,7 @@ const initializeDatabase = () => {
           creator TEXT NOT NULL,
           updated TEXT,
           updator TEXT,
+          accreditor TEXT NOT NULL,
           status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
         );
 
@@ -141,7 +142,7 @@ const initializeDatabase = () => {
         db.execSync(`
           INSERT INTO quals_req (
             uid, name, intro, category_name, expires_months,
-            created, creator, updated, updator, status
+            created, creator, updated, updator, status, accreditor
           ) VALUES (
             '${q.uid}',
             '${q.name}',
@@ -152,7 +153,8 @@ const initializeDatabase = () => {
             '${q.creator}',
             '${q.updated}',
             '${q.updator}',
-            ${q.status}
+            ${q.status},
+            '${q.accreditor}'
           );
         `);
       });

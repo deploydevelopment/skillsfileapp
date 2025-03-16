@@ -59,6 +59,7 @@ interface QualsReqRecord extends BaseRecord {
   category_name: string;
   expires_months: number;
   status: number;
+  accreditor: string;
 }
 
 interface CompanyData {
@@ -285,7 +286,7 @@ export default function TableScreen() {
                     db.execSync(`
                       INSERT INTO quals_req (
                         uid, name, intro, category_name, expires_months,
-                        created, creator, updated, updator, status
+                        created, creator, updated, updator, status, accreditor
                       ) VALUES (
                         '${qual.uid}',
                         '${qual.name}',
@@ -296,7 +297,8 @@ export default function TableScreen() {
                         '${qual.creator}',
                         '${qual.updated}',
                         '${qual.updator}',
-                        ${qual.status}
+                        ${qual.status},
+                        '${qual.accreditor}'
                       )
                     `);
                   });
@@ -539,6 +541,12 @@ export default function TableScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.skillsFileCell]} 
+            onPress={() => requestSort('accreditor')}
+          >
+            <Text style={styles.headerCellText}>accreditor {getSortDirection('accreditor')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.skillsFileCell]} 
             onPress={() => requestSort('expires_months')}
           >
             <Text style={styles.headerCellText}>expires (months) {getSortDirection('expires_months')}</Text>
@@ -638,6 +646,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.intro}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.category_name}</Text>
+          <Text style={[styles.cell, styles.skillsFileCell]}>{record.accreditor}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.expires_months}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
