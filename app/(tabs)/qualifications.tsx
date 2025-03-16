@@ -26,6 +26,7 @@ interface Qualification {
   updator: string;
   parent_uid?: string;
   reference?: string;
+  achieved: string;
 }
 
 const db = SQLite.openDatabaseSync('timestamps.db');
@@ -56,14 +57,14 @@ const initializeDatabase = () => {
     
     // Check if tables exist
     const tables = db.getAllSync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('skillsfile', 'users', 'quals_req')"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'users', 'quals_req')"
     );
     
     if (tables.length === 0) {
       console.log('Creating tables for the first time...');
       db.execSync(`
         -- Create tables with correct schema
-        CREATE TABLE skillsfile (
+        CREATE TABLE qualifications (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           uid TEXT NOT NULL,
           name TEXT NOT NULL,
@@ -265,11 +266,11 @@ export default function QualificationsScreen() {
       const creatorUid = userResult[0].uid;
       console.log('Creator UID:', creatorUid);
       
-      // Add to skillsfile table
-      const insertSkillsFileSQL = `
-        INSERT INTO skillsfile (
+      // Add to qualifications table
+      const insertQualificationsSQL = `
+        INSERT INTO qualifications (
           uid, name, expires_months, created, creator, updated, updator,
-          parent_uid, reference
+          parent_uid, reference, achieved
         ) VALUES (
           '${uid}',
           '${qual.name}',
@@ -279,11 +280,12 @@ export default function QualificationsScreen() {
           '',
           '',
           '${qual.uid}',
-          'REF-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}'
+          'REF-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}',
+          '${qual.achieved}'
         )
       `;
       
-      db.execSync(insertSkillsFileSQL);
+      db.execSync(insertQualificationsSQL);
       console.log('Successfully added qualification');
       
       // Reload records to update the UI
@@ -344,7 +346,7 @@ export default function QualificationsScreen() {
   const loadRecords = async () => {
     try {
       const records = db.getAllSync<Qualification>(
-        'SELECT * FROM skillsfile ORDER BY created DESC'
+        'SELECT * FROM qualifications ORDER BY created DESC'
       );
       console.log('Loaded records:', records);
       setQualifications(records);

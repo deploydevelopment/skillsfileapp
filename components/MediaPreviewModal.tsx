@@ -312,9 +312,11 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
             { zIndex: 1000 }
           ]}
           onPress={handleClose}
-          activeOpacity={1}
+          activeOpacity={0.8}
         >
-          <Ionicons name="close" size={30} color="#fff" />
+          <View style={styles.closeButtonInner}>
+            <Ionicons name="close" size={24} color="#fff" />
+          </View>
         </TouchableOpacity>
         {renderMediaContent()}
       </View>
@@ -334,10 +336,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 40,
     right: 20,
-    padding: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    borderRadius: 20,
     zIndex: 1000,
+  },
+  closeButtonInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   mediaContent: {
     flex: 1,

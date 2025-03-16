@@ -51,14 +51,14 @@ const initializeDatabase = () => {
     
     // Check if tables exist
     const tables = db.getAllSync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('skillsfile', 'users', 'quals_req')"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'skillsfile', 'users', 'quals_req')"
     );
     
     if (tables.length === 0) {
       console.log('Creating tables for the first time...');
       db.execSync(`
         -- Create tables with correct schema
-        CREATE TABLE skillsfile (
+        CREATE TABLE qualifications (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           uid TEXT NOT NULL,
           name TEXT NOT NULL,
@@ -68,7 +68,8 @@ const initializeDatabase = () => {
           updated TEXT,
           updator TEXT,
           parent_uid TEXT(36),
-          reference TEXT(50)
+          reference TEXT(50),
+          achieved TEXT
         );
 
         CREATE TABLE users (
@@ -131,35 +132,68 @@ const initializeDatabase = () => {
       `);
       console.log('Tables created and initial data inserted successfully');
     } else {
-      console.log('Tables already exist, checking for new columns...');
+      console.log('Tables exist, checking for migrations...');
       
-      // Check if the new columns exist
-      const columns = db.getAllSync<{ name: string }>(
-        "PRAGMA table_info(skillsfile)"
-      );
+      // Check if we need to migrate from skillsfile to qualifications
+      const hasOldTable = tables.some(t => t.name === 'skillsfile');
+      const hasNewTable = tables.some(t => t.name === 'qualifications');
       
-      const columnNames = columns.map(col => col.name);
-      
-      // Add parent_uid column if it doesn't exist
-      if (!columnNames.includes('parent_uid')) {
-        console.log('Adding parent_uid column...');
-        db.execSync('ALTER TABLE skillsfile ADD COLUMN parent_uid TEXT(36)');
+      if (hasOldTable && !hasNewTable) {
+        console.log('Migrating from skillsfile to qualifications...');
+        db.execSync(`
+          CREATE TABLE qualifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            uid TEXT NOT NULL,
+            name TEXT NOT NULL,
+            expires_months INTEGER NOT NULL DEFAULT 0,
+            created TEXT NOT NULL,
+            creator TEXT NOT NULL,
+            updated TEXT,
+            updator TEXT,
+            parent_uid TEXT(36),
+            reference TEXT(50),
+            achieved TEXT
+          );
+          
+          INSERT INTO qualifications 
+          SELECT id, uid, name, expires_months, created, creator, updated, updator, parent_uid, reference, NULL as achieved
+          FROM skillsfile;
+          
+          DROP TABLE skillsfile;
+        `);
+        console.log('Migration completed successfully');
       }
       
-      // Add reference column if it doesn't exist
-      if (!columnNames.includes('reference')) {
-        console.log('Adding reference column...');
-        db.execSync('ALTER TABLE skillsfile ADD COLUMN reference TEXT(50)');
+      // Check for new columns
+      if (hasNewTable) {
+        const columns = db.getAllSync<{ name: string }>(
+          "PRAGMA table_info(qualifications)"
+        );
+        
+        const columnNames = columns.map(col => col.name);
+        
+        if (!columnNames.includes('parent_uid')) {
+          console.log('Adding parent_uid column...');
+          db.execSync('ALTER TABLE qualifications ADD COLUMN parent_uid TEXT(36)');
+        }
+        
+        if (!columnNames.includes('reference')) {
+          console.log('Adding reference column...');
+          db.execSync('ALTER TABLE qualifications ADD COLUMN reference TEXT(50)');
+        }
+        
+        if (!columnNames.includes('achieved')) {
+          console.log('Adding achieved column...');
+          db.execSync('ALTER TABLE qualifications ADD COLUMN achieved TEXT');
+        }
       }
-      
-      console.log('Tables already exist, skipping initialization');
     }
 
     // Verify table structure
     const tableInfo = db.getAllSync<{ name: string, type: string }>(
-      "PRAGMA table_info(skillsfile)"
+      "PRAGMA table_info(qualifications)"
     );
-    console.log('SkillsFile table structure:', tableInfo);
+    console.log('Qualifications table structure:', tableInfo);
 
     console.log('Database initialization completed successfully');
   } catch (error) {
@@ -245,9 +279,9 @@ export default function TabOneScreen() {
       
       // Verify table structure before insert
       const tableInfo = db.getAllSync<{ name: string, type: string }>(
-        "PRAGMA table_info(skillsfile)"
+        "PRAGMA table_info(qualifications)"
       );
-      console.log('SkillsFile table structure before insert:', tableInfo);
+      console.log('Qualifications table structure before insert:', tableInfo);
 
       const now = new Date();
       const uid = generateUID();
@@ -267,7 +301,7 @@ export default function TabOneScreen() {
       console.log('Creator UID:', creatorUid);
       
       const insertSQL = `
-        INSERT INTO skillsfile (
+        INSERT INTO qualifications (
           uid, name, expires_months, created, creator, updated, updator
         ) VALUES (
           '${uid}',
@@ -296,12 +330,12 @@ export default function TabOneScreen() {
     try {
       // Verify table structure
       const tableInfo = db.getAllSync<{ name: string, type: string }>(
-        "PRAGMA table_info(skillsfile)"
+        "PRAGMA table_info(qualifications)"
       );
-      console.log('SkillsFile table structure:', tableInfo);
+      console.log('Qualifications table structure:', tableInfo);
       
       const records = db.getAllSync<Qualification>(
-        'SELECT * FROM skillsfile ORDER BY created DESC'
+        'SELECT * FROM qualifications ORDER BY created DESC'
       );
       console.log('Loaded records:', records);
       setQualifications(records);
@@ -318,11 +352,11 @@ export default function TabOneScreen() {
       
       // Verify table structure
       const tableInfo = db.getAllSync<{ name: string, type: string }>(
-        "PRAGMA table_info(skillsfile)"
+        "PRAGMA table_info(qualifications)"
       );
-      console.log('SkillsFile table structure:', tableInfo);
+      console.log('Qualifications table structure:', tableInfo);
       
-      db.execSync('DELETE FROM skillsfile');
+      db.execSync('DELETE FROM qualifications');
       console.log('Records cleared successfully');
       await loadRecords();
     } catch (err) {

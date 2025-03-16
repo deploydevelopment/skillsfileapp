@@ -25,6 +25,7 @@ interface SampleQualification {
   creator: string;
   updated: string;
   updator: string;
+  achieved: string;
 }
 
 interface SkillsFileRecord extends BaseRecord {
@@ -32,6 +33,7 @@ interface SkillsFileRecord extends BaseRecord {
   expires_months: number;
   parent_uid?: string;
   reference?: string;
+  achieved?: string;
 }
 
 interface UserRecord extends BaseRecord {
@@ -47,7 +49,7 @@ interface QualsReqRecord extends BaseRecord {
   expires_months: number;
 }
 
-type TableType = 'skillsfile' | 'users' | 'quals_req';
+type TableType = 'qualifications' | 'users' | 'quals_req';
 
 const db = SQLite.openDatabaseSync('timestamps.db');
 
@@ -78,7 +80,7 @@ const truncateUID = (uid: string | number | undefined) => {
 };
 
 export default function TableScreen() {
-  const [selectedTable, setSelectedTable] = useState<TableType>('skillsfile');
+  const [selectedTable, setSelectedTable] = useState<TableType>('qualifications');
   const [records, setRecords] = useState<(SkillsFileRecord | UserRecord | QualsReqRecord)[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
@@ -89,9 +91,9 @@ export default function TableScreen() {
   const loadRecords = () => {
     try {
       let result;
-      if (selectedTable === 'skillsfile') {
+      if (selectedTable === 'qualifications') {
         result = db.getAllSync<SkillsFileRecord>(
-          'SELECT * FROM skillsfile ORDER BY created DESC'
+          'SELECT * FROM qualifications ORDER BY created DESC'
         );
       } else if (selectedTable === 'users') {
         result = db.getAllSync<UserRecord>(
@@ -179,8 +181,8 @@ export default function TableScreen() {
                 `);
               }
               
-              // If skillsfile table was cleared, load sample qualifications
-              if (selectedTable === 'skillsfile') {
+              // If qualifications table was cleared, load sample qualifications
+              if (selectedTable === 'qualifications') {
                 try {
                   const sampleQuals: { qualifications: SampleQualification[] } = require('../../api/sample_qualifications.json');
                   const now = formatToSQLDateTime(new Date());
@@ -198,9 +200,9 @@ export default function TableScreen() {
                   
                   sampleQuals.qualifications.forEach((qual: SampleQualification) => {
                     db.execSync(`
-                      INSERT INTO skillsfile (
+                      INSERT INTO qualifications (
                         uid, name, expires_months, created, creator, updated, updator,
-                        parent_uid, reference
+                        parent_uid, reference, achieved
                       ) VALUES (
                         '${qual.uid}',
                         '${qual.name}',
@@ -210,7 +212,8 @@ export default function TableScreen() {
                         '',
                         '',
                         '${qual.parent_uid}',
-                        '${qual.reference}'
+                        '${qual.reference}',
+                        '${qual.achieved}'
                       )
                     `);
                   });
@@ -241,7 +244,7 @@ export default function TableScreen() {
   }, []);
 
   const renderTableHeader = () => {
-    if (selectedTable === 'skillsfile') {
+    if (selectedTable === 'qualifications') {
       return (
         <View style={styles.tableHeader}>
           <TouchableOpacity 
@@ -269,10 +272,16 @@ export default function TableScreen() {
             <Text style={styles.headerCellText}>reference {getSortDirection('reference')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
+            style={[styles.headerCell, styles.expiresCell]} 
             onPress={() => requestSort('expires_months')}
           >
-            <Text style={styles.headerCellText}>expires (months) {getSortDirection('expires_months')}</Text>
+            <Text style={styles.headerCellText}>exp{getSortDirection('expires_months')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.achievedCell]} 
+            onPress={() => requestSort('achieved')}
+          >
+            <Text style={styles.headerCellText}>achieved{getSortDirection('achieved')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.dateCell]} 
@@ -434,14 +443,15 @@ export default function TableScreen() {
   };
 
   const renderTableRow = (record: SkillsFileRecord | UserRecord | QualsReqRecord) => {
-    if (selectedTable === 'skillsfile' && 'name' in record && 'uid' in record) {
+    if (selectedTable === 'qualifications' && 'name' in record && 'uid' in record) {
       return (
         <View key={record.id} style={styles.tableRow}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.referenceCell]}>{record.reference || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.expires_months}</Text>
+          <Text style={[styles.cell, styles.expiresCell]}>{record.expires_months}</Text>
+          <Text style={[styles.cell, styles.achievedCell]}>{record.achieved || 'NULL'}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
@@ -493,10 +503,10 @@ export default function TableScreen() {
         </TouchableOpacity>
         <View style={styles.tabContainer}>
           <TouchableOpacity
-            style={[styles.tabButton, selectedTable === 'skillsfile' && styles.activeTabButton]}
-            onPress={() => setSelectedTable('skillsfile')}
+            style={[styles.tabButton, selectedTable === 'qualifications' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('qualifications')}
           >
-            <Text style={[styles.tabButtonText, selectedTable === 'skillsfile' && styles.activeTabButtonText]}>Qualifications</Text>
+            <Text style={[styles.tabButtonText, selectedTable === 'qualifications' && styles.activeTabButtonText]}>Qualifications</Text>
           </TouchableOpacity>
          
           <TouchableOpacity
@@ -705,5 +715,13 @@ const styles = StyleSheet.create({
   },
   referenceCell: {
     width: 120,
+  },
+  expiresCell: {
+    width: 50,
+    textAlign: 'center',
+  },
+  achievedCell: {
+    width: 120,
+    textAlign: 'left',
   },
 }); 
