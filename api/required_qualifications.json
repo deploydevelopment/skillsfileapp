@@ -3,362 +3,746 @@
     {
       "uid": "f8a9b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
       "name": "First Aid at Work",
+      "category_names": ["Medical", "Emergency Response"],
       "intro": "Comprehensive first aid training for workplace emergencies",
-      "requested_by": "Ørsted UK",
+      "accreditor": "Health and Safety Executive (HSE)",
       "expires_months": 36,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7",
+          "creator_name": "Ørsted UK",
+          "created": "2024-03-01 09:30:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8",
+          "creator_name": "SSE Renewables",
+          "created": "2024-03-02 14:15:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7",
       "name": "Emergency First Aid",
+      "category_names": ["Medical", "Emergency Response"],
       "intro": "Basic first aid skills for immediate response",
-      "requested_by": "SSE Renewables",
+      "accreditor": "Health and Safety Executive (HSE)",
       "expires_months": 36,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9",
+          "creator_name": "RWE Renewables",
+          "created": "2024-03-03 11:45:00.000",
+          "updated": "2024-03-15 09:00:00.000",
+          "updator": "system"
+        }
+      ]
     },
     {
       "uid": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8",
       "name": "Fire Marshal Training",
+      "category_names": ["Emergency Response", "Safety"],
       "intro": "Fire safety and emergency response procedures",
-      "requested_by": "Vattenfall UK",
+      "accreditor": "Fire Protection Association (FPA)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+          "creator_name": "Siemens Gamesa",
+          "created": "2024-03-04 16:20:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
+          "creator_name": "Vestas Wind Systems",
+          "created": "2024-03-05 10:30:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2",
+          "creator_name": "Ocean Winds",
+          "created": "2024-03-06 13:45:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9",
       "name": "Manual Handling",
+      "category_names": ["Safety", "Physical"],
       "intro": "Safe lifting and handling techniques",
-      "requested_by": "ScottishPower Renewables",
+      "accreditor": "ROSPA (Royal Society for the Prevention of Accidents)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3",
+          "creator_name": "Equinor",
+          "created": "2024-03-07 15:20:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4",
+          "creator_name": "ScottishPower Renewables",
+          "created": "2024-03-08 09:15:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
       "name": "Working at Heights",
+      "category_names": ["Safety", "Physical", "Specialized"],
       "intro": "Safety procedures for working at height",
-      "requested_by": "RWE UK",
+      "accreditor": "IPAF (International Powered Access Federation)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5",
+          "creator_name": "Shell New Energies",
+          "created": "2024-03-09 11:30:00.000",
+          "updated": "2024-03-22 14:30:00.000",
+          "updator": "system"
+        }
+      ]
     },
     {
       "uid": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
       "name": "Confined Space Entry",
+      "category_names": ["Safety", "Physical", "Specialized"],
       "intro": "Safety procedures for confined space work",
-      "requested_by": "EDF Renewables UK",
+      "accreditor": "City & Guilds",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+          "creator_name": "BP Wind Energy",
+          "created": "2024-03-10 16:45:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7",
+          "creator_name": "Van Oord Offshore Wind",
+          "created": "2024-03-11 13:20:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2",
       "name": "Scaffold Inspection",
+      "category_names": ["Safety", "Inspection", "Construction"],
       "intro": "Scaffold safety and inspection procedures",
-      "requested_by": "Ørsted UK",
+      "accreditor": "CISRS (Construction Industry Scaffolders Record Scheme)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8",
+          "creator_name": "Boskalis Offshore Energy",
+          "created": "2024-03-12 10:15:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9",
+          "creator_name": "GE Renewable Energy",
+          "created": "2024-03-13 14:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3",
       "name": "Crane Operation",
+      "category_names": ["Equipment", "Construction", "Specialized"],
       "intro": "Safe crane operation and maintenance",
-      "requested_by": "SSE Renewables",
+      "accreditor": "CPCS (Construction Plant Competence Scheme)",
       "expires_months": 12,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0",
+          "creator_name": "Vattenfall Wind Power",
+          "created": "2024-03-14 11:45:00.000",
+          "updated": "2024-03-20 09:30:00.000",
+          "updator": "system"
+        }
+      ]
     },
     {
       "uid": "h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4",
       "name": "Forklift Operation",
+      "category_names": ["Equipment", "Warehouse", "Specialized"],
       "intro": "Safe forklift operation and maintenance",
-      "requested_by": "Vattenfall UK",
+      "accreditor": "RTITB (Road Transport Industry Training Board)",
       "expires_months": 12,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1",
+          "creator_name": "EDF Renewables",
+          "created": "2024-03-15 15:20:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7",
+          "creator_name": "Ørsted UK",
+          "created": "2024-03-16 09:45:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8",
+          "creator_name": "SSE Renewables",
+          "created": "2024-03-17 13:10:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5",
       "name": "Welding Certification",
+      "category_names": ["Technical", "Construction", "Specialized"],
       "intro": "Advanced welding techniques and safety",
-      "requested_by": "ScottishPower Renewables",
+      "accreditor": "TWI (The Welding Institute)",
       "expires_months": 12,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9",
+          "creator_name": "RWE Renewables",
+          "created": "2024-03-18 10:30:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0",
+          "creator_name": "Siemens Gamesa",
+          "created": "2024-03-19 14:45:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
       "name": "Electrical Safety",
+      "category_names": ["Technical", "Safety", "Specialized"],
       "intro": "Electrical safety procedures and protocols",
-      "requested_by": "RWE UK",
+      "accreditor": "NICEIC (National Inspection Council for Electrical Installation Contracting)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1",
+          "creator_name": "Vestas Wind Systems",
+          "created": "2024-03-20 11:30:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2",
+          "creator_name": "Ocean Winds",
+          "created": "2024-03-21 15:45:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7",
       "name": "COSHH Training",
+      "category_names": ["Safety", "Chemical", "Regulatory"],
       "intro": "Control of Substances Hazardous to Health",
-      "requested_by": "EDF Renewables UK",
+      "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3",
+          "creator_name": "Equinor",
+          "created": "2024-03-22 09:15:00.000",
+          "updated": "2024-03-23 14:30:00.000",
+          "updator": "system"
+        }
+      ]
     },
     {
       "uid": "l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8",
       "name": "Asbestos Awareness",
+      "category_names": ["Safety", "Chemical", "Specialized"],
       "intro": "Asbestos identification and safety procedures",
-      "requested_by": "Ørsted UK",
+      "accreditor": "UKATA (UK Asbestos Training Association)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4",
+          "creator_name": "ScottishPower Renewables",
+          "created": "2024-03-23 10:30:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5",
+          "creator_name": "Shell New Energies",
+          "created": "2024-03-24 13:45:00.000",
+          "updated": "",
+          "updator": ""
+        },
+        {
+          "creator": "j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+          "creator_name": "BP Wind Energy",
+          "created": "2024-03-25 16:20:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9",
       "name": "Working with Chemicals",
+      "category_names": ["Safety", "Chemical", "Specialized"],
       "intro": "Chemical safety and handling procedures",
-      "requested_by": "SSE Renewables",
+      "accreditor": "NEBOSH (National Examination Board in Occupational Safety and Health)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7",
+          "creator_name": "Van Oord Offshore Wind",
+          "created": "2024-03-23 10:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0",
       "name": "Ladder Safety",
+      "category_names": ["Safety", "Equipment"],
       "intro": "Safe ladder use and inspection",
-      "requested_by": "Vattenfall UK",
+      "accreditor": "Ladder Association",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8",
+          "creator_name": "Boskalis Offshore Energy",
+          "created": "2024-03-23 11:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1",
       "name": "PPE Training",
+      "category_names": ["Safety", "Equipment"],
       "intro": "Personal Protective Equipment use and care",
-      "requested_by": "ScottishPower Renewables",
+      "accreditor": "British Safety Industry Federation (BSIF)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "m3n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9",
+          "creator_name": "GE Renewable Energy",
+          "created": "2024-03-23 12:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
       "name": "Risk Assessment",
+      "category_names": ["Safety", "Management"],
       "intro": "Workplace risk assessment procedures",
-      "requested_by": "RWE UK",
+      "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "n4o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0",
+          "creator_name": "Vattenfall Wind Power",
+          "created": "2024-03-23 13:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3",
       "name": "Health and Safety Level 2",
+      "category_names": ["Safety", "Management", "Certification"],
       "intro": "Intermediate health and safety principles",
-      "requested_by": "EDF Renewables UK",
+      "accreditor": "NEBOSH (National Examination Board in Occupational Safety and Health)",
       "expires_months": 36,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "o5p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1",
+          "creator_name": "EDF Renewables",
+          "created": "2024-03-23 14:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4",
       "name": "Health and Safety Level 3",
+      "category_names": ["Safety", "Management", "Certification"],
       "intro": "Advanced health and safety management",
-      "requested_by": "Ørsted UK",
+      "accreditor": "NEBOSH (National Examination Board in Occupational Safety and Health)",
       "expires_months": 36,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "p6q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2",
+          "creator_name": "Vattenfall Wind Power",
+          "created": "2024-03-23 15:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5",
       "name": "Environmental Awareness",
+      "category_names": ["Environmental", "Safety"],
       "intro": "Environmental protection procedures",
-      "requested_by": "SSE Renewables",
+      "accreditor": "IEMA (Institute of Environmental Management and Assessment)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "q7r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3",
+          "creator_name": "EDF Renewables",
+          "created": "2024-03-23 16:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6",
       "name": "Noise at Work",
+      "category_names": ["Safety", "Health"],
       "intro": "Noise safety and hearing protection",
-      "requested_by": "Vattenfall UK",
+      "accreditor": "BOHS (British Occupational Hygiene Society)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "r8s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4",
+          "creator_name": "Siemens Gamesa",
+          "created": "2024-03-23 17:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7",
       "name": "Vibration Training",
+      "category_names": ["Safety", "Health"],
       "intro": "Hand-arm vibration safety",
-      "requested_by": "ScottishPower Renewables",
+      "accreditor": "BOHS (British Occupational Hygiene Society)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "s9t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5",
+          "creator_name": "Shell New Energies",
+          "created": "2024-03-23 18:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8",
       "name": "Working in Hot Conditions",
+      "category_names": ["Safety", "Environmental", "Health"],
       "intro": "Heat stress prevention and management",
-      "requested_by": "RWE UK",
+      "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "t0u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6",
+          "creator_name": "BP Wind Energy",
+          "created": "2024-03-23 19:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9",
       "name": "Working in Cold Conditions",
+      "category_names": ["Safety", "Environmental", "Health"],
       "intro": "Cold stress prevention and management",
-      "requested_by": "EDF Renewables UK",
+      "accreditor": "IOSH (Institution of Occupational Safety and Health)",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "u1v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7",
+          "creator_name": "Van Oord Offshore Wind",
+          "created": "2024-03-23 20:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0",
       "name": "Lone Working",
+      "category_names": ["Safety", "Specialized"],
       "intro": "Safety procedures for lone workers",
-      "requested_by": "Ørsted UK",
+      "accreditor": "British Safety Council",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "v2w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8",
+          "creator_name": "Boskalis Offshore Energy",
+          "created": "2024-03-23 21:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1",
       "name": "Stress Management",
+      "category_names": ["Health", "Mental Health", "Management"],
       "intro": "Workplace stress prevention and management",
-      "requested_by": "SSE Renewables",
+      "accreditor": "Mental Health First Aid England",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "w3x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9",
+          "creator_name": "GE Renewable Energy",
+          "created": "2024-03-23 22:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2",
       "name": "Mental Health First Aid",
+      "category_names": ["Medical", "Mental Health", "Emergency Response"],
       "intro": "Mental health awareness and support",
-      "requested_by": "Vattenfall UK",
+      "accreditor": "Mental Health First Aid England",
       "expires_months": 36,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "x4y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0",
+          "creator_name": "Vattenfall Wind Power",
+          "created": "2024-03-23 23:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3",
       "name": "Drug and Alcohol Awareness Course",
+      "category_names": ["Health", "Safety", "Mental Health"],
       "intro": "Substance abuse prevention and support",
-      "requested_by": "ScottishPower Renewables",
+      "accreditor": "British Safety Council",
       "expires_months": 24,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "y5z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1",
+          "creator_name": "EDF Renewables",
+          "created": "2024-03-24 00:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4",
       "name": "Security Clearance",
+      "category_names": ["Security", "Regulatory", "Certification"],
       "intro": "Security procedures and clearance requirements",
-      "requested_by": "RWE UK",
+      "accreditor": "Security Industry Authority (SIA)",
       "expires_months": 12,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "z6a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2",
+          "creator_name": "Ocean Winds",
+          "created": "2024-03-24 01:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     },
     {
       "uid": "c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3r4s5",
       "name": "DBS Check",
+      "category_names": ["Security", "Regulatory", "Certification"],
       "intro": "Criminal record check and verification",
-      "requested_by": "EDF Renewables UK",
+      "accreditor": "Disclosure and Barring Service (DBS)",
       "expires_months": 12,
       "created": "2024-03-20 10:00:00.000",
       "creator": "system",
       "updated": "",
       "updator": "",
-      "status": 0
+      "status": 0,
+      "comp_requests": [
+        {
+          "creator": "a7b8c9d0e1f2g3h4i5j6k7l8m9n0o1p2q3",
+          "creator_name": "Ørsted UK",
+          "created": "2024-03-24 02:30:00.000",
+          "updated": "",
+          "updator": ""
+        }
+      ]
     }
   ]
 } 
