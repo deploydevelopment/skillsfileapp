@@ -816,7 +816,7 @@ export default function QualificationsScreen() {
               <ScrollView style={[styles.drawerContent, { marginBottom: 80 }]}>
                 <Text style={styles.drawerTitle}>{selectedQual.name}</Text>
                 <Text style={styles.drawerSubtitle}>
-                  {selectedQual.category_name} category_name
+                  {selectedQual.category_name}
                 </Text>
                 <Text style={styles.drawerExpiry}>
                   Renews: {selectedQual.expires_months} months

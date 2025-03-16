@@ -15,6 +15,14 @@ interface BaseRecord {
   [key: string]: string | number | undefined;
 }
 
+interface CompanyRequest {
+  creator: string;
+  creator_name: string;
+  created: string;
+  updated: string;
+  updator: string;
+}
+
 interface RequiredQualification {
   uid: string;
   name: string;
@@ -27,6 +35,7 @@ interface RequiredQualification {
   updator: string;
   status: number;
   accreditor: string;
+  comp_requests?: CompanyRequest[];
 }
 
 interface SampleQualification {
@@ -73,7 +82,12 @@ interface CompanyRecord extends BaseRecord {
   status: number;
 }
 
-type TableType = 'qualifications' | 'users' | 'quals_req' | 'companies';
+interface QualCompRelRecord extends BaseRecord {
+  qual_uid: string;
+  company_uid: string;
+}
+
+type TableType = 'qualifications' | 'users' | 'quals_req' | 'companies' | 'qual_company_req';
 
 const db = SQLite.openDatabaseSync('skillsfile.db');
 
@@ -105,7 +119,7 @@ const truncateUID = (uid: string | number | undefined) => {
 
 export default function TableScreen() {
   const [selectedTable, setSelectedTable] = useState<TableType>('qualifications');
-  const [records, setRecords] = useState<(SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)[]>([]);
+  const [records, setRecords] = useState<(SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
@@ -127,6 +141,10 @@ export default function TableScreen() {
         result = db.getAllSync<CompanyRecord>(
           'SELECT * FROM companies ORDER BY name ASC'
         );
+      } else if (selectedTable === 'qual_company_req') {
+        result = db.getAllSync<QualCompRelRecord>(
+          'SELECT * FROM qual_company_req ORDER BY qual_uid ASC'
+        );
       } else {
         result = db.getAllSync<QualsReqRecord>(
           'SELECT * FROM quals_req ORDER BY name ASC'
@@ -138,10 +156,10 @@ export default function TableScreen() {
     }
   };
 
-  const sortRecords = (records: (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)[], config: { key: string; direction: 'asc' | 'desc' }) => {
+  const sortRecords = (records: (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)[], config: { key: string; direction: 'asc' | 'desc' }) => {
     return [...records].sort((a, b) => {
-      const aValue = a[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)] as string | number;
-      const bValue = b[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord)] as string | number;
+      const aValue = a[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)] as string | number;
+      const bValue = b[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)] as string | number;
       
       if (aValue < bValue) {
         return config.direction === 'asc' ? -1 : 1;
@@ -282,7 +300,12 @@ export default function TableScreen() {
                   const reqQuals: { qualifications: RequiredQualification[] } = require('../../api/required_qualifications.json');
                   const now = formatToSQLDateTime(new Date());
                   
+                  // First clear the qual_company_req table
+                  db.execSync('DELETE FROM qual_company_req');
+                  db.execSync('DELETE FROM sqlite_sequence WHERE name="qual_company_req"');
+                  
                   reqQuals.qualifications.forEach((qual) => {
+                    // Insert the qualification
                     db.execSync(`
                       INSERT INTO quals_req (
                         uid, name, intro, category_name, expires_months,
@@ -301,6 +324,20 @@ export default function TableScreen() {
                         '${qual.accreditor}'
                       )
                     `);
+
+                    // Insert company relationships
+                    if (qual.comp_requests) {
+                      qual.comp_requests.forEach((req) => {
+                        db.execSync(`
+                          INSERT INTO qual_company_req (
+                            qual_uid, company_uid
+                          ) VALUES (
+                            '${qual.uid}',
+                            '${req.creator}'
+                          )
+                        `);
+                      });
+                    }
                   });
                 } catch (error) {
                   console.error('Error loading required qualifications:', error);
@@ -506,6 +543,41 @@ export default function TableScreen() {
           </TouchableOpacity>
         </View>
       );
+    } else if (selectedTable === 'qual_company_req') {
+      return (
+        <View style={styles.tableHeader}>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.idCell]} 
+            onPress={() => requestSort('id')}
+          >
+            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.uidCell]} 
+            onPress={() => requestSort('qual_uid')}
+          >
+            <Text style={styles.headerCellText}>qual {getSortDirection('qual_uid')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.uidCell]} 
+            onPress={() => requestSort('company_uid')}
+          >
+            <Text style={styles.headerCellText}>company {getSortDirection('company_uid')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('created')}
+          >
+            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('updated')}
+          >
+            <Text style={styles.headerCellText}>updated {getSortDirection('updated')}</Text>
+          </TouchableOpacity>
+        </View>
+      );
     } else {
       return (
         <View style={styles.tableHeader}>
@@ -586,7 +658,7 @@ export default function TableScreen() {
     }
   };
 
-  const renderTableRow = (record: SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord) => {
+  const renderTableRow = (record: SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord) => {
     const getStatusText = (status: number) => {
       switch (status) {
         case 0: return '0';
@@ -655,6 +727,16 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.statusCell]}>{getStatusText(Number(record.status))}</Text>
         </View>
       );
+    } else if (selectedTable === 'qual_company_req' && 'qual_uid' in record) {
+      return (
+        <View key={record.id} style={styles.tableRow}>
+          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.qual_uid)}</Text>
+          <Text style={[styles.cell, styles.skillsFileCell]}>{truncateUID(record.company_uid)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
+        </View>
+      );
     }
     return null;
   };
@@ -675,19 +757,28 @@ export default function TableScreen() {
           >
             <Text style={[styles.tabButtonText, selectedTable === 'qualifications' && styles.activeTabButtonText]}>Quals</Text>
           </TouchableOpacity>
-         
+
           <TouchableOpacity
             style={[styles.tabButton, selectedTable === 'quals_req' && styles.activeTabButton]}
             onPress={() => setSelectedTable('quals_req')}
           >
             <Text style={[styles.tabButtonText, selectedTable === 'quals_req' && styles.activeTabButtonText]}>Req. Quals</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tabButton, selectedTable === 'qual_company_req' && styles.activeTabButton]}
+            onPress={() => setSelectedTable('qual_company_req')}
+          >
+            <Text style={[styles.tabButtonText, selectedTable === 'qual_company_req' && styles.activeTabButtonText]}>Qual Comp Rel</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.tabButton, selectedTable === 'users' && styles.activeTabButton]}
             onPress={() => setSelectedTable('users')}
           >
             <Text style={[styles.tabButtonText, selectedTable === 'users' && styles.activeTabButtonText]}>Users</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.tabButton, selectedTable === 'companies' && styles.activeTabButton]}
             onPress={() => setSelectedTable('companies')}

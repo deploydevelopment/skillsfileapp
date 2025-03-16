@@ -22,6 +22,13 @@ interface Qualification {
   updator: string;
   parent_uid?: string;
   reference?: string;
+  comp_requests?: { 
+    creator: string;
+    creator_name: string;
+    created: string;
+    updated: string;
+    updator: string;
+  }[];
 }
 
 interface Company {
@@ -58,7 +65,7 @@ const initializeDatabase = () => {
     
     // Check if tables exist
     const tables = db.getAllSync<{ name: string }>(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'skillsfile', 'users', 'quals_req', 'companies')"
+      "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('qualifications', 'skillsfile', 'users', 'quals_req', 'companies', 'qual_company_req')"
     );
     
     if (tables.length === 0) {
@@ -106,6 +113,18 @@ const initializeDatabase = () => {
           updator TEXT,
           accreditor TEXT NOT NULL,
           status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
+        );
+
+        CREATE TABLE qual_company_req (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          qual_uid TEXT NOT NULL,
+          company_uid TEXT NOT NULL,
+          created TEXT NOT NULL,
+          creator TEXT NOT NULL,
+          updated TEXT,
+          updator TEXT,
+          FOREIGN KEY (qual_uid) REFERENCES quals_req(uid),
+          FOREIGN KEY (company_uid) REFERENCES companies(uid)
         );
 
         CREATE TABLE companies (
@@ -157,6 +176,24 @@ const initializeDatabase = () => {
             '${q.accreditor}'
           );
         `);
+
+        // Insert company requests for this qualification
+        if (q.comp_requests) {
+          q.comp_requests.forEach(cr => {
+            db.execSync(`
+              INSERT INTO qual_company_req (
+                qual_uid, company_uid, created, creator, updated, updator
+              ) VALUES (
+                '${q.uid}',
+                '${cr.creator}',
+                '${cr.created}',
+                'system',
+                '${cr.updated}',
+                '${cr.updator}'
+              );
+            `);
+          });
+        }
       });
 
       // Insert companies from JSON
