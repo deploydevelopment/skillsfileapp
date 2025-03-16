@@ -298,11 +298,15 @@ export default function QualificationsScreen() {
         visibilityTime: 3000,
         text1Style: {
           fontSize: 18,
-          fontFamily: 'MavenPro-Bold'
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
         },
         text2Style: {
           fontSize: 16,
-          fontFamily: 'MavenPro-Regular'
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
         }
       });
 
@@ -320,11 +324,15 @@ export default function QualificationsScreen() {
         visibilityTime: 3000,
         text1Style: {
           fontSize: 18,
-          fontFamily: 'MavenPro-Bold'
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
         },
         text2Style: {
           fontSize: 16,
-          fontFamily: 'MavenPro-Regular'
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
         }
       });
     } finally {
@@ -836,7 +844,7 @@ export default function QualificationsScreen() {
       {renderTestModal()}
       {renderHelpModal()}
       <TouchableOpacity style={styles.fab} activeOpacity={1}>
-        <Ionicons name="add" size={30} color={Colors.white} />
+        <Ionicons name="add" size={25} color={Colors.white} />
       </TouchableOpacity>
     </View>
   );
@@ -1046,21 +1054,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   drawerSubtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'MavenPro-Regular',
-    color: '#666666',
+    color: Colors.black,
     marginBottom: 5,
   },
   drawerExpiry: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: '#666666',
+    color: Colors.black,
     marginBottom: 15,
   },
   drawerDescription: {
     fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: '#333333',
+    color: Colors.black,
     marginBottom: 30,
     lineHeight: 24,
   },
@@ -1277,8 +1285,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-    width: 56,
-    height: 56,
+    width: 50,
+    height: 50,
     borderRadius: 28,
     backgroundColor: Colors.blueDark,
     justifyContent: 'center',
