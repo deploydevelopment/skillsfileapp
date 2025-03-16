@@ -360,7 +360,7 @@ export default function QualificationsScreen() {
         image: require('../../assets/test_media/img1.jpg'),
         video: require('../../assets/test_media/vid1.mp4'),
         audio: require('../../assets/test_media/test.mp3'),
-        pdf: require('../../assets/test_media/Example PDF.pdf'),
+        pdf: require('../../assets/test_media/test.pdf'),
       };
 
       const asset = Asset.fromModule(testMedia[type]);
@@ -375,7 +375,7 @@ export default function QualificationsScreen() {
       const savedQual = selectedQual;
 
       if (type === 'pdf') {
-        const fileName = 'Example PDF.pdf';
+        const fileName = 'test.pdf';
         const destination = `${FileSystem.cacheDirectory}${fileName}`;
         await FileSystem.copyAsync({
           from: localUri,
