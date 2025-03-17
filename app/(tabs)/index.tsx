@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: Colors.text,
+    color: Colors.blueDark,
   },
   alertItem: {
     flexDirection: 'row',
@@ -759,6 +759,7 @@ const styles = StyleSheet.create({
   section: {
     flex: 1,
     padding: 20,
+    paddingTop: 20,
     backgroundColor: 'transparent',
     zIndex: 1,
   },
@@ -773,12 +774,16 @@ const styles = StyleSheet.create({
     width: '45%',
     alignItems: 'center',
     marginBottom: 30,
+    position: 'relative',
+    left: 0,
+    top: 0,
   },
   icon: {
-    width: 80,
-    height: 70,
+    width: 100,
+    height: 90,
     marginBottom: 8,
-    padding: 1,
+    padding: 4,
+    resizeMode: 'contain',
   },
   iconText: {
     fontSize: 18,
@@ -786,7 +791,7 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
     letterSpacing: 0.6,
     textAlign: 'center',
-    marginTop: 4,
+    marginTop: 0,
   },
   errorText: {
     color: 'red',
