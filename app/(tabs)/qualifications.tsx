@@ -2,8 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing, TextInput, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
-import requiredQualifications from '../../api/required_qualifications.json';
-import companies from '../../api/companies.json';
+import { pullJson, RequiredQualification } from '../../api/data';
 import { useMediaPreview } from '../../contexts/MediaPreviewContext';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
@@ -18,27 +17,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 
-interface Qualification {
-  uid: string;
-  name: string;
-  intro: string;
-  category_name: string;
-  expires_months: number;
-  created: string;
-  creator: string;
-  updated: string;
-  updator: string;
-  parent_uid?: string;
-  reference?: string;
+interface Qualification extends RequiredQualification {
   achieved?: string;
-  comp_requests?: { 
-    creator: string;
-    creator_name: string;
-    created: string;
-    updated: string;
-    updator: string;
-  }[];
-  accreditor: string;
 }
 
 const db = SQLite.openDatabaseSync('skillsfile.db');
@@ -142,7 +122,7 @@ const initializeDatabase = () => {
         );
 
         -- Insert required qualifications from JSON
-        ${requiredQualifications.qualifications.map(q => `
+        ${pullJson('req_quals').map(q => `
           INSERT INTO quals_req (
             uid, name, intro, category_name, expires_months,
             created, creator, updated, updator, status
@@ -161,7 +141,7 @@ const initializeDatabase = () => {
         `).join('\n')}
 
         -- Insert companies from JSON
-        ${companies.companies.map(c => `
+        ${pullJson('companies').map(c => `
           INSERT INTO companies (
             uid, name, status,
             created, creator, updated, updator
@@ -1091,7 +1071,7 @@ export default function QualificationsScreen() {
         String(qual.expires_months).includes(searchLower)
       );
     } else {
-      return requiredQualifications.qualifications.filter(qual =>
+      return pullJson('req_quals').filter(qual =>
         qual.name.toLowerCase().includes(searchLower) ||
         qual.intro.toLowerCase().includes(searchLower) ||
         qual.category_name.toLowerCase().includes(searchLower) ||

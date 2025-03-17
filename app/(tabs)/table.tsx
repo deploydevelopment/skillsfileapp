@@ -4,6 +4,7 @@ import * as SQLite from 'expo-sqlite';
 import { Colors } from '../../constants/styles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { pullJson, RequiredQualification } from '../../api/data';
 
 interface BaseRecord {
   id: number;
@@ -12,42 +13,9 @@ interface BaseRecord {
   creator: string;
   updated: string;
   updator: string;
-  [key: string]: string | number | undefined;
 }
 
-interface CompanyRequest {
-  creator: string;
-  creator_name: string;
-  created: string;
-  updated: string;
-  updator: string;
-}
-
-interface RequiredQualification {
-  uid: string;
-  name: string;
-  intro: string;
-  category_name: string;
-  expires_months: number;
-  created: string;
-  creator: string;
-  updated: string;
-  updator: string;
-  status: number;
-  accreditor: string;
-  comp_requests?: CompanyRequest[];
-}
-
-interface SampleQualification {
-  uid: string;
-  name: string;
-  expires_months: number;
-  parent_uid: string;
-  reference: string;
-  achieved: string;
-}
-
-interface SkillsFileRecord extends BaseRecord {
+interface QualificationRecord extends BaseRecord {
   name: string;
   expires_months: number;
   parent_uid?: string;
@@ -60,6 +28,17 @@ interface UserRecord extends BaseRecord {
   first_name: string;
   last_name: string;
   username: string;
+  status: number;
+}
+
+interface CompanyRecord extends BaseRecord {
+  name: string;
+  status: number;
+}
+
+interface QualCompanyReqRecord extends BaseRecord {
+  qual_uid: string;
+  company_uid: string;
 }
 
 interface QualsReqRecord extends BaseRecord {
@@ -71,23 +50,30 @@ interface QualsReqRecord extends BaseRecord {
   accreditor: string;
 }
 
-interface CompanyData {
-  uid: string;
-  name: string;
-  status: number;
-}
-
-interface CompanyRecord extends BaseRecord {
-  name: string;
-  status: number;
-}
-
-interface QualCompRelRecord extends BaseRecord {
-  qual_uid: string;
-  company_uid: string;
-}
-
 type TableType = 'qualifications' | 'users' | 'quals_req' | 'companies' | 'qual_company_req';
+
+type TableRecord = QualificationRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompanyReqRecord;
+
+// Type guards
+const isQualificationRecord = (record: TableRecord): record is QualificationRecord => {
+  return 'expires_months' in record && !('intro' in record);
+};
+
+const isUserRecord = (record: TableRecord): record is UserRecord => {
+  return 'username' in record;
+};
+
+const isQualsReqRecord = (record: TableRecord): record is QualsReqRecord => {
+  return 'intro' in record && 'accreditor' in record;
+};
+
+const isCompanyRecord = (record: TableRecord): record is CompanyRecord => {
+  return 'name' in record && !('expires_months' in record) && !('username' in record);
+};
+
+const isQualCompanyReqRecord = (record: TableRecord): record is QualCompanyReqRecord => {
+  return 'qual_uid' in record;
+};
 
 const db = SQLite.openDatabaseSync('skillsfile.db');
 
@@ -119,30 +105,30 @@ const truncateUID = (uid: string | number | undefined) => {
 
 export default function TableScreen() {
   const [selectedTable, setSelectedTable] = useState<TableType>('qualifications');
-  const [records, setRecords] = useState<(SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)[]>([]);
+  const [records, setRecords] = useState<TableRecord[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
-  } | null>(null);
+  }>({ key: 'id', direction: 'asc' });
 
-  const loadRecords = () => {
+  const loadRecords = async () => {
     try {
       let result;
       if (selectedTable === 'qualifications') {
-        result = db.getAllSync<SkillsFileRecord>(
+        result = db.getAllSync<QualificationRecord>(
           'SELECT * FROM qualifications ORDER BY created DESC'
         );
       } else if (selectedTable === 'users') {
         result = db.getAllSync<UserRecord>(
-          'SELECT * FROM users ORDER BY id DESC'
+          'SELECT * FROM users ORDER BY created DESC'
         );
       } else if (selectedTable === 'companies') {
         result = db.getAllSync<CompanyRecord>(
           'SELECT * FROM companies ORDER BY name ASC'
         );
       } else if (selectedTable === 'qual_company_req') {
-        result = db.getAllSync<QualCompRelRecord>(
+        result = db.getAllSync<QualCompanyReqRecord>(
           'SELECT * FROM qual_company_req ORDER BY qual_uid ASC'
         );
       } else {
@@ -156,10 +142,10 @@ export default function TableScreen() {
     }
   };
 
-  const sortRecords = (records: (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)[], config: { key: string; direction: 'asc' | 'desc' }) => {
+  const sortRecords = (records: TableRecord[], config: { key: string; direction: 'asc' | 'desc' }) => {
     return [...records].sort((a, b) => {
-      const aValue = a[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)] as string | number;
-      const bValue = b[config.key as keyof (SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord)] as string | number;
+      const aValue = a[config.key as keyof TableRecord] as string | number;
+      const bValue = b[config.key as keyof TableRecord] as string | number;
       
       if (aValue < bValue) {
         return config.direction === 'asc' ? -1 : 1;
@@ -213,7 +199,7 @@ export default function TableScreen() {
                 db.execSync(`
                   INSERT INTO users (
                     uid, created, creator, updated, updator,
-                    first_name, last_name, username
+                    first_name, last_name, username, status
                   ) VALUES (
                     '${generateUID()}', 
                     '${formatToSQLDateTime(new Date())}',
@@ -222,89 +208,23 @@ export default function TableScreen() {
                     '',
                     'Matt',
                     'Riley',
-                    'hugosebriley'
+                    'hugosebriley',
+                    0
                   );
                 `);
               }
               
-              // If qualifications table was cleared, load sample qualifications
-              if (selectedTable === 'qualifications') {
-                try {
-                  const sampleQuals: { qualifications: SampleQualification[] } = require('../../api/sample_qualifications.json');
-                  const now = formatToSQLDateTime(new Date());
-                  
-                  // Get the first user's UID to use as creator
-                  const userResult = db.getAllSync<{ uid: string }>(
-                    'SELECT uid FROM users LIMIT 1'
-                  );
-                  
-                  if (userResult.length === 0) {
-                    throw new Error('No users found in database');
-                  }
-                  
-                  const creatorUid = userResult[0].uid;
-                  
-                  sampleQuals.qualifications.forEach((qual: SampleQualification) => {
-                    db.execSync(`
-                      INSERT INTO qualifications (
-                        uid, name, expires_months, created, creator, updated, updator,
-                        parent_uid, reference, achieved, status
-                      ) VALUES (
-                        '${qual.uid}',
-                        '${qual.name}',
-                        ${qual.expires_months},
-                        '${now}',
-                        '${creatorUid}',
-                        '',
-                        '',
-                        '${qual.parent_uid}',
-                        '${qual.reference}',
-                        '${qual.achieved}',
-                        0
-                      )
-                    `);
-                  });
-                } catch (error) {
-                  console.error('Error loading sample qualifications:', error);
-                }
-              }
-              // If companies table was cleared, load companies from JSON
-              else if (selectedTable === 'companies') {
-                try {
-                  const companiesData: { companies: CompanyData[] } = require('../../api/companies.json');
-                  const now = formatToSQLDateTime(new Date());
-                  
-                  companiesData.companies.forEach((company: CompanyData) => {
-                    db.execSync(`
-                      INSERT INTO companies (
-                        uid, name, status,
-                        created, creator, updated, updator
-                      ) VALUES (
-                        '${company.uid}',
-                        '${company.name}',
-                        ${company.status},
-                        '${now}',
-                        'system',
-                        '',
-                        ''
-                      )
-                    `);
-                  });
-                } catch (error) {
-                  console.error('Error loading companies:', error);
-                }
-              }
               // If quals_req table was cleared, load required qualifications from JSON
               else if (selectedTable === 'quals_req') {
                 try {
-                  const reqQuals: { qualifications: RequiredQualification[] } = require('../../api/required_qualifications.json');
+                  const reqQuals = pullJson('req_quals');
                   const now = formatToSQLDateTime(new Date());
                   
                   // First clear the qual_company_req table
                   db.execSync('DELETE FROM qual_company_req');
                   db.execSync('DELETE FROM sqlite_sequence WHERE name="qual_company_req"');
                   
-                  reqQuals.qualifications.forEach((qual) => {
+                  reqQuals.forEach((qual) => {
                     // Insert the qualification
                     db.execSync(`
                       INSERT INTO quals_req (
@@ -330,10 +250,14 @@ export default function TableScreen() {
                       qual.comp_requests.forEach((req) => {
                         db.execSync(`
                           INSERT INTO qual_company_req (
-                            qual_uid, company_uid
+                            qual_uid, company_uid, created, creator, updated, updator
                           ) VALUES (
                             '${qual.uid}',
-                            '${req.creator}'
+                            '${req.creator}',
+                            '${req.created}',
+                            'system',
+                            '${req.updated}',
+                            '${req.updator}'
                           )
                         `);
                       });
@@ -344,10 +268,36 @@ export default function TableScreen() {
                 }
               }
               
+              // If companies table was cleared, load companies from JSON
+              else if (selectedTable === 'companies') {
+                try {
+                  const companiesList = pullJson('companies');
+                  const now = formatToSQLDateTime(new Date());
+                  
+                  companiesList.forEach((company) => {
+                    db.execSync(`
+                      INSERT INTO companies (
+                        uid, name, status,
+                        created, creator, updated, updator
+                      ) VALUES (
+                        '${company.uid}',
+                        '${company.name}',
+                        ${company.status},
+                        '${now}',
+                        'system',
+                        '',
+                        ''
+                      )
+                    `);
+                  });
+                } catch (error) {
+                  console.error('Error loading companies:', error);
+                }
+              }
+
               loadRecords();
             } catch (error) {
-              console.error('Error clearing records:', error);
-              Alert.alert('Error', 'Failed to clear records');
+              console.error('Error clearing table:', error);
             }
           }
         }
@@ -578,158 +528,57 @@ export default function TableScreen() {
           </TouchableOpacity>
         </View>
       );
-    } else {
-      return (
-        <View style={styles.tableHeader}>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.idCell]} 
-            onPress={() => requestSort('id')}
-          >
-            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('uid')}
-          >
-            <Text style={styles.headerCellText}>uid {getSortDirection('uid')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
-            onPress={() => requestSort('name')}
-          >
-            <Text style={styles.headerCellText}>name {getSortDirection('name')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
-            onPress={() => requestSort('intro')}
-          >
-            <Text style={styles.headerCellText}>intro {getSortDirection('intro')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
-            onPress={() => requestSort('category_name')}
-          >
-            <Text style={styles.headerCellText}>category {getSortDirection('category_name')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
-            onPress={() => requestSort('accreditor')}
-          >
-            <Text style={styles.headerCellText}>accreditor {getSortDirection('accreditor')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
-            onPress={() => requestSort('expires_months')}
-          >
-            <Text style={styles.headerCellText}>expires (months) {getSortDirection('expires_months')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.dateCell]} 
-            onPress={() => requestSort('created')}
-          >
-            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('creator')}
-          >
-            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.dateCell]} 
-            onPress={() => requestSort('updated')}
-          >
-            <Text style={styles.headerCellText}>updated {getSortDirection('updated')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('updator')}
-          >
-            <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.statusCell]} 
-            onPress={() => requestSort('status')}
-          >
-            <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
-          </TouchableOpacity>
-        </View>
-      );
     }
   };
 
-  const renderTableRow = (record: SkillsFileRecord | UserRecord | QualsReqRecord | CompanyRecord | QualCompRelRecord) => {
-    const getStatusText = (status: number) => {
-      switch (status) {
-        case 0: return '0';
-        case 1: return '1';
-        case 2: return '2';
-        default: return 'Unknown';
-      }
-    };
-
-    if (selectedTable === 'qualifications' && 'name' in record && 'uid' in record) {
+  const renderTableRow = (record: TableRecord) => {
+    if (isQualificationRecord(record)) {
       return (
-        <View key={record.id} style={styles.tableRow}>
+        <View style={styles.tableRow} key={record.id}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
-          <Text style={[styles.cell, styles.referenceCell]}>{record.reference || 'NULL'}</Text>
+          <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.expiresCell]}>{record.expires_months}</Text>
-          <Text style={[styles.cell, styles.achievedCell]}>{record.achieved || 'NULL'}</Text>
+          <Text style={[styles.cell, styles.referenceCell]}>{record.reference || ''}</Text>
+          <Text style={[styles.cell, styles.achievedCell]}>{record.achieved || ''}</Text>
+          <Text style={[styles.cell, styles.parentCell]}>{record.parent_uid || ''}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.parent_uid)}</Text>
-          <Text style={[styles.cell, styles.statusCell]}>{getStatusText(Number(record.status))}</Text>
+          <Text style={[styles.cell, styles.creatorCell]}>{truncateUID(record.creator)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
+          <Text style={[styles.cell, styles.updatorCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
-    } else if (selectedTable === 'users' && 'first_name' in record) {
+    } else if (isQualsReqRecord(record)) {
       return (
-        <View key={record.id} style={styles.tableRow}>
+        <View style={styles.tableRow} key={record.id}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
-          <Text style={[styles.cell, styles.nameCell]}>{record.first_name}</Text>
-          <Text style={[styles.cell, styles.nameCell]}>{record.last_name}</Text>
-          <Text style={[styles.cell, styles.nameCell]}>{record.username}</Text>
+          <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
+          <Text style={[styles.cell, styles.introCell]}>{record.intro}</Text>
+          <Text style={[styles.cell, styles.categoryCell]}>{record.category_name}</Text>
+          <Text style={[styles.cell, styles.accreditorCell]}>{record.accreditor}</Text>
+          <Text style={[styles.cell, styles.expiresCell]}>{record.expires_months}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
-          <Text style={[styles.cell, styles.statusCell]}>{getStatusText(Number(record.status))}</Text>
+          <Text style={[styles.cell, styles.creatorCell]}>{truncateUID(record.creator)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
+          <Text style={[styles.cell, styles.updatorCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
-    } else if (selectedTable === 'companies' && 'status' in record) {
+    } else if (isCompanyRecord(record)) {
       return (
-        <View key={record.id} style={styles.tableRow}>
+        <View style={styles.tableRow} key={record.id}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.statusCell]}>{getStatusText(Number(record.status))}</Text>
-        </View>
-      );
-    } else if (selectedTable === 'quals_req' && 'name' in record) {
-      return (
-        <View key={record.id} style={styles.tableRow}>
-          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.name}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.intro}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.category_name}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.accreditor}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{record.expires_months}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated || 'NULL'}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
-          <Text style={[styles.cell, styles.statusCell]}>{getStatusText(Number(record.status))}</Text>
+          <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
     } else if (selectedTable === 'qual_company_req' && 'qual_uid' in record) {
       return (
-        <View key={record.id} style={styles.tableRow}>
+        <View style={styles.tableRow} key={record.id}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.qual_uid)}</Text>
           <Text style={[styles.cell, styles.skillsFileCell]}>{truncateUID(record.company_uid)}</Text>
@@ -812,13 +661,13 @@ export default function TableScreen() {
             style={[styles.footerButton, styles.clearButton]} 
             onPress={clearTable}
           >
-            <Text style={styles.footerButtonText}>Clear All</Text>
+            <Text style={styles.footerButtonText}>Clear and Fetch Json</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.footerButton, styles.updateButton]} 
             onPress={loadRecords}
           >
-            <Text style={styles.footerButtonText}>Update Tables</Text>
+            <Text style={styles.footerButtonText}>Update Table Views</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -950,16 +799,16 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   footerButton: {
-    padding: 15,
+    padding: 5,
     borderRadius: 10,
     alignItems: 'center',
   },
   clearButton: {
-    flex: 1,
+    flex: 2,
     backgroundColor: '#FF3B30',
   },
   updateButton: {
-    flex: 3,
+    flex: 2,
     backgroundColor: '#007AFF',
   },
   footerButtonText: {
@@ -991,5 +840,23 @@ const styles = StyleSheet.create({
   statusCell: {
     flex: 0.8,
     paddingHorizontal: 8,
+  },
+  parentCell: {
+    width: 100,
+  },
+  creatorCell: {
+    width: 100,
+  },
+  updatorCell: {
+    width: 100,
+  },
+  introCell: {
+    width: 120,
+  },
+  categoryCell: {
+    width: 120,
+  },
+  accreditorCell: {
+    width: 120,
   },
 }); 

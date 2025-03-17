@@ -3,8 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Ani
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter, useNavigation } from 'expo-router';
-import requiredQualifications from '../../api/required_qualifications.json';
-import companies from '../../api/companies.json';
+import { pullJson } from '../../api/data';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/styles';
 import { DrawerActions } from '@react-navigation/native';
@@ -156,7 +155,7 @@ const initializeDatabase = () => {
       `);
 
       // Insert required qualifications from JSON
-      const reqQuals = requiredQualifications.qualifications;
+      const reqQuals = pullJson('req_quals');
       reqQuals.forEach(q => {
         db.execSync(`
           INSERT INTO quals_req (
@@ -197,7 +196,7 @@ const initializeDatabase = () => {
       });
 
       // Insert companies from JSON
-      const companiesList = companies.companies;
+      const companiesList = pullJson('companies');
       companiesList.forEach(c => {
         db.execSync(`
           INSERT INTO companies (
@@ -296,7 +295,7 @@ const initializeDatabase = () => {
           );
 
           -- Insert companies from JSON
-          ${companies.companies.map(c => `
+          ${pullJson('companies').map(c => `
             INSERT INTO companies (
               uid, name, status,
               created, creator, updated, updator
@@ -350,7 +349,7 @@ const initializeDatabase = () => {
       db.execSync('ALTER TABLE quals_req ADD COLUMN category_name TEXT NOT NULL DEFAULT ""');
       
       // Repopulate the category_name from JSON
-      const reqQuals = requiredQualifications.qualifications;
+      const reqQuals = pullJson('req_quals');
       reqQuals.forEach(q => {
         db.execSync(`
           UPDATE quals_req 
