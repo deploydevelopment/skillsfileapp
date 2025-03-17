@@ -4,7 +4,7 @@ import * as SQLite from 'expo-sqlite';
 import { Colors } from '../../constants/styles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { pullJson, RequiredQualification } from '../../api/data';
+import { pullJson, RequiredQualification, Company, SampleQualification } from '../../api/data';
 
 interface BaseRecord {
   id: number;
@@ -214,10 +214,40 @@ export default function TableScreen() {
                 `);
               }
               
+              // If qualifications table was cleared, load sample qualifications from JSON
+              else if (selectedTable === 'qualifications') {
+                try {
+                  const sampleQuals = pullJson('sample_quals') as SampleQualification[];
+                  
+                  sampleQuals.forEach((qual) => {
+                    db.execSync(`
+                      INSERT INTO qualifications (
+                        uid, name, expires_months, created, creator, updated, updator,
+                        parent_uid, reference, achieved, status
+                      ) VALUES (
+                        '${qual.uid}',
+                        '${qual.name}',
+                        ${qual.expires_months},
+                        '${qual.created}',
+                        '${qual.creator}',
+                        '${qual.updated}',
+                        '${qual.updator}',
+                        '${qual.parent_uid}',
+                        '${qual.reference}',
+                        '${qual.achieved}',
+                        ${qual.status}
+                      )
+                    `);
+                  });
+                } catch (error) {
+                  console.error('Error loading sample qualifications:', error);
+                }
+              }
+              
               // If quals_req table was cleared, load required qualifications from JSON
               else if (selectedTable === 'quals_req') {
                 try {
-                  const reqQuals = pullJson('req_quals');
+                  const reqQuals = pullJson('req_quals') as RequiredQualification[];
                   const now = formatToSQLDateTime(new Date());
                   
                   // First clear the qual_company_req table
@@ -271,7 +301,7 @@ export default function TableScreen() {
               // If companies table was cleared, load companies from JSON
               else if (selectedTable === 'companies') {
                 try {
-                  const companiesList = pullJson('companies');
+                  const companiesList = pullJson('companies') as Company[];
                   const now = formatToSQLDateTime(new Date());
                   
                   companiesList.forEach((company) => {
@@ -549,6 +579,21 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
+    } else if (isUserRecord(record)) {
+      return (
+        <View style={styles.tableRow} key={record.id}>
+          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
+          <Text style={[styles.cell, styles.nameCell]}>{record.first_name}</Text>
+          <Text style={[styles.cell, styles.nameCell]}>{record.last_name}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{record.username}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
+        </View>
+      );
     } else if (isQualsReqRecord(record)) {
       return (
         <View style={styles.tableRow} key={record.id}>
@@ -576,7 +621,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
-    } else if (selectedTable === 'qual_company_req' && 'qual_uid' in record) {
+    } else if (isQualCompanyReqRecord(record)) {
       return (
         <View style={styles.tableRow} key={record.id}>
           <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
