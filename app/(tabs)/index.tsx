@@ -573,56 +573,68 @@ export default function TabOneScreen() {
 
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
-            <View style={styles.iconGrid}>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/cvs.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>CVs</Text>
-              </View>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/cover-letters.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Cover Letters</Text>
-              </View>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/experience.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Experience</Text>
-              </View>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/medicals.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Medicals</Text>
-              </View>
-              <Link href="/(tabs)/qualifications" asChild>
-                <TouchableOpacity style={styles.iconItem} activeOpacity={1}>
-                  <Image 
-                    source={require('../../assets/images/home-icons/qualifications.png')}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.iconText}>Qualifications</Text>
-                </TouchableOpacity>
-              </Link>
-              <View style={styles.iconItem}>
-                <Image 
-                  source={require('../../assets/images/home-icons/testimonials.png')}
-                  style={styles.icon}
-                />
-                <Text style={styles.iconText}>Testimonials</Text>
-              </View>
+            <View style={styles.alertItem}>
+              <Ionicons name="notifications-outline" size={24} color="#000" />
+              <Text style={styles.alertText}>1 New Job Offer</Text>
             </View>
 
-            {error && (
-              <Text style={styles.errorText}>{error}</Text>
-            )}
+            <View style={styles.alertItem}>
+              <Ionicons name="chatbubble-outline" size={24} color="#000" />
+              <Text style={styles.alertText}>3 New Messages</Text>
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.iconGrid}>
+                <View style={styles.iconItem}>
+                  <Image 
+                    source={require('../../assets/images/home-icons/cvs.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>CVs</Text>
+                </View>
+                <View style={styles.iconItem}>
+                  <Image 
+                    source={require('../../assets/images/home-icons/cover-letters.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>Cover Letters</Text>
+                </View>
+                <View style={styles.iconItem}>
+                  <Image 
+                    source={require('../../assets/images/home-icons/experience.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>Experience</Text>
+                </View>
+                <View style={styles.iconItem}>
+                  <Image 
+                    source={require('../../assets/images/home-icons/medicals.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>Medicals</Text>
+                </View>
+                <Link href="/(tabs)/qualifications" asChild>
+                  <TouchableOpacity style={styles.iconItem} activeOpacity={1}>
+                    <Image 
+                      source={require('../../assets/images/home-icons/qualifications.png')}
+                      style={styles.icon}
+                    />
+                    <Text style={styles.iconText}>Qualifications</Text>
+                  </TouchableOpacity>
+                </Link>
+                <View style={styles.iconItem}>
+                  <Image 
+                    source={require('../../assets/images/home-icons/testimonials.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>Testimonials</Text>
+                </View>
+              </View>
+
+              {error && (
+                <Text style={styles.errorText}>{error}</Text>
+              )}
+            </View>
           </View>
         </ScrollView>
       </Animated.View>
@@ -649,10 +661,10 @@ const styles = StyleSheet.create({
     zIndex: 0,
   },
   headerContainer: {
-    height: 150,
+    height: 132,
     position: 'relative',
     marginTop: 0,
-    paddingTop: 20,
+    paddingTop: 0,
     paddingBottom: 15,
   },
   headerBackground: {
@@ -673,6 +685,8 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     paddingTop: 30,
     paddingBottom: 15,
+    position: 'relative',
+    top: 20,
   },
   logo: {
     width: 144,
@@ -696,8 +710,46 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 15,
+    marginEnd: 2,
   },
   content: {
+    flex: 1,
+    paddingTop: 0,
+    paddingBottom: 15,
+    paddingHorizontal: 15,
+    backgroundColor: 'transparent',
+    zIndex: 1,
+  },
+  header: {
+    marginBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  alertItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 15,
+    backgroundColor: Colors.white,
+    borderRadius: 10,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  alertText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  section: {
     flex: 1,
     padding: 20,
     backgroundColor: 'transparent',
@@ -733,7 +785,7 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
+    paddingTop: 0,
     backgroundColor: 'transparent',
-    zIndex: 1,
   },
 });
