@@ -574,12 +574,18 @@ export default function TabOneScreen() {
         <ScrollView style={styles.scrollView}>
           <View style={styles.content}>
             <View style={styles.alertItem}>
-              <Ionicons name="notifications-outline" size={24} color="#000" />
+              <Image 
+                source={require('../../assets/images/icons/bell.png')}
+                style={{ width: 24, height: 24, tintColor: '#bf2025' }}
+              />
               <Text style={styles.alertText}>1 New Job Offer</Text>
             </View>
 
             <View style={styles.alertItem}>
-              <Ionicons name="chatbubble-outline" size={24} color="#000" />
+              <Image 
+                source={require('../../assets/images/icons/chat.png')}
+                style={{ width: 24, height: 24, tintColor: '#bf2025' }}
+              />
               <Text style={styles.alertText}>3 New Messages</Text>
             </View>
 
