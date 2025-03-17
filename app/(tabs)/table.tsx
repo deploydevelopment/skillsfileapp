@@ -103,6 +103,11 @@ const truncateUID = (uid: string | number | undefined) => {
   return uid ? `${uid.slice(0, 7)}...` : 'NULL';
 };
 
+const formatDate = (dateString: string | null | undefined) => {
+  if (!dateString) return '';
+  return dateString; // Keep original format
+};
+
 export default function TableScreen() {
   const [selectedTable, setSelectedTable] = useState<TableType>('qualifications');
   const [records, setRecords] = useState<TableRecord[]>([]);
@@ -393,22 +398,22 @@ export default function TableScreen() {
       return (
         <View style={styles.tableHeader}>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.idCell]} 
-            onPress={() => requestSort('id')}
-          >
-            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
             style={[styles.headerCell, styles.uidCell]} 
             onPress={() => requestSort('uid')}
           >
             <Text style={styles.headerCellText}>uid {getSortDirection('uid')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.skillsFileCell]} 
+            style={[styles.headerCell, styles.nameCell]} 
             onPress={() => requestSort('name')}
           >
             <Text style={styles.headerCellText}>name {getSortDirection('name')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.expiresCell]} 
+            onPress={() => requestSort('expires_months')}
+          >
+            <Text style={styles.headerCellText}>expires {getSortDirection('expires_months')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.referenceCell]} 
@@ -417,28 +422,16 @@ export default function TableScreen() {
             <Text style={styles.headerCellText}>reference {getSortDirection('reference')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.expiresCell]} 
-            onPress={() => requestSort('expires_months')}
+            style={[styles.headerCell, styles.parentCell]} 
+            onPress={() => requestSort('parent_uid')}
           >
-            <Text style={styles.headerCellText}>exp{getSortDirection('expires_months')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.achievedCell]} 
-            onPress={() => requestSort('achieved')}
-          >
-            <Text style={styles.headerCellText}>achieved{getSortDirection('achieved')}</Text>
+            <Text style={styles.headerCellText}>parent {getSortDirection('parent_uid')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.dateCell]} 
-            onPress={() => requestSort('created')}
+            onPress={() => requestSort('achieved')}
           >
-            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('creator')}
-          >
-            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
+            <Text style={styles.headerCellText}>achieved {getSortDirection('achieved')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.dateCell]} 
@@ -447,16 +440,22 @@ export default function TableScreen() {
             <Text style={styles.headerCellText}>updated {getSortDirection('updated')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
+            style={[styles.headerCell, styles.updatorCell]} 
             onPress={() => requestSort('updator')}
           >
             <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('parent_uid')}
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('created')}
           >
-            <Text style={styles.headerCellText}>parent_uid {getSortDirection('parent_uid')}</Text>
+            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.creatorCell]} 
+            onPress={() => requestSort('creator')}
+          >
+            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.statusCell]} 
@@ -566,6 +565,77 @@ export default function TableScreen() {
           </TouchableOpacity>
         </View>
       );
+    } else if (selectedTable === 'quals_req') {
+      return (
+        <View style={styles.tableHeader}>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.idCell]} 
+            onPress={() => requestSort('id')}
+          >
+            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.uidCell]} 
+            onPress={() => requestSort('uid')}
+          >
+            <Text style={styles.headerCellText}>uid {getSortDirection('uid')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.nameCell]} 
+            onPress={() => requestSort('name')}
+          >
+            <Text style={styles.headerCellText}>name {getSortDirection('name')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.introCell]} 
+            onPress={() => requestSort('intro')}
+          >
+            <Text style={styles.headerCellText}>intro {getSortDirection('intro')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.categoryCell]} 
+            onPress={() => requestSort('category_name')}
+          >
+            <Text style={styles.headerCellText}>category {getSortDirection('category_name')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.expiresCell]} 
+            onPress={() => requestSort('expires_months')}
+          >
+            <Text style={styles.headerCellText}>exp{getSortDirection('expires_months')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('created')}
+          >
+            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.creatorCell]} 
+            onPress={() => requestSort('creator')}
+          >
+            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('updated')}
+          >
+            <Text style={styles.headerCellText}>updated {getSortDirection('updated')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.updatorCell]} 
+            onPress={() => requestSort('updator')}
+          >
+            <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.statusCell]} 
+            onPress={() => requestSort('status')}
+          >
+            <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
+          </TouchableOpacity>
+        </View>
+      );
     } else if (selectedTable === 'qual_company_req') {
       return (
         <View style={styles.tableHeader}>
@@ -608,17 +678,16 @@ export default function TableScreen() {
     if (isQualificationRecord(record)) {
       return (
         <View style={styles.tableRow} key={record.id}>
-          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.expiresCell]}>{record.expires_months}</Text>
           <Text style={[styles.cell, styles.referenceCell]}>{record.reference || ''}</Text>
-          <Text style={[styles.cell, styles.achievedCell]}>{record.achieved || ''}</Text>
-          <Text style={[styles.cell, styles.parentCell]}>{record.parent_uid || ''}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.creatorCell]}>{truncateUID(record.creator)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
-          <Text style={[styles.cell, styles.updatorCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.parentCell]}>{truncateUID(record.parent_uid)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.achieved)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.updated)}</Text>
+          <Text style={[styles.cell, styles.updatorCell]}>{record.updator}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
+          <Text style={[styles.cell, styles.creatorCell]}>{record.creator}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
