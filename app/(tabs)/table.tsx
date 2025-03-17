@@ -48,6 +48,8 @@ interface QualsReqRecord extends BaseRecord {
   expires_months: number;
   status: number;
   accreditor: string;
+  reference?: string;
+  parent_uid?: string;
 }
 
 type TableType = 'qualifications' | 'users' | 'quals_req' | 'companies' | 'qual_company_req';
@@ -569,12 +571,6 @@ export default function TableScreen() {
       return (
         <View style={styles.tableHeader}>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.idCell]} 
-            onPress={() => requestSort('id')}
-          >
-            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
             style={[styles.headerCell, styles.uidCell]} 
             onPress={() => requestSort('uid')}
           >
@@ -587,12 +583,6 @@ export default function TableScreen() {
             <Text style={styles.headerCellText}>name {getSortDirection('name')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.introCell]} 
-            onPress={() => requestSort('intro')}
-          >
-            <Text style={styles.headerCellText}>intro {getSortDirection('intro')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
             style={[styles.headerCell, styles.categoryCell]} 
             onPress={() => requestSort('category_name')}
           >
@@ -602,19 +592,19 @@ export default function TableScreen() {
             style={[styles.headerCell, styles.expiresCell]} 
             onPress={() => requestSort('expires_months')}
           >
-            <Text style={styles.headerCellText}>exp{getSortDirection('expires_months')}</Text>
+            <Text style={styles.headerCellText}>exp. {getSortDirection('expires_months')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.dateCell]} 
-            onPress={() => requestSort('created')}
+            style={[styles.headerCell, styles.accreditorCell]} 
+            onPress={() => requestSort('accreditor')}
           >
-            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
+            <Text style={styles.headerCellText}>accreditor {getSortDirection('accreditor')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.creatorCell]} 
-            onPress={() => requestSort('creator')}
+            style={[styles.headerCell, styles.introCell]} 
+            onPress={() => requestSort('intro')}
           >
-            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
+            <Text style={styles.headerCellText}>intro {getSortDirection('intro')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.dateCell]} 
@@ -627,6 +617,18 @@ export default function TableScreen() {
             onPress={() => requestSort('updator')}
           >
             <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.dateCell]} 
+            onPress={() => requestSort('created')}
+          >
+            <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.creatorCell]} 
+            onPress={() => requestSort('creator')}
+          >
+            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.statusCell]} 
@@ -709,17 +711,16 @@ export default function TableScreen() {
     } else if (isQualsReqRecord(record)) {
       return (
         <View style={styles.tableRow} key={record.id}>
-          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
-          <Text style={[styles.cell, styles.introCell]}>{record.intro}</Text>
           <Text style={[styles.cell, styles.categoryCell]}>{record.category_name}</Text>
-          <Text style={[styles.cell, styles.accreditorCell]}>{record.accreditor}</Text>
           <Text style={[styles.cell, styles.expiresCell]}>{record.expires_months}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.creatorCell]}>{truncateUID(record.creator)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
-          <Text style={[styles.cell, styles.updatorCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.accreditorCell]}>{record.accreditor}</Text>
+          <Text style={[styles.cell, styles.introCell]}>{record.intro}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.updated)}</Text>
+          <Text style={[styles.cell, styles.updatorCell]}>{record.updator}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
+          <Text style={[styles.cell, styles.creatorCell]}>{record.creator}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
@@ -887,6 +888,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tableContainer: {
+    flex: 1,
+  },
+  tableContent: {
     flex: 1,
   },
   tableHeader: {
