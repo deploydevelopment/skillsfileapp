@@ -471,12 +471,6 @@ export default function TableScreen() {
       return (
         <View style={styles.tableHeader}>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.idCell]} 
-            onPress={() => requestSort('id')}
-          >
-            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
             style={[styles.headerCell, styles.uidCell]} 
             onPress={() => requestSort('uid')}
           >
@@ -486,16 +480,16 @@ export default function TableScreen() {
             style={[styles.headerCell, styles.nameCell]} 
             onPress={() => requestSort('first_name')}
           >
-            <Text style={styles.headerCellText}>first name {getSortDirection('first_name')}</Text>
+            <Text style={styles.headerCellText}>first_name {getSortDirection('first_name')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.nameCell]} 
             onPress={() => requestSort('last_name')}
           >
-            <Text style={styles.headerCellText}>last name {getSortDirection('last_name')}</Text>
+            <Text style={styles.headerCellText}>last_name {getSortDirection('last_name')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
+            style={[styles.headerCell, styles.nameCell]} 
             onPress={() => requestSort('username')}
           >
             <Text style={styles.headerCellText}>username {getSortDirection('username')}</Text>
@@ -505,24 +499,6 @@ export default function TableScreen() {
             onPress={() => requestSort('created')}
           >
             <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('creator')}
-          >
-            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.dateCell]} 
-            onPress={() => requestSort('updated')}
-          >
-            <Text style={styles.headerCellText}>updated {getSortDirection('updated')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.headerCell, styles.uidCell]} 
-            onPress={() => requestSort('updator')}
-          >
-            <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.statusCell]} 
@@ -642,22 +618,16 @@ export default function TableScreen() {
       return (
         <View style={styles.tableHeader}>
           <TouchableOpacity 
-            style={[styles.headerCell, styles.idCell]} 
-            onPress={() => requestSort('id')}
-          >
-            <Text style={styles.headerCellText}>id {getSortDirection('id')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
             style={[styles.headerCell, styles.uidCell]} 
             onPress={() => requestSort('qual_uid')}
           >
-            <Text style={styles.headerCellText}>qual {getSortDirection('qual_uid')}</Text>
+            <Text style={styles.headerCellText}>qual_uid {getSortDirection('qual_uid')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.uidCell]} 
             onPress={() => requestSort('company_uid')}
           >
-            <Text style={styles.headerCellText}>company {getSortDirection('company_uid')}</Text>
+            <Text style={styles.headerCellText}>company_uid {getSortDirection('company_uid')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.dateCell]} 
@@ -666,10 +636,22 @@ export default function TableScreen() {
             <Text style={styles.headerCellText}>created {getSortDirection('created')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
+            style={[styles.headerCell, styles.creatorCell]} 
+            onPress={() => requestSort('creator')}
+          >
+            <Text style={styles.headerCellText}>creator {getSortDirection('creator')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             style={[styles.headerCell, styles.dateCell]} 
             onPress={() => requestSort('updated')}
           >
             <Text style={styles.headerCellText}>updated {getSortDirection('updated')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.updatorCell]} 
+            onPress={() => requestSort('updator')}
+          >
+            <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -696,15 +678,11 @@ export default function TableScreen() {
     } else if (isUserRecord(record)) {
       return (
         <View style={styles.tableRow} key={record.id}>
-          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.uid)}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.first_name}</Text>
           <Text style={[styles.cell, styles.nameCell]}>{record.last_name}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{record.username}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.creator)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
-          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.updator)}</Text>
+          <Text style={[styles.cell, styles.nameCell]}>{record.username}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
         </View>
       );
@@ -737,11 +715,12 @@ export default function TableScreen() {
     } else if (isQualCompanyReqRecord(record)) {
       return (
         <View style={styles.tableRow} key={record.id}>
-          <Text style={[styles.cell, styles.idCell]}>{record.id}</Text>
           <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.qual_uid)}</Text>
-          <Text style={[styles.cell, styles.skillsFileCell]}>{truncateUID(record.company_uid)}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
-          <Text style={[styles.cell, styles.dateCell]}>{record.updated}</Text>
+          <Text style={[styles.cell, styles.uidCell]}>{truncateUID(record.company_uid)}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
+          <Text style={[styles.cell, styles.creatorCell]}>{record.creator}</Text>
+          <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.updated)}</Text>
+          <Text style={[styles.cell, styles.updatorCell]}>{record.updator}</Text>
         </View>
       );
     }
