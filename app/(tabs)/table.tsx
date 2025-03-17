@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ScrollView, SafeAreaView, RefreshControl, TouchableOpacity, Alert, Image } from 'react-native';
+import { StyleSheet, View, Text, ScrollView, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
 import * as SQLite from 'expo-sqlite';
 import { Colors } from '../../constants/styles';
 import { Ionicons } from '@expo/vector-icons';
@@ -106,7 +106,6 @@ const truncateUID = (uid: string | number | undefined) => {
 export default function TableScreen() {
   const [selectedTable, setSelectedTable] = useState<TableType>('qualifications');
   const [records, setRecords] = useState<TableRecord[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
     key: string;
     direction: 'asc' | 'desc';
@@ -193,141 +192,10 @@ export default function TableScreen() {
             try {
               db.execSync(`DELETE FROM ${selectedTable}`);
               db.execSync(`DELETE FROM sqlite_sequence WHERE name='${selectedTable}'`);
-              
-              // If users table was cleared, recreate the default user
-              if (selectedTable === 'users') {
-                db.execSync(`
-                  INSERT INTO users (
-                    uid, created, creator, updated, updator,
-                    first_name, last_name, username, status
-                  ) VALUES (
-                    '${generateUID()}', 
-                    '${formatToSQLDateTime(new Date())}',
-                    'system',
-                    '',
-                    '',
-                    'Matt',
-                    'Riley',
-                    'hugosebriley',
-                    0
-                  );
-                `);
-              }
-              
-              // If qualifications table was cleared, load sample qualifications from JSON
-              else if (selectedTable === 'qualifications') {
-                try {
-                  const sampleQuals = pullJson('sample_quals') as SampleQualification[];
-                  
-                  sampleQuals.forEach((qual) => {
-                    db.execSync(`
-                      INSERT INTO qualifications (
-                        uid, name, expires_months, created, creator, updated, updator,
-                        parent_uid, reference, achieved, status
-                      ) VALUES (
-                        '${qual.uid}',
-                        '${qual.name}',
-                        ${qual.expires_months},
-                        '${qual.created}',
-                        '${qual.creator}',
-                        '${qual.updated}',
-                        '${qual.updator}',
-                        '${qual.parent_uid}',
-                        '${qual.reference}',
-                        '${qual.achieved}',
-                        ${qual.status}
-                      )
-                    `);
-                  });
-                } catch (error) {
-                  console.error('Error loading sample qualifications:', error);
-                }
-              }
-              
-              // If quals_req table was cleared, load required qualifications from JSON
-              else if (selectedTable === 'quals_req') {
-                try {
-                  const reqQuals = pullJson('req_quals') as RequiredQualification[];
-                  const now = formatToSQLDateTime(new Date());
-                  
-                  // First clear the qual_company_req table
-                  db.execSync('DELETE FROM qual_company_req');
-                  db.execSync('DELETE FROM sqlite_sequence WHERE name="qual_company_req"');
-                  
-                  reqQuals.forEach((qual) => {
-                    // Insert the qualification
-                    db.execSync(`
-                      INSERT INTO quals_req (
-                        uid, name, intro, category_name, expires_months,
-                        created, creator, updated, updator, status, accreditor
-                      ) VALUES (
-                        '${qual.uid}',
-                        '${qual.name}',
-                        '${qual.intro}',
-                        '${qual.category_name}',
-                        ${qual.expires_months},
-                        '${qual.created}',
-                        '${qual.creator}',
-                        '${qual.updated}',
-                        '${qual.updator}',
-                        ${qual.status},
-                        '${qual.accreditor}'
-                      )
-                    `);
-
-                    // Insert company relationships
-                    if (qual.comp_requests) {
-                      qual.comp_requests.forEach((req) => {
-                        db.execSync(`
-                          INSERT INTO qual_company_req (
-                            qual_uid, company_uid, created, creator, updated, updator
-                          ) VALUES (
-                            '${qual.uid}',
-                            '${req.creator}',
-                            '${req.created}',
-                            'system',
-                            '${req.updated}',
-                            '${req.updator}'
-                          )
-                        `);
-                      });
-                    }
-                  });
-                } catch (error) {
-                  console.error('Error loading required qualifications:', error);
-                }
-              }
-              
-              // If companies table was cleared, load companies from JSON
-              else if (selectedTable === 'companies') {
-                try {
-                  const companiesList = pullJson('companies') as Company[];
-                  const now = formatToSQLDateTime(new Date());
-                  
-                  companiesList.forEach((company) => {
-                    db.execSync(`
-                      INSERT INTO companies (
-                        uid, name, status,
-                        created, creator, updated, updator
-                      ) VALUES (
-                        '${company.uid}',
-                        '${company.name}',
-                        ${company.status},
-                        '${now}',
-                        'system',
-                        '',
-                        ''
-                      )
-                    `);
-                  });
-                } catch (error) {
-                  console.error('Error loading companies:', error);
-                }
-              }
-
               loadRecords();
             } catch (error) {
               console.error('Error clearing table:', error);
+              Alert.alert('Error', 'Failed to clear table');
             }
           }
         }
@@ -335,15 +203,190 @@ export default function TableScreen() {
     );
   };
 
+  const fetchLatestData = () => {
+    try {
+      if (selectedTable === 'qualifications') {
+        const sampleQuals = pullJson('sample_quals') as SampleQualification[];
+        
+        // Get existing qualifications
+        const existingQuals = db.getAllSync<QualificationRecord>(
+          'SELECT * FROM qualifications'
+        );
+        
+        // Create a map of existing qualifications by uid for quick lookup
+        const existingQualsMap = new Map(
+          existingQuals.map(qual => [qual.uid, qual])
+        );
+
+        sampleQuals.forEach((qual) => {
+          const existingQual = existingQualsMap.get(qual.uid);
+          
+          // If qualification doesn't exist, insert it
+          if (!existingQual) {
+            db.execSync(`
+              INSERT INTO qualifications (
+                uid, name, expires_months, created, creator, updated, updator,
+                parent_uid, reference, achieved, status
+              ) VALUES (
+                '${qual.uid}',
+                '${qual.name}',
+                ${qual.expires_months},
+                '${qual.created}',
+                '${qual.creator}',
+                '${qual.updated}',
+                '${qual.updator}',
+                '${qual.parent_uid}',
+                '${qual.reference}',
+                '${qual.achieved}',
+                ${qual.status}
+              )
+            `);
+          } 
+          // If qualification exists and JSON has newer update, update it
+          else if (qual.updated > existingQual.updated) {
+            db.execSync(`
+              UPDATE qualifications 
+              SET name = '${qual.name}',
+                  expires_months = ${qual.expires_months},
+                  updated = '${qual.updated}',
+                  updator = '${qual.updator}',
+                  parent_uid = '${qual.parent_uid}',
+                  reference = '${qual.reference}',
+                  achieved = '${qual.achieved}',
+                  status = ${qual.status}
+              WHERE uid = '${qual.uid}'
+            `);
+          }
+        });
+      } else if (selectedTable === 'quals_req') {
+        const reqQuals = pullJson('req_quals') as RequiredQualification[];
+        reqQuals.forEach((qual) => {
+          db.execSync(`
+            INSERT OR REPLACE INTO quals_req (
+              uid, name, intro, category_name, expires_months,
+              created, creator, updated, updator, status, accreditor
+            ) VALUES (
+              '${qual.uid}',
+              '${qual.name}',
+              '${qual.intro}',
+              '${qual.category_name}',
+              ${qual.expires_months},
+              '${qual.created}',
+              '${qual.creator}',
+              '${qual.updated}',
+              '${qual.updator}',
+              ${qual.status},
+              '${qual.accreditor}'
+            )
+          `);
+
+          // Insert company relationships for this qualification
+          if (qual.comp_requests) {
+            qual.comp_requests.forEach((req) => {
+              db.execSync(`
+                INSERT OR REPLACE INTO qual_company_req (
+                  qual_uid, company_uid, created, creator, updated, updator
+                ) VALUES (
+                  '${qual.uid}',
+                  '${req.creator}',
+                  '${req.created}',
+                  'system',
+                  '${req.updated}',
+                  '${req.updator}'
+                )
+              `);
+            });
+          }
+        });
+      } else if (selectedTable === 'companies') {
+        const companiesList = pullJson('companies') as Company[];
+        companiesList.forEach((company) => {
+          db.execSync(`
+            INSERT OR REPLACE INTO companies (
+              uid, name, status,
+              created, creator, updated, updator
+            ) VALUES (
+              '${company.uid}',
+              '${company.name}',
+              ${company.status},
+              '${formatToSQLDateTime(new Date())}',
+              'system',
+              '',
+              ''
+            )
+          `);
+        });
+      } else if (selectedTable === 'users') {
+        // Create default user
+        db.execSync(`
+          INSERT OR REPLACE INTO users (
+            uid, created, creator, updated, updator,
+            first_name, last_name, username, status
+          ) VALUES (
+            '${generateUID()}', 
+            '${formatToSQLDateTime(new Date())}',
+            'system',
+            '',
+            '',
+            'Matt',
+            'Riley',
+            'hugosebriley',
+            0
+          );
+        `);
+      } else if (selectedTable === 'qual_company_req') {
+        // For qual_company_req, we need to fetch both quals_req and companies first
+        const reqQuals = pullJson('req_quals') as RequiredQualification[];
+        const companiesList = pullJson('companies') as Company[];
+        
+        // First ensure all companies exist
+        companiesList.forEach((company) => {
+          db.execSync(`
+            INSERT OR REPLACE INTO companies (
+              uid, name, status,
+              created, creator, updated, updator
+            ) VALUES (
+              '${company.uid}',
+              '${company.name}',
+              ${company.status},
+              '${formatToSQLDateTime(new Date())}',
+              'system',
+              '',
+              ''
+            )
+          `);
+        });
+
+        // Then create all relationships
+        reqQuals.forEach((qual) => {
+          if (qual.comp_requests) {
+            qual.comp_requests.forEach((req) => {
+              db.execSync(`
+                INSERT OR REPLACE INTO qual_company_req (
+                  qual_uid, company_uid, created, creator, updated, updator
+                ) VALUES (
+                  '${qual.uid}',
+                  '${req.creator}',
+                  '${req.created}',
+                  'system',
+                  '${req.updated}',
+                  '${req.updator}'
+                )
+              `);
+            });
+          }
+        });
+      }
+      loadRecords();
+    } catch (error) {
+      console.error('Error fetching latest data:', error);
+      Alert.alert('Error', 'Failed to fetch latest data');
+    }
+  };
+
   useEffect(() => {
     loadRecords();
   }, [selectedTable]);
-
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    loadRecords();
-    setRefreshing(false);
-  }, []);
 
   const renderTableHeader = () => {
     if (selectedTable === 'qualifications') {
@@ -689,12 +732,7 @@ export default function TableScreen() {
       <ScrollView horizontal style={styles.tableWrapper}>
         <View style={styles.tableContainer}>
           {renderTableHeader()}
-          <ScrollView 
-            style={styles.tableContent}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-          >
+          <ScrollView style={styles.tableContent}>
             {getSortedRecords().map(renderTableRow)}
           </ScrollView>
         </View>
@@ -706,13 +744,19 @@ export default function TableScreen() {
             style={[styles.footerButton, styles.clearButton]} 
             onPress={clearTable}
           >
-            <Text style={styles.footerButtonText}>Clear and Fetch Json</Text>
+            <Text style={styles.footerButtonText}>Clear</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.footerButton, styles.fetchButton]} 
+            onPress={fetchLatestData}
+          >
+            <Text style={styles.footerButtonText}>Fetch</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.footerButton, styles.updateButton]} 
             onPress={loadRecords}
           >
-            <Text style={styles.footerButtonText}>Update Table Views</Text>
+            <Text style={styles.footerButtonText}>Update View</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -727,18 +771,15 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingTop: 10,
-    paddingBottom: 10,
-    backgroundColor: '#fff',
+    padding: 10,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5EA',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 0,
+    padding: 5,
+    borderRadius: 5,
+    backgroundColor: '#E5E5EA',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -768,21 +809,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5EA',
   },
-  title: {
+  subtitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 5,
   },
   tableWrapper: {
     flex: 1,
   },
   tableContainer: {
-    minWidth: 1200,
+    flex: 1,
   },
   tableHeader: {
     flexDirection: 'row',
@@ -799,9 +835,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: 'bold',
     fontSize: 14,
-  },
-  tableContent: {
-    flex: 1,
   },
   tableRow: {
     flexDirection: 'row',
@@ -841,35 +874,29 @@ const styles = StyleSheet.create({
   },
   footerButtons: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
     gap: 10,
   },
   footerButton: {
-    padding: 5,
-    borderRadius: 10,
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 5,
     alignItems: 'center',
   },
   clearButton: {
-    flex: 2,
     backgroundColor: '#FF3B30',
   },
+  fetchButton: {
+    backgroundColor: '#34C759',
+  },
   updateButton: {
-    flex: 2,
     backgroundColor: '#007AFF',
   },
   footerButtonText: {
     color: 'white',
-    fontSize: 16,
-    fontFamily: 'MavenPro-Bold',
-  },
-  headerText: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Bold',
-    color: Colors.blueDark,
-  },
-  cellText: {
     fontSize: 14,
-    fontFamily: 'MavenPro-Regular',
-    color: Colors.charcoal,
+    fontFamily: 'MavenPro-Medium',
   },
   referenceCell: {
     width: 120,
