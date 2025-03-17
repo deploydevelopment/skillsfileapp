@@ -591,19 +591,21 @@ export default function TabOneScreen() {
 
             <View style={styles.section}>
               <View style={styles.iconGrid}>
+                <Link href="/(tabs)/qualifications" asChild>
+                  <TouchableOpacity style={styles.iconItem} activeOpacity={1}>
+                    <Image 
+                      source={require('../../assets/images/home-icons/qualifications.png')}
+                      style={styles.icon}
+                    />
+                    <Text style={styles.iconText}>Qualifications</Text>
+                  </TouchableOpacity>
+                </Link>
                 <View style={styles.iconItem}>
                   <Image 
                     source={require('../../assets/images/home-icons/cvs.png')}
                     style={styles.icon}
                   />
                   <Text style={styles.iconText}>CVs</Text>
-                </View>
-                <View style={styles.iconItem}>
-                  <Image 
-                    source={require('../../assets/images/home-icons/cover-letters.png')}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.iconText}>Cover Letters</Text>
                 </View>
                 <View style={styles.iconItem}>
                   <Image 
@@ -614,20 +616,18 @@ export default function TabOneScreen() {
                 </View>
                 <View style={styles.iconItem}>
                   <Image 
+                    source={require('../../assets/images/home-icons/cover-letters.png')}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconText}>Cover Letters</Text>
+                </View>
+                <View style={styles.iconItem}>
+                  <Image 
                     source={require('../../assets/images/home-icons/medicals.png')}
                     style={styles.icon}
                   />
                   <Text style={styles.iconText}>Medicals</Text>
                 </View>
-                <Link href="/(tabs)/qualifications" asChild>
-                  <TouchableOpacity style={styles.iconItem} activeOpacity={1}>
-                    <Image 
-                      source={require('../../assets/images/home-icons/qualifications.png')}
-                      style={styles.icon}
-                    />
-                    <Text style={styles.iconText}>Qualifications</Text>
-                  </TouchableOpacity>
-                </Link>
                 <View style={styles.iconItem}>
                   <Image 
                     source={require('../../assets/images/home-icons/testimonials.png')}
@@ -753,7 +753,8 @@ const styles = StyleSheet.create({
   },
   alertText: {
     fontSize: 16,
-    color: Colors.text,
+    color: Colors.blueDark,
+    fontFamily: 'MavenPro-SemiBold',
   },
   section: {
     flex: 1,
@@ -774,15 +775,18 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   icon: {
-    width: 90,
-    height: 90,
+    width: 80,
+    height: 70,
     marginBottom: 8,
+    padding: 1,
   },
   iconText: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'MavenPro-Regular',
     color: Colors.blueDark,
+    letterSpacing: 0.6,
     textAlign: 'center',
+    marginTop: 4,
   },
   errorText: {
     color: 'red',
