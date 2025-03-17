@@ -774,14 +774,14 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   icon: {
-    width: 70,
-    height: 70,
+    width: 90,
+    height: 90,
     marginBottom: 8,
   },
   iconText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'MavenPro-Regular',
-    color: '#000',
+    color: Colors.blueDark,
     textAlign: 'center',
   },
   errorText: {
