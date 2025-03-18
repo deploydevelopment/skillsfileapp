@@ -423,6 +423,8 @@ export default function QualificationsScreen() {
         
         // Append new images to existing ones
         setSelectedMedia(prevMedia => [...prevMedia, ...processedImages]);
+        // Clear evidence error when images are added
+        setShowEvidenceError(false);
       } catch (error) {
         console.error('Error processing image:', error);
         Toast.show({
@@ -458,6 +460,8 @@ export default function QualificationsScreen() {
           type: 'image'
         };
         setSelectedMedia(prevMedia => [...prevMedia, newMedia]);
+        // Clear evidence error when photo is taken
+        setShowEvidenceError(false);
       } catch (error) {
         console.error('Error processing image:', error);
         Toast.show({
@@ -493,8 +497,12 @@ export default function QualificationsScreen() {
                     thumbnailUri: processedImages.thumbnailUri,
                     type: 'image'
                   }]);
+                  // Clear evidence error when image is added
+                  setShowEvidenceError(false);
                 } else {
                   setSelectedDocument(file.uri);
+                  // Clear evidence error when document is added
+                  setShowEvidenceError(false);
                 }
               }
             }
@@ -522,6 +530,8 @@ export default function QualificationsScreen() {
                   thumbnailUri: processedImages.thumbnailUri,
                   type: 'image'
                 }]);
+                // Clear evidence error when image is added
+                setShowEvidenceError(false);
               }
             }
           },
@@ -1651,6 +1661,8 @@ const styles = StyleSheet.create({
   qualificationContent: {
     flex: 1,
     gap: 6,
+    // backgroundColor: 'green',
+    // padding: 0,
   },
   qualificationRow: {
     flexDirection: 'row',
@@ -1661,6 +1673,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.blueDark,
     fontFamily: 'MavenPro-Medium',
+    // backgroundColor: 'red',
   },
   qualificationDate: {
     fontSize: 14,
@@ -1672,6 +1685,7 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
     fontFamily: 'MavenPro-Regular',
     flex: 1,
+    backgroundColor: 'white',
   },
   buttonDisabled: {
     opacity: 0.5,
@@ -1896,7 +1910,7 @@ const styles = StyleSheet.create({
   },
   buttonRow: {
     position: 'absolute',
-    bottom: -20,
+    bottom: 40,
     left: 0,
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -1904,6 +1918,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingEnd: 10,
+    backgroundColor: 'white',
   },
   cancelButton: {
     flex: 1,
@@ -2073,6 +2088,7 @@ const styles = StyleSheet.create({
   inputError: {
     borderColor: Colors.red,
     borderWidth: 1,
+    borderRadius: 8,
   },
   dateRow: {
     flexDirection: 'row',
@@ -2172,6 +2188,7 @@ const styles = StyleSheet.create({
   },
   evidenceContainer: {
     marginTop: -10,
+    // backgroundColor: 'red',
   },
   evidenceButtons: {
     flexDirection: 'row',
