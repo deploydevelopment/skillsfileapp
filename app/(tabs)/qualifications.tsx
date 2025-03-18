@@ -27,14 +27,19 @@ interface ProcessedImages {
   highResUri: string;
 }
 
+interface SelectedMedia {
+  highResUri: string;
+  thumbnailUri: string;
+  type: 'image' | 'document';
+}
+
 interface DrawerState {
   isVisible: boolean;
   selectedQual: Qualification | null;
   reference: string;
   achievedDate: Date;
   renewsMonths: number | null;
-  selectedImage: string | null;
-  selectedImageThumbnail: string | null;
+  selectedMedia: SelectedMedia[];
   selectedDocument: string | null;
 }
 
@@ -210,7 +215,7 @@ export default function QualificationsScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [reference, setReference] = useState('');
   const [referenceError, setReferenceError] = useState('');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<SelectedMedia[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
   const [renewsMonths, setRenewsMonths] = useState<number | null>(0);
   const [isRenewsInfoVisible, setIsRenewsInfoVisible] = useState(false);
@@ -306,8 +311,7 @@ export default function QualificationsScreen() {
       reference: '',
       achievedDate: new Date(),
       renewsMonths: null,
-      selectedImage: null,
-      selectedImageThumbnail: null,
+      selectedMedia: [],
       selectedDocument: null
     };
     setIsDrawerVisible(true);
@@ -323,8 +327,7 @@ export default function QualificationsScreen() {
     // Clear all validation statuses
     setReferenceError('');
     setReference('');
-    setSelectedImage(null);
-    setSelectedImageThumbnail(null);
+    setSelectedMedia([]);
     setSelectedDocument(null);
     setAchievedDate(new Date());
     setRenewsMonths(null);
@@ -394,14 +397,28 @@ export default function QualificationsScreen() {
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 1,
+      allowsEditing: true,
+      quality: 0.8,
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
     });
 
     if (!result.canceled) {
       try {
-        const processedImages = await processImage(result.assets[0].uri);
-        setSelectedImage(processedImages.highResUri);
-        setSelectedImageThumbnail(processedImages.thumbnailUri);
+        // Process each selected image
+        const processedImages = await Promise.all(
+          result.assets.map(async (asset) => {
+            const processed = await processImage(asset.uri);
+            return {
+              highResUri: processed.highResUri,
+              thumbnailUri: processed.thumbnailUri,
+              type: 'image' as const
+            };
+          })
+        );
+        
+        // Append new images to existing ones
+        setSelectedMedia(prevMedia => [...prevMedia, ...processedImages]);
       } catch (error) {
         console.error('Error processing image:', error);
         Toast.show({
@@ -431,8 +448,12 @@ export default function QualificationsScreen() {
     if (!result.canceled) {
       try {
         const processedImages = await processImage(result.assets[0].uri);
-        setSelectedImage(processedImages.highResUri);
-        setSelectedImageThumbnail(processedImages.thumbnailUri);
+        const newMedia: SelectedMedia = {
+          highResUri: processedImages.highResUri,
+          thumbnailUri: processedImages.thumbnailUri,
+          type: 'image'
+        };
+        setSelectedMedia(prevMedia => [...prevMedia, newMedia]);
       } catch (error) {
         console.error('Error processing image:', error);
         Toast.show({
@@ -463,8 +484,11 @@ export default function QualificationsScreen() {
                 
                 if (file.mimeType?.startsWith('image/')) {
                   const processedImages = await processImage(file.uri);
-                  setSelectedImage(processedImages.highResUri);
-                  setSelectedImageThumbnail(processedImages.thumbnailUri);
+                  setSelectedMedia(prevMedia => [...prevMedia, {
+                    highResUri: processedImages.highResUri,
+                    thumbnailUri: processedImages.thumbnailUri,
+                    type: 'image'
+                  }]);
                 } else {
                   setSelectedDocument(file.uri);
                 }
@@ -489,8 +513,11 @@ export default function QualificationsScreen() {
 
               if (!result.canceled && result.assets && result.assets.length > 0) {
                 const processedImages = await processImage(result.assets[0].uri);
-                setSelectedImage(processedImages.highResUri);
-                setSelectedImageThumbnail(processedImages.thumbnailUri);
+                setSelectedMedia(prevMedia => [...prevMedia, {
+                  highResUri: processedImages.highResUri,
+                  thumbnailUri: processedImages.thumbnailUri,
+                  type: 'image'
+                }]);
               }
             }
           },
@@ -585,7 +612,7 @@ export default function QualificationsScreen() {
       db.execSync(query);
 
       // Handle file uploads if needed
-      if (selectedImage && selectedImageThumbnail) {
+      if (selectedMedia.length > 0) {
         const imageExt = 'jpg';
         const imageName = `${uid}_image.${imageExt}`;
         const thumbnailName = `${uid}_image_thumb.${imageExt}`;
@@ -594,11 +621,11 @@ export default function QualificationsScreen() {
         
         await Promise.all([
           FileSystem.copyAsync({
-            from: selectedImage,
+            from: selectedMedia[0].highResUri,
             to: imageDestination
           }),
           FileSystem.copyAsync({
-            from: selectedImageThumbnail,
+            from: selectedMedia[0].thumbnailUri,
             to: thumbnailDestination
           })
         ]);
@@ -616,8 +643,7 @@ export default function QualificationsScreen() {
 
       // Reset form
       setReference('');
-      setSelectedImage(null);
-      setSelectedImageThumbnail(null);
+      setSelectedMedia([]);
       setSelectedDocument(null);
       setAchievedDate(new Date());
       setRenewsMonths(null);
@@ -698,9 +724,9 @@ export default function QualificationsScreen() {
 
   const handlePreview = async (type: 'image' | 'video' | 'audio' | 'pdf') => {
     try {
-      if (type === 'image' && selectedImage) {
-        console.log('Debug - Previewing image:', selectedImage);
-        showPreview(selectedImage, type, () => {
+      if (type === 'image' && selectedMedia.length > 0) {
+        console.log('Debug - Previewing image:', selectedMedia[0].highResUri);
+        showPreview(selectedMedia[0].highResUri, type, () => {
           // @ts-ignore - showDrawer exists on the navigation object
           navigation.showDrawer();
         });
@@ -1089,74 +1115,73 @@ export default function QualificationsScreen() {
   };
 
   const renderImagePreview = () => {
-    if (!selectedImageThumbnail) return null;
+    if (selectedMedia.length === 0) return null;
 
     return (
       <View style={styles.evidencePreviewContainer}>
         <View style={styles.evidenceItemsRow}>
-          <View style={styles.evidenceItemWrapper}>
-            <View style={styles.evidenceItem}>
-              <TouchableOpacity 
-                onPress={() => {
-                  console.log('Debug - Thumbnail clicked');
-                  console.log('Debug - High-res image URL:', selectedImage);
-                  if (selectedImage) {
-                    // Store current drawer state
-                    const currentDrawerState: DrawerState = {
-                      isVisible: isDrawerVisible,
-                      selectedQual,
-                      reference,
-                      achievedDate,
-                      renewsMonths,
-                      selectedImage,
-                      selectedImageThumbnail,
-                      selectedDocument
-                    };
-                    // Store in ref to preserve across preview
-                    lastQualRef.current = currentDrawerState;
-                    
-                    // Hide drawer temporarily
-                    setIsDrawerVisible(false);
-                    
-                    showPreview(selectedImage, 'image', () => {
-                      // Restore drawer state when preview closes
-                      if (lastQualRef.current) {
-                        const state = lastQualRef.current;
-                        setSelectedQual(state.selectedQual);
-                        setReference(state.reference);
-                        setAchievedDate(state.achievedDate);
-                        setRenewsMonths(state.renewsMonths);
-                        setSelectedImage(state.selectedImage);
-                        setSelectedImageThumbnail(state.selectedImageThumbnail);
-                        setSelectedDocument(state.selectedDocument);
-                        setIsDrawerVisible(true);
-                        Animated.spring(drawerAnimation, {
-                          toValue: 1,
-                          useNativeDriver: true,
-                        }).start();
-                      }
-                    });
-                  }
-                }}
-                style={styles.evidencePreview}
-              >
-                <Image
-                  source={{ uri: selectedImageThumbnail }}
-                  style={styles.evidenceImage}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => {
-                  setSelectedImage(null);
-                  setSelectedImageThumbnail(null);
-                }}
-              >
-                <Ionicons name="close" size={16} color="white" />
-              </TouchableOpacity>
+          {selectedMedia.map((media, index) => (
+            <View style={styles.evidenceItemWrapper} key={index}>
+              <View style={styles.evidenceItem}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    console.log('Debug - Thumbnail clicked');
+                    console.log('Debug - High-res image URL:', media.highResUri);
+                    if (media.highResUri) {
+                      // Store current drawer state
+                      const currentDrawerState: DrawerState = {
+                        isVisible: isDrawerVisible,
+                        selectedQual,
+                        reference,
+                        achievedDate,
+                        renewsMonths,
+                        selectedMedia,
+                        selectedDocument
+                      };
+                      // Store in ref to preserve across preview
+                      lastQualRef.current = currentDrawerState;
+                      
+                      // Hide drawer temporarily
+                      setIsDrawerVisible(false);
+                      
+                      showPreview(media.highResUri, 'image', () => {
+                        // Restore drawer state when preview closes
+                        if (lastQualRef.current) {
+                          const state = lastQualRef.current;
+                          setSelectedQual(state.selectedQual);
+                          setReference(state.reference);
+                          setAchievedDate(state.achievedDate);
+                          setRenewsMonths(state.renewsMonths);
+                          setSelectedMedia(state.selectedMedia);
+                          setSelectedDocument(state.selectedDocument);
+                          setIsDrawerVisible(true);
+                          Animated.spring(drawerAnimation, {
+                            toValue: 1,
+                            useNativeDriver: true,
+                          }).start();
+                        }
+                      });
+                    }
+                  }}
+                  style={styles.evidencePreview}
+                >
+                  <Image
+                    source={{ uri: media.thumbnailUri }}
+                    style={styles.evidenceImage}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => {
+                    setSelectedMedia(prevMedia => prevMedia.filter(m => m.highResUri !== media.highResUri));
+                  }}
+                >
+                  <Ionicons name="close" size={16} color="white" />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          ))}
         </View>
       </View>
     );
@@ -1723,11 +1748,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   previewButton: {
-    flex: 1,
-    backgroundColor: '#0A1929',
-    padding: 12,
-    borderRadius: 6,
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.blueDark,
     alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
   previewButtonText: {
     color: 'white',
@@ -2120,14 +2150,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginTop: 8,
   },
   evidenceItemWrapper: {
-    width: '100%',
+    width: 80,
+    height: 80,
   },
   evidenceItem: {
     position: 'relative',
-    width: 80,
-    height: 80,
+    width: '100%',
+    height: '100%',
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: Colors.white,
@@ -2144,14 +2176,14 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     position: 'absolute',
-    top: 2,
-    right: 2,
-    zIndex: 1,
-    backgroundColor: Colors.blueDark,
-    borderRadius: 12,
+    top: 4,
+    right: 4,
     width: 24,
     height: 24,
-    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: Colors.blueDark,
     alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
   },
 }); 
