@@ -253,20 +253,16 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
               </Animated.View>
               <View style={styles.videoControls}>
                 <TouchableOpacity 
-                  style={styles.controlButton}
+                  style={[styles.controlButton, styles.invisibleButton]}
                   onPress={handleRotate}
                 >
-                  <Ionicons name="sync" size={24} color="#fff" />
+                  <View style={styles.controlArea} />
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={styles.controlButton}
+                  style={[styles.controlButton, styles.invisibleButton]}
                   onPress={handleFullScreen}
                 >
-                  <Ionicons 
-                    name={isFullScreen ? "contract" : "expand"} 
-                    size={24} 
-                    color="#fff" 
-                  />
+                  <View style={styles.controlArea} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -415,8 +411,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  invisibleButton: {
+    backgroundColor: 'transparent',
+  },
+  controlArea: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 }); 
