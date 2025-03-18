@@ -189,10 +189,6 @@ export default function QualificationsScreen() {
   const drawerAnimation = useRef(new Animated.Value(0)).current;
   const lastQualRef = useRef<Qualification | null>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
-  const [activePreview, setActivePreview] = useState<{
-    type: 'image' | 'video' | 'audio' | 'pdf';
-    uri: string | null;
-  } | null>(null);
   const navigation = useNavigation();
   const isBack = useRef(false);
   const [achievedDate, setAchievedDate] = useState(() => {
@@ -684,7 +680,10 @@ export default function QualificationsScreen() {
     try {
       if (type === 'image' && selectedImage) {
         console.log('Debug - Previewing image:', selectedImage);
-        showPreview(selectedImage, type);
+        showPreview(selectedImage, type, () => {
+          // @ts-ignore - showDrawer exists on the navigation object
+          navigation.showDrawer();
+        });
         return;
       }
 
@@ -711,31 +710,7 @@ export default function QualificationsScreen() {
   };
 
   const renderPreview = () => {
-    if (!activePreview?.uri) return null;
-
-    return (
-      <Modal
-        visible={!!activePreview}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setActivePreview(null)}
-      >
-        <View style={styles.fullscreenPreview}>
-          <TouchableOpacity 
-            style={styles.previewCloseButton}
-            onPress={() => setActivePreview(null)}
-            activeOpacity={1}
-          >
-            <Text style={styles.previewCloseButtonText}>✕</Text>
-          </TouchableOpacity>
-          <Image
-            source={{ uri: activePreview.uri }}
-            style={styles.fullscreenPreviewImage}
-            resizeMode="contain"
-          />
-        </View>
-      </Modal>
-    );
+    return null;
   };
 
   const renderPreviewButtons = () => {
@@ -1106,10 +1081,8 @@ export default function QualificationsScreen() {
                   console.log('Debug - Thumbnail clicked');
                   console.log('Debug - High-res image URL:', selectedImage);
                   if (selectedImage) {
-                    setActivePreview({
-                      type: 'image',
-                      uri: selectedImage
-                    });
+                    hideDrawer();
+                    showPreview(selectedImage, 'image');
                   }
                 }}
                 style={styles.evidencePreview}
