@@ -16,9 +16,15 @@ import { AnimatedButton } from '../../components/AnimatedButton';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 interface Qualification extends RequiredQualification {
   achieved?: string;
+}
+
+interface ProcessedImages {
+  thumbnailUri: string;
+  highResUri: string;
 }
 
 const db = SQLite.openDatabaseSync('skillsfile.db');
@@ -202,6 +208,7 @@ export default function QualificationsScreen() {
   const [renewsMonths, setRenewsMonths] = useState<number | null>(0);
   const [isRenewsInfoVisible, setIsRenewsInfoVisible] = useState(false);
   const [achievedDateError, setAchievedDateError] = useState<string | null>(null);
+  const [selectedImageThumbnail, setSelectedImageThumbnail] = useState<string | null>(null);
 
   const formatDisplayDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -301,6 +308,7 @@ export default function QualificationsScreen() {
     setReferenceError('');
     setReference('');
     setSelectedImage(null);
+    setSelectedImageThumbnail(null);
     setSelectedDocument(null);
     setAchievedDate(new Date());
     setRenewsMonths(null);
@@ -330,16 +338,62 @@ export default function QualificationsScreen() {
     initialize();
   }, []);
 
+  const processImage = async (uri: string): Promise<ProcessedImages> => {
+    try {
+      // Generate thumbnail (300x300 cropped)
+      const thumbnail = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          { resize: { width: 300, height: 300 } },
+          { crop: { originX: 0, originY: 0, width: 300, height: 300 } }
+        ],
+        { 
+          format: ImageManipulator.SaveFormat.JPEG,
+          compress: 0.5
+        }
+      );
+
+      // Generate high-res version (max 1400 width)
+      const highRes = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          { resize: { width: 1400 } }
+        ],
+        { 
+          format: ImageManipulator.SaveFormat.JPEG,
+          compress: 0.6
+        }
+      );
+
+      return {
+        thumbnailUri: thumbnail.uri,
+        highResUri: highRes.uri
+      };
+    } catch (error) {
+      console.error('Error processing image:', error);
+      throw error;
+    }
+  };
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      try {
+        const processedImages = await processImage(result.assets[0].uri);
+        setSelectedImage(processedImages.highResUri);
+        setSelectedImageThumbnail(processedImages.thumbnailUri);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error processing image',
+          text2: 'Please try again',
+        });
+      }
     }
   };
 
@@ -355,13 +409,22 @@ export default function QualificationsScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
       quality: 1,
     });
 
     if (!result.canceled) {
-      setSelectedImage(result.assets[0].uri);
+      try {
+        const processedImages = await processImage(result.assets[0].uri);
+        setSelectedImage(processedImages.highResUri);
+        setSelectedImageThumbnail(processedImages.thumbnailUri);
+      } catch (error) {
+        console.error('Error processing image:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Error processing image',
+          text2: 'Please try again',
+        });
+      }
     }
   };
 
@@ -458,14 +521,23 @@ export default function QualificationsScreen() {
       db.execSync(query);
 
       // Handle file uploads if needed
-      if (selectedImage) {
-        const imageExt = selectedImage.split('.').pop();
+      if (selectedImage && selectedImageThumbnail) {
+        const imageExt = 'jpg';
         const imageName = `${uid}_image.${imageExt}`;
+        const thumbnailName = `${uid}_image_thumb.${imageExt}`;
         const imageDestination = `${FileSystem.documentDirectory}${imageName}`;
-        await FileSystem.copyAsync({
-          from: selectedImage,
-          to: imageDestination
-        });
+        const thumbnailDestination = `${FileSystem.documentDirectory}${thumbnailName}`;
+        
+        await Promise.all([
+          FileSystem.copyAsync({
+            from: selectedImage,
+            to: imageDestination
+          }),
+          FileSystem.copyAsync({
+            from: selectedImageThumbnail,
+            to: thumbnailDestination
+          })
+        ]);
       }
 
       if (selectedDocument) {
@@ -481,6 +553,7 @@ export default function QualificationsScreen() {
       // Reset form
       setReference('');
       setSelectedImage(null);
+      setSelectedImageThumbnail(null);
       setSelectedDocument(null);
       setAchievedDate(new Date());
       setRenewsMonths(null);
@@ -1002,20 +1075,7 @@ export default function QualificationsScreen() {
                       </TouchableOpacity>
                     </View>
 
-                    {selectedImage && (
-                      <View style={styles.selectedMedia}>
-                        <Image
-                          source={{ uri: selectedImage }}
-                          style={styles.selectedImage}
-                        />
-                        <TouchableOpacity
-                          style={styles.removeMediaButton}
-                          onPress={() => setSelectedImage(null)}
-                        >
-                          <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
-                        </TouchableOpacity>
-                      </View>
-                    )}
+                    {renderImagePreview()}
 
                     {selectedDocument && (
                       <View style={styles.selectedMedia}>
@@ -1059,6 +1119,28 @@ export default function QualificationsScreen() {
           </Animated.View>
         </TouchableOpacity>
       </Modal>
+    );
+  };
+
+  const renderImagePreview = () => {
+    if (!selectedImageThumbnail) return null;
+
+    return (
+      <View style={styles.selectedMedia}>
+        <Image
+          source={{ uri: selectedImageThumbnail }}
+          style={styles.selectedImage}
+        />
+        <TouchableOpacity
+          style={styles.removeMediaButton}
+          onPress={() => {
+            setSelectedImage(null);
+            setSelectedImageThumbnail(null);
+          }}
+        >
+          <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -1662,7 +1744,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     paddingEnd: 10,
-
   },
   cancelButton: {
     flex: 1,
