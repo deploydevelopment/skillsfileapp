@@ -1,14 +1,15 @@
 import React from 'react';
 import { Modal, View, StyleSheet, TouchableOpacity, Dimensions, Linking, Text } from 'react-native';
 import { Image } from 'expo-image';
-import { Video, ResizeMode, Audio } from 'expo-av';
+import { Video, ResizeMode } from 'expo-av';
+import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system';
 import ImageViewer from 'react-native-image-zoom-viewer';
-import * as ScreenOrientation from 'expo-screen-orientation';
 import Slider from '@react-native-community/slider';
 import { Colors } from '../constants/styles';
 import { WebView } from 'react-native-webview';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,7 +33,8 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
   const [position, setPosition] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
   const [isSeeking, setIsSeeking] = React.useState(false);
-  const [orientation, setOrientation] = React.useState<ScreenOrientation.Orientation>(ScreenOrientation.Orientation.PORTRAIT_UP);
+  const [rotation, setRotation] = React.useState(0);
+  const [isFullScreen, setIsFullScreen] = React.useState(false);
 
   // Update position while playing
   React.useEffect(() => {
@@ -74,38 +76,6 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     }
     onClose();
   };
-
-  // Handle screen orientation changes
-  React.useEffect(() => {
-    if (visible && mediaType === 'video') {
-      const handleOrientation = async () => {
-        const currentOrientation = await ScreenOrientation.getOrientationAsync();
-        setOrientation(currentOrientation);
-      };
-
-      const subscription = ScreenOrientation.addOrientationChangeListener(() => {
-        handleOrientation();
-      });
-
-      // Get initial orientation
-      handleOrientation();
-
-      // Unlock screen orientation for videos
-      ScreenOrientation.unlockAsync();
-
-      return () => {
-        subscription.remove();
-        // Reset orientation state
-        setOrientation(ScreenOrientation.Orientation.PORTRAIT_UP);
-        // Lock back to portrait when modal closes
-        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-      };
-    } else {
-      // Reset orientation when modal is not visible or not showing video
-      setOrientation(ScreenOrientation.Orientation.PORTRAIT_UP);
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-    }
-  }, [visible, mediaType]);
 
   // Initialize audio when modal opens
   React.useEffect(() => {
@@ -182,28 +152,34 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     }
   };
 
-  const getOrientationStyle = () => {
-    switch (orientation) {
-      case ScreenOrientation.Orientation.LANDSCAPE_LEFT:
-        return {
-          width: height,
-          height: width,
-          transform: [{ rotate: '0deg' }],
-        };
-      case ScreenOrientation.Orientation.LANDSCAPE_RIGHT:
-        return {
-          width: height,
-          height: width,
-          transform: [{ rotate: '0deg' }],
-        };
-      default:
-        return {
-          width: width,
-          height: height,
-        };
-    }
+  const handleRotate = () => {
+    setRotation((prev) => (prev + 90) % 360);
   };
-  
+
+  const handleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+  };
+
+  const videoAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${rotation}deg` }],
+    };
+  });
+
+  const getVideoContainerStyle = () => {
+    if (isFullScreen) {
+      return {
+        position: 'absolute' as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: Colors.black,
+        zIndex: 1000,
+      };
+    }
+    return styles.videoContainer;
+  };
 
   const renderAudioPlayer = () => (
     <View style={styles.audioContainer}>
@@ -261,18 +237,38 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
         );
       case 'video':
         return (
-          <View style={[styles.mediaContent, getOrientationStyle()]}>
-            <View style={styles.videoContainer}>
-              <Video
-                source={{ uri: mediaUrl }}
-                style={styles.video}
-                useNativeControls
-                resizeMode={ResizeMode.CONTAIN}
-                isLooping
-                shouldPlay
-                isMuted={false}
-                onError={(error) => console.error('Video error:', error)}
-              />
+          <View style={[styles.mediaContent, { width: '100%', height: '100%' }]}>
+            <View style={getVideoContainerStyle()}>
+              <Animated.View style={[styles.videoWrapper, videoAnimatedStyle]}>
+                <Video
+                  source={{ uri: mediaUrl }}
+                  style={styles.video}
+                  useNativeControls
+                  resizeMode={ResizeMode.CONTAIN}
+                  isLooping
+                  shouldPlay
+                  isMuted={false}
+                  onError={(error: string) => console.error('Video error:', error)}
+                />
+              </Animated.View>
+              <View style={styles.videoControls}>
+                <TouchableOpacity 
+                  style={styles.controlButton}
+                  onPress={handleRotate}
+                >
+                  <Ionicons name="sync" size={24} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.controlButton}
+                  onPress={handleFullScreen}
+                >
+                  <Ionicons 
+                    name={isFullScreen ? "contract" : "expand"} 
+                    size={24} 
+                    color="#fff" 
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         );
@@ -400,5 +396,27 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     height: '100%',
+  },
+  videoWrapper: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoControls: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    flexDirection: 'row',
+    gap: 10,
+    zIndex: 1000,
+  },
+  controlButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 
