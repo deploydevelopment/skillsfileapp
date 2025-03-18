@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing, TextInput, Platform } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Image, Modal, Animated, Dimensions, PanResponder, Easing, TextInput, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { pullJson, RequiredQualification } from '../../api/data';
@@ -430,15 +430,63 @@ export default function QualificationsScreen() {
 
   const pickDocument = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-      });
+      Alert.alert(
+        'Choose Upload Type',
+        'Select how you want to upload your file',
+        [
+          {
+            text: 'Browse Recents',
+            onPress: async () => {
+              const result = await DocumentPicker.getDocumentAsync({
+                type: ['application/pdf', 'image/*'],
+                copyToCacheDirectory: true
+              });
 
-      if (result.assets && result.assets.length > 0) {
-        setSelectedDocument(result.assets[0].uri);
-      }
-    } catch (err) {
-      console.error('Error picking document:', err);
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                const file = result.assets[0];
+                
+                if (file.mimeType?.startsWith('image/')) {
+                  const processedImages = await processImage(file.uri);
+                  setSelectedImage(processedImages.highResUri);
+                  setSelectedImageThumbnail(processedImages.thumbnailUri);
+                } else {
+                  setSelectedDocument(file.uri);
+                }
+              }
+            }
+          },
+          {
+            text: 'Browse Photos',
+            onPress: async () => {
+              const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+              if (status !== 'granted') {
+                Alert.alert('Permission needed', 'Please grant photo library permissions to browse photos');
+                return;
+              }
+
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: false,
+                quality: 1,
+                presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+              });
+
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                const processedImages = await processImage(result.assets[0].uri);
+                setSelectedImage(processedImages.highResUri);
+                setSelectedImageThumbnail(processedImages.thumbnailUri);
+              }
+            }
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error picking document:', error);
+      Alert.alert('Error', 'Failed to pick document');
     }
   };
 
@@ -634,6 +682,12 @@ export default function QualificationsScreen() {
 
   const handlePreview = async (type: 'image' | 'video' | 'audio' | 'pdf') => {
     try {
+      if (type === 'image' && selectedImage) {
+        console.log('Debug - Previewing image:', selectedImage);
+        showPreview(selectedImage, type);
+        return;
+      }
+
       const testMedia = {
         image: require('../../assets/test_media/img1.jpg'),
         video: require('../../assets/test_media/vid1.mp4'),
@@ -650,71 +704,7 @@ export default function QualificationsScreen() {
       }
 
       const localUri = asset.localUri;
-      const savedQual = selectedQual;
-
-      if (type === 'pdf') {
-        const fileName = 'test.pdf';
-        const destination = `${FileSystem.cacheDirectory}${fileName}`;
-        await FileSystem.copyAsync({
-          from: localUri,
-          to: destination
-        });
-        // Animate drawer closing first - quick close
-        Animated.spring(drawerAnimation, {
-          toValue: 0,
-          useNativeDriver: true,
-          damping: 25,
-          stiffness: 300,
-        }).start(() => {
-          setIsDrawerVisible(false);
-          setActivePreview({ type, uri: destination });
-          // Show preview after drawer is closed
-          showPreview(destination, type, () => {
-            setActivePreview(null);
-            // When preview closes, show drawer again with delay and slower animation
-            if (savedQual) {
-              setTimeout(() => {
-                setSelectedQual(savedQual);
-                setIsDrawerVisible(true);
-                Animated.spring(drawerAnimation, {
-                  toValue: 1,
-                  useNativeDriver: true,
-                  damping: 15,
-                  stiffness: 60,
-                }).start();
-              }, 300); // 300ms delay
-            }
-          });
-        });
-      } else {
-        // Animate drawer closing first - quick close
-        Animated.spring(drawerAnimation, {
-          toValue: 0,
-          useNativeDriver: true,
-          damping: 25,
-          stiffness: 300,
-        }).start(() => {
-          setIsDrawerVisible(false);
-          setActivePreview({ type, uri: localUri });
-          // Show preview after drawer is closed
-          showPreview(localUri, type, () => {
-            setActivePreview(null);
-            // When preview closes, show drawer again with delay and slower animation
-            if (savedQual) {
-              setTimeout(() => {
-                setSelectedQual(savedQual);
-                setIsDrawerVisible(true);
-                Animated.spring(drawerAnimation, {
-                  toValue: 1,
-                  useNativeDriver: true,
-                  damping: 15,
-                  stiffness: 60,
-                }).start();
-              }, 300); // 300ms delay
-            }
-          });
-        });
-      }
+      showPreview(localUri, type);
     } catch (error) {
       console.error('Error loading media:', error);
     }
@@ -723,28 +713,29 @@ export default function QualificationsScreen() {
   const renderPreview = () => {
     if (!activePreview?.uri) return null;
 
-    switch (activePreview.type) {
-      case 'image':
-        return (
-          <View style={styles.fullscreenPreview}>
-            <TouchableOpacity 
-              style={styles.previewCloseButton}
-              onPress={() => setActivePreview(null)}
-              activeOpacity={1}
-            >
-              <Text style={styles.previewCloseButtonText}>✕</Text>
-            </TouchableOpacity>
-            <Image
-              source={{ uri: activePreview.uri }}
-              style={styles.fullscreenPreviewImage}
-              resizeMode="contain"
-            />
-          </View>
-        );
-      // Add other preview types here as needed
-      default:
-        return null;
-    }
+    return (
+      <Modal
+        visible={!!activePreview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setActivePreview(null)}
+      >
+        <View style={styles.fullscreenPreview}>
+          <TouchableOpacity 
+            style={styles.previewCloseButton}
+            onPress={() => setActivePreview(null)}
+            activeOpacity={1}
+          >
+            <Text style={styles.previewCloseButtonText}>✕</Text>
+          </TouchableOpacity>
+          <Image
+            source={{ uri: activePreview.uri }}
+            style={styles.fullscreenPreviewImage}
+            resizeMode="contain"
+          />
+        </View>
+      </Modal>
+    );
   };
 
   const renderPreviewButtons = () => {
@@ -1049,50 +1040,30 @@ export default function QualificationsScreen() {
 
                   <View style={styles.mediaSection}>
                     <Text style={styles.formLabel}>Add Evidence</Text>
-                    <View style={styles.mediaButtons}>
-                      <TouchableOpacity
-                        style={styles.mediaButton}
-                        onPress={takePhoto}
-                      >
-                        <Ionicons name="camera-outline" size={24} color={Colors.blueDark} />
-                        <Text style={styles.mediaButtonText}>Take Photo</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.mediaButton}
-                        onPress={pickImage}
-                      >
-                        <Ionicons name="image-outline" size={24} color={Colors.blueDark} />
-                        <Text style={styles.mediaButtonText}>Choose Image</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.mediaButton}
-                        onPress={pickDocument}
-                      >
-                        <Ionicons name="document-outline" size={24} color={Colors.blueDark} />
-                        <Text style={styles.mediaButtonText}>Select PDF</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {renderImagePreview()}
-
-                    {selectedDocument && (
-                      <View style={styles.selectedMedia}>
-                        <View style={styles.documentPreview}>
-                          <Ionicons name="document" size={32} color={Colors.blueDark} />
-                          <Text style={styles.documentName}>
-                            {selectedDocument.split('/').pop()}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          style={styles.removeMediaButton}
-                          onPress={() => setSelectedDocument(null)}
+                    <View style={styles.evidenceContainer}>
+                      <View style={styles.evidenceButtons}>
+                        <TouchableOpacity 
+                          style={styles.evidenceButton} 
+                          onPress={takePhoto}
                         >
-                          <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
+                          <View style={styles.buttonIconContainer}>
+                            <Ionicons name="camera" size={24} color={Colors.blueDark} />
+                          </View>
+                          <Text style={styles.evidenceButtonText}>Take Photo</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity 
+                          style={styles.evidenceButton} 
+                          onPress={pickDocument}
+                        >
+                          <View style={styles.buttonIconContainer}>
+                            <Ionicons name="document" size={24} color={Colors.blueDark} />
+                          </View>
+                          <Text style={styles.evidenceButtonText}>Upload File</Text>
+                        </TouchableOpacity>
+                        
                       </View>
-                    )}
+                      {renderImagePreview()}
+                    </View>
                   </View>
                 </View>
 
@@ -1126,23 +1097,75 @@ export default function QualificationsScreen() {
     if (!selectedImageThumbnail) return null;
 
     return (
-      <View style={styles.selectedMedia}>
-        <Image
-          source={{ uri: selectedImageThumbnail }}
-          style={styles.selectedImage}
-        />
-        <TouchableOpacity
-          style={styles.removeMediaButton}
-          onPress={() => {
-            setSelectedImage(null);
-            setSelectedImageThumbnail(null);
-          }}
-        >
-          <Ionicons name="close-circle" size={24} color={Colors.blueDark} />
-        </TouchableOpacity>
+      <View style={styles.evidencePreviewContainer}>
+        <View style={styles.evidenceItemsRow}>
+          <View style={styles.evidenceItemWrapper}>
+            <View style={styles.evidenceItem}>
+              <TouchableOpacity 
+                onPress={() => {
+                  console.log('Debug - Thumbnail clicked');
+                  console.log('Debug - High-res image URL:', selectedImage);
+                  if (selectedImage) {
+                    setActivePreview({
+                      type: 'image',
+                      uri: selectedImage
+                    });
+                  }
+                }}
+                style={styles.evidencePreview}
+              >
+                <Image
+                  source={{ uri: selectedImageThumbnail }}
+                  style={styles.evidenceImage}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={() => {
+                  setSelectedImage(null);
+                  setSelectedImageThumbnail(null);
+                }}
+              >
+                <Ionicons name="close-circle" size={24} color={Colors.red} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </View>
     );
   };
+
+  const renderMediaSection = () => (
+    <View style={styles.mediaSection}>
+      <View style={[styles.labelRow]}>
+        <Text style={styles.formLabel}>Evidence</Text>
+      </View>
+      <View style={styles.evidenceContainer}>
+        <View style={styles.evidenceButtons}>
+          <TouchableOpacity 
+            style={styles.evidenceButton} 
+            onPress={takePhoto}
+          >
+            <View style={styles.buttonIconContainer}>
+              <Ionicons name="camera" size={24} color={Colors.blueDark} />
+            </View>
+            <Text style={styles.evidenceButtonText}>Take Photo</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.evidenceButton} 
+            onPress={pickDocument}
+          >
+            <View style={styles.buttonIconContainer}>
+              <Ionicons name="document" size={24} color={Colors.blueDark} />
+            </View>
+            <Text style={styles.evidenceButtonText}>Upload File</Text>
+          </TouchableOpacity>
+        </View>
+        {renderImagePreview()}
+      </View>
+    </View>
+  );
 
   const filteredQualifications = useMemo(() => {
     const searchLower = searchText.toLowerCase();
@@ -2000,102 +2023,42 @@ const styles = StyleSheet.create({
     marginTop: -10,
   },
   mediaSection: {
+    marginTop: 0,
+  },
+  evidenceContainer: {
     marginTop: 8,
   },
-  mediaButtons: {
+  evidenceButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 8,
     marginBottom: 16,
   },
-  mediaButton: {
+  evidenceButton: {
     flex: 1,
     backgroundColor: Colors.white,
     borderRadius: 8,
     padding: 12,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
     borderWidth: 1,
     borderColor: Colors.blueDark + '20',
   },
-  mediaButtonText: {
+  buttonIconContainer: {
+    marginBottom: 0,
+  },
+  evidenceButtonText: {
     fontSize: 12,
     fontFamily: 'MavenPro-Medium',
     color: Colors.blueDark,
-    marginTop: 4,
   },
-  selectedMedia: {
-    marginTop: 8,
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 8,
+  labelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.blueDark + '20',
-  },
-  selectedImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 4,
-  },
-  documentPreview: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  documentName: {
-    fontSize: 14,
-    fontFamily: 'MavenPro-Regular',
-    color: Colors.blueDark,
-    flex: 1,
-  },
-  removeMediaButton: {
-    padding: 4,
-  },
-  renewsInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: 48,
-  },
-  renewsInput: {
-    position: 'relative',
-    top: -1,
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: Colors.blueDark + '20',
-    flex: 1,
-    fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: Colors.blueDark,
-    textAlign: 'center',
-    height: 46,
-  },
-  monthsText: {
-    fontSize: 16,
-    fontFamily: 'MavenPro-Regular',
-    color: Colors.blueDark,
-  },
-  neverExpiresButton: {
-    backgroundColor: Colors.white,
-    borderRadius: 8,
-    padding: 8,
-    borderWidth: 1,
-    borderColor: Colors.blueDark + '20',
-  },
-  neverExpiresButtonActive: {
-    backgroundColor: Colors.blueDark,
-    borderColor: Colors.blueDark,
-  },
-  neverExpiresText: {
-    fontSize: 14,
-    fontFamily: 'MavenPro-Regular',
-    color: Colors.blueDark,
-  },
-  neverExpiresTextActive: {
-    color: Colors.white,
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
   label: {
     fontSize: 16,
@@ -2106,5 +2069,56 @@ const styles = StyleSheet.create({
   dateButtonError: {
     borderColor: Colors.red,
     borderWidth: 1,
+  },
+  renewsInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 48,
+  },
+  renewsInput: {
+    backgroundColor: Colors.white,
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    fontFamily: 'MavenPro-Regular',
+    color: Colors.blueDark,
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+  },
+  evidencePreviewContainer: {
+    marginTop: 16,
+    width: '100%',
+  },
+  evidenceItemsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  evidenceItemWrapper: {
+    width: '100%',
+  },
+  evidenceItem: {
+    position: 'relative',
+    width: '100%',
+    height: 300,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: Colors.white,
+    borderWidth: 1,
+    borderColor: Colors.blueDark + '20',
+  },
+  evidencePreview: {
+    width: '100%',
+    height: '100%',
+  },
+  evidenceImage: {
+    width: '100%',
+    height: '100%',
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 1,
   },
 }); 
