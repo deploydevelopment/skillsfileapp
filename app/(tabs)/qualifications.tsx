@@ -1127,7 +1127,7 @@ export default function QualificationsScreen() {
                   setSelectedImageThumbnail(null);
                 }}
               >
-                <Ionicons name="close-circle" size={24} color={Colors.red} />
+                <Ionicons name="close" size={16} color="white" />
               </TouchableOpacity>
             </View>
           </View>
@@ -2076,6 +2076,7 @@ const styles = StyleSheet.create({
     height: 48,
   },
   renewsInput: {
+    width: '100%',
     backgroundColor: Colors.white,
     borderRadius: 8,
     padding: 12,
@@ -2086,7 +2087,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.blueDark + '20',
   },
   evidencePreviewContainer: {
-    marginTop: 16,
+    marginTop: 0,
     width: '100%',
   },
   evidenceItemsRow: {
@@ -2099,9 +2100,9 @@ const styles = StyleSheet.create({
   },
   evidenceItem: {
     position: 'relative',
-    width: '100%',
-    height: 300,
-    borderRadius: 8,
+    width: 80,
+    height: 80,
+    borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: Colors.white,
     borderWidth: 1,
@@ -2117,8 +2118,14 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 2,
+    right: 2,
     zIndex: 1,
+    backgroundColor: Colors.blueDark,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 
