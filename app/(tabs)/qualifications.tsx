@@ -221,6 +221,9 @@ export default function QualificationsScreen() {
   const [isRenewsInfoVisible, setIsRenewsInfoVisible] = useState(false);
   const [achievedDateError, setAchievedDateError] = useState<string | null>(null);
   const [selectedImageThumbnail, setSelectedImageThumbnail] = useState<string | null>(null);
+  const [showTitleError, setShowTitleError] = useState(false);
+  const [showDateError, setShowDateError] = useState(false);
+  const [showRenewsError, setShowRenewsError] = useState(false);
   const [showEvidenceError, setShowEvidenceError] = useState(false);
 
   const formatDisplayDate = (date: Date) => {
@@ -537,11 +540,44 @@ export default function QualificationsScreen() {
   const handleAddQualification = () => {
     // Reset all error states
     setReferenceError('');
+    setShowTitleError(false);
+    setShowDateError(false);
+    setShowRenewsError(false);
     setShowEvidenceError(false);
+
+    let hasErrors = false;
+
+    // Validate title
+    if (!selectedQual?.name) {
+      setShowTitleError(true);
+      hasErrors = true;
+    }
+
+    // Validate date
+    if (!validateAchievedDate(achievedDate)) {
+      setShowDateError(true);
+      hasErrors = true;
+    }
+
+    // // Validate renews
+    // if (renewsMonths === null) {
+    //   setShowRenewsError(true);
+    //   hasErrors = true;
+    // }
 
     // Validate evidence
     if (selectedMedia.length === 0 && !selectedDocument) {
       setShowEvidenceError(true);
+      hasErrors = true;
+    }
+
+    // Validate reference
+    if (!reference.trim()) {
+      setReferenceError('Reference is required');
+      hasErrors = true;
+    }
+
+    if (hasErrors) {
       return;
     }
 
@@ -934,27 +970,27 @@ export default function QualificationsScreen() {
                 </Text>
 
                 <View style={styles.formSection}>
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.label}>Reference</Text>
-                    <View style={styles.inputWrapper}>
+                  <View style={styles.referenceContainer}>
+                    <Text style={styles.formLabel}>Reference</Text>
+                    <View style={[styles.inputContainer, referenceError && styles.inputError]}>
                       <TextInput
-                        style={[styles.formInput, referenceError ? styles.inputError : null]}
+                        style={styles.input}
                         value={reference}
                         onChangeText={handleReferenceChange}
                         placeholder="Enter reference"
-                        placeholderTextColor={Colors.blueDark + '4D'}
+                        placeholderTextColor={Colors.blueDark + '80'}
                       />
-                      {referenceError ? (
-                        <Text style={styles.errorText}>{referenceError}</Text>
-                      ) : null}
                     </View>
+                    {referenceError && (
+                      <Text style={styles.errorText}>{referenceError}</Text>
+                    )}
                   </View>
 
                   <View style={styles.dateRow}>
                     <View style={[styles.dateColumn, { flex: 0.40 }]}>
                       <Text style={styles.formLabel}>Achieved Date</Text>
                       <TouchableOpacity
-                        style={[styles.dateButton, achievedDateError ? styles.dateButtonError : null]}
+                        style={[styles.dateButton, showDateError && styles.dateButtonError]}
                         onPress={() => setShowDatePicker(true)}
                       >
                         <Text style={styles.dateButtonText}>
@@ -976,7 +1012,7 @@ export default function QualificationsScreen() {
                           <Ionicons name="help-circle-outline" size={20} color={Colors.blueDark} />
                         </TouchableOpacity>
                       </View>
-                      <View style={styles.renewsInputContainer}>
+                      <View style={[styles.renewsInputContainer, showRenewsError && styles.renewsInputError]}>
                         <TextInput
                           style={styles.renewsInput}
                           value={renewsMonths === null ? '' : renewsMonths.toString()}
@@ -986,6 +1022,9 @@ export default function QualificationsScreen() {
                           placeholderTextColor={Colors.blueDark + '80'}
                         />
                       </View>
+                      {showRenewsError && (
+                        <Text style={styles.errorText}>Required</Text>
+                      )}
                     </View>
 
                     <View style={[styles.dateColumn, { flex: 0.40 }]}>
@@ -2020,13 +2059,13 @@ const styles = StyleSheet.create({
     color: Colors.blueDark,
     marginBottom: 8,
   },
-  inputContainer: {
+  referenceContainer: {
     marginBottom: 20,
   },
-  inputWrapper: {
+  inputContainer: {
     position: 'relative',
   },
-  formInput: {
+  input: {
     backgroundColor: Colors.white,
     borderRadius: 8,
     padding: 12,
@@ -2258,9 +2297,13 @@ const styles = StyleSheet.create({
     color: Colors.red,
     fontSize: 12,
     fontFamily: 'MavenPro-Regular',
-    marginTop: -5,
+    marginTop: 0
   },
   evidenceButtonError: {
+    borderColor: Colors.red,
+    borderWidth: 1,
+  },
+  renewsInputError: {
     borderColor: Colors.red,
     borderWidth: 1,
   },

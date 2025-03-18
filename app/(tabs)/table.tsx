@@ -415,7 +415,7 @@ export default function TableScreen() {
             style={[styles.headerCell, styles.expiresCell]} 
             onPress={() => requestSort('expires_months')}
           >
-            <Text style={styles.headerCellText}>expires {getSortDirection('expires_months')}</Text>
+            <Text style={styles.headerCellText}>exp. {getSortDirection('expires_months')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.headerCell, styles.referenceCell]} 
