@@ -291,6 +291,22 @@ export default function QualificationsScreen() {
         easing: Easing.out(Easing.cubic),
       }).start();
 
+      // Load data when page is focused
+      const loadData = async () => {
+        try {
+          setIsLoading(true);
+          console.log('Loading qualifications data...');
+          await loadRecords();
+        } catch (error) {
+          console.error('Error loading qualifications:', error);
+          setError('Failed to load qualifications');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      loadData();
+
       return () => {
         // If going back, slide out to right, otherwise slide out to left
         const toValue = isBack.current ? Dimensions.get('window').width : -Dimensions.get('window').width;
