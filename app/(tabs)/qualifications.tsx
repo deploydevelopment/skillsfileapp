@@ -221,6 +221,7 @@ export default function QualificationsScreen() {
   const [isRenewsInfoVisible, setIsRenewsInfoVisible] = useState(false);
   const [achievedDateError, setAchievedDateError] = useState<string | null>(null);
   const [selectedImageThumbnail, setSelectedImageThumbnail] = useState<string | null>(null);
+  const [showEvidenceError, setShowEvidenceError] = useState(false);
 
   const formatDisplayDate = (date: Date) => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -533,26 +534,16 @@ export default function QualificationsScreen() {
     }
   };
 
-  const handleAddQualification = async () => {
-    // Validate date before proceeding
-    if (!validateAchievedDate(achievedDate)) {
-      Toast.show({
-        type: 'error',
-        text1: 'Invalid Date',
-        text2: achievedDateError || 'Please check the achievement date',
-        position: 'top',
-        topOffset: 60,
-        visibilityTime: 3000,
-      });
-      return;
-    }
-
-    // Validate reference
-    if (!reference.trim()) {
-      setReferenceError('Reference is required');
-      return;
-    }
+  const handleAddQualification = () => {
+    // Reset all error states
     setReferenceError('');
+    setShowEvidenceError(false);
+
+    // Validate evidence
+    if (selectedMedia.length === 0 && !selectedDocument) {
+      setShowEvidenceError(true);
+      return;
+    }
 
     // Proceed with adding qualification
     addQualification();
@@ -1060,11 +1051,13 @@ export default function QualificationsScreen() {
                   </Modal>
 
                   <View style={styles.mediaSection}>
-                    <Text style={styles.formLabel}>Add Evidence</Text>
+                    <View style={styles.labelRow}>
+                      <Text style={styles.formLabel}>Evidence</Text>
+                    </View>
                     <View style={styles.evidenceContainer}>
                       <View style={styles.evidenceButtons}>
                         <TouchableOpacity 
-                          style={styles.evidenceButton} 
+                          style={[styles.evidenceButton, showEvidenceError && styles.evidenceButtonError]} 
                           onPress={takePhoto}
                         >
                           <View style={styles.buttonIconContainer}>
@@ -1073,7 +1066,7 @@ export default function QualificationsScreen() {
                           <Text style={styles.evidenceButtonText}>Take Photo</Text>
                         </TouchableOpacity>
                         <TouchableOpacity 
-                          style={styles.evidenceButton} 
+                          style={[styles.evidenceButton, showEvidenceError && styles.evidenceButtonError]} 
                           onPress={pickDocument}
                         >
                           <View style={styles.buttonIconContainer}>
@@ -1081,8 +1074,10 @@ export default function QualificationsScreen() {
                           </View>
                           <Text style={styles.evidenceButtonText}>Upload File</Text>
                         </TouchableOpacity>
-                        
                       </View>
+                      {showEvidenceError && (
+                        <Text style={styles.evidenceErrorText}>At least one piece of evidence is required</Text>
+                      )}
                       {renderImagePreview()}
                     </View>
                   </View>
@@ -1246,13 +1241,13 @@ export default function QualificationsScreen() {
 
   const renderMediaSection = () => (
     <View style={styles.mediaSection}>
-      <View style={[styles.labelRow]}>
+      <View style={styles.labelRow}>
         <Text style={styles.formLabel}>Evidence</Text>
       </View>
       <View style={styles.evidenceContainer}>
         <View style={styles.evidenceButtons}>
           <TouchableOpacity 
-            style={styles.evidenceButton} 
+            style={[styles.evidenceButton, showEvidenceError && styles.evidenceButtonError]} 
             onPress={takePhoto}
           >
             <View style={styles.buttonIconContainer}>
@@ -1261,7 +1256,7 @@ export default function QualificationsScreen() {
             <Text style={styles.evidenceButtonText}>Take Photo</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.evidenceButton} 
+            style={[styles.evidenceButton, showEvidenceError && styles.evidenceButtonError]} 
             onPress={pickDocument}
           >
             <View style={styles.buttonIconContainer}>
@@ -1270,6 +1265,9 @@ export default function QualificationsScreen() {
             <Text style={styles.evidenceButtonText}>Upload File</Text>
           </TouchableOpacity>
         </View>
+        {showEvidenceError && (
+          <Text style={styles.evidenceErrorText}>At least one piece of evidence is required</Text>
+        )}
         {renderImagePreview()}
       </View>
     </View>
@@ -2139,7 +2137,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
   },
   evidenceContainer: {
-    marginTop: 8,
+    marginTop: -10,
   },
   evidenceButtons: {
     flexDirection: 'row',
@@ -2255,5 +2253,15 @@ const styles = StyleSheet.create({
     fontFamily: 'MavenPro-Medium',
     color: Colors.blueDark,
     marginTop: 4,
+  },
+  evidenceErrorText: {
+    color: Colors.red,
+    fontSize: 12,
+    fontFamily: 'MavenPro-Regular',
+    marginTop: -5,
+  },
+  evidenceButtonError: {
+    borderColor: Colors.red,
+    borderWidth: 1,
   },
 }); 
