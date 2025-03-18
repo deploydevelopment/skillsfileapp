@@ -1082,7 +1082,15 @@ export default function QualificationsScreen() {
                   console.log('Debug - High-res image URL:', selectedImage);
                   if (selectedImage) {
                     hideDrawer();
-                    showPreview(selectedImage, 'image');
+                    showPreview(selectedImage, 'image', () => {
+                      if (lastQualRef.current) {
+                        setIsDrawerVisible(true);
+                        Animated.spring(drawerAnimation, {
+                          toValue: 1,
+                          useNativeDriver: true,
+                        }).start();
+                      }
+                    });
                   }
                 }}
                 style={styles.evidencePreview}

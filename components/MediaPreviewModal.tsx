@@ -10,6 +10,8 @@ import Slider from '@react-native-community/slider';
 import { Colors } from '../constants/styles';
 import { WebView } from 'react-native-webview';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { DrawerActions } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -28,6 +30,7 @@ export const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
   mediaUrl,
   mediaType,
 }) => {
+  const navigation = useNavigation();
   const [sound, setSound] = React.useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [position, setPosition] = React.useState(0);

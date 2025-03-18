@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import { DrawerActions } from '@react-navigation/native';
 
 type MediaType = 'image' | 'video' | 'audio' | 'pdf';
 
