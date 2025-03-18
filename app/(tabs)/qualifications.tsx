@@ -1115,7 +1115,7 @@ export default function QualificationsScreen() {
   };
 
   const renderImagePreview = () => {
-    if (selectedMedia.length === 0) return null;
+    if (selectedMedia.length === 0 && !selectedDocument) return null;
 
     return (
       <View style={styles.evidencePreviewContainer}>
@@ -1182,6 +1182,63 @@ export default function QualificationsScreen() {
               </View>
             </View>
           ))}
+          {selectedDocument && (
+            <View style={styles.evidenceItemWrapper}>
+              <View style={styles.evidenceItem}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    // Store current drawer state
+                    const currentDrawerState: DrawerState = {
+                      isVisible: isDrawerVisible,
+                      selectedQual,
+                      reference,
+                      achievedDate,
+                      renewsMonths,
+                      selectedMedia,
+                      selectedDocument
+                    };
+                    // Store in ref to preserve across preview
+                    lastQualRef.current = currentDrawerState;
+                    
+                    // Hide drawer temporarily
+                    setIsDrawerVisible(false);
+                    
+                    showPreview(selectedDocument, 'pdf', () => {
+                      // Restore drawer state when preview closes
+                      if (lastQualRef.current) {
+                        const state = lastQualRef.current;
+                        setSelectedQual(state.selectedQual);
+                        setReference(state.reference);
+                        setAchievedDate(state.achievedDate);
+                        setRenewsMonths(state.renewsMonths);
+                        setSelectedMedia(state.selectedMedia);
+                        setSelectedDocument(state.selectedDocument);
+                        setIsDrawerVisible(true);
+                        Animated.spring(drawerAnimation, {
+                          toValue: 1,
+                          useNativeDriver: true,
+                        }).start();
+                      }
+                    });
+                  }}
+                  style={styles.evidencePreview}
+                >
+                  <View style={styles.pdfPreviewContainer}>
+                    <Ionicons name="document-text" size={32} color={Colors.blueDark} />
+                    <Text style={styles.pdfPreviewText}>PDF</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => {
+                    setSelectedDocument(null);
+                  }}
+                >
+                  <Ionicons name="close" size={16} color="white" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
       </View>
     );
@@ -2185,5 +2242,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1,
+  },
+  pdfPreviewContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: Colors.blueDark + '10',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pdfPreviewText: {
+    fontSize: 12,
+    fontFamily: 'MavenPro-Medium',
+    color: Colors.blueDark,
+    marginTop: 4,
   },
 }); 
