@@ -27,6 +27,17 @@ interface ProcessedImages {
   highResUri: string;
 }
 
+interface DrawerState {
+  isVisible: boolean;
+  selectedQual: Qualification | null;
+  reference: string;
+  achievedDate: Date;
+  renewsMonths: number | null;
+  selectedImage: string | null;
+  selectedImageThumbnail: string | null;
+  selectedDocument: string | null;
+}
+
 const db = SQLite.openDatabaseSync('skillsfile.db');
 
 const formatToSQLDateTime = (date: Date): string => {
@@ -187,7 +198,7 @@ export default function QualificationsScreen() {
   const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
   const [showDebugButtons, setShowDebugButtons] = useState(false);
   const drawerAnimation = useRef(new Animated.Value(0)).current;
-  const lastQualRef = useRef<Qualification | null>(null);
+  const lastQualRef = useRef<DrawerState | null>(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const navigation = useNavigation();
   const isBack = useRef(false);
@@ -289,7 +300,16 @@ export default function QualificationsScreen() {
 
   const showDrawer = (qual: Qualification) => {
     setSelectedQual(qual);
-    lastQualRef.current = qual;
+    lastQualRef.current = {
+      isVisible: true,
+      selectedQual: qual,
+      reference: '',
+      achievedDate: new Date(),
+      renewsMonths: null,
+      selectedImage: null,
+      selectedImageThumbnail: null,
+      selectedDocument: null
+    };
     setIsDrawerVisible(true);
     Animated.spring(drawerAnimation, {
       toValue: 1,
@@ -1081,9 +1101,34 @@ export default function QualificationsScreen() {
                   console.log('Debug - Thumbnail clicked');
                   console.log('Debug - High-res image URL:', selectedImage);
                   if (selectedImage) {
-                    hideDrawer();
+                    // Store current drawer state
+                    const currentDrawerState: DrawerState = {
+                      isVisible: isDrawerVisible,
+                      selectedQual,
+                      reference,
+                      achievedDate,
+                      renewsMonths,
+                      selectedImage,
+                      selectedImageThumbnail,
+                      selectedDocument
+                    };
+                    // Store in ref to preserve across preview
+                    lastQualRef.current = currentDrawerState;
+                    
+                    // Hide drawer temporarily
+                    setIsDrawerVisible(false);
+                    
                     showPreview(selectedImage, 'image', () => {
+                      // Restore drawer state when preview closes
                       if (lastQualRef.current) {
+                        const state = lastQualRef.current;
+                        setSelectedQual(state.selectedQual);
+                        setReference(state.reference);
+                        setAchievedDate(state.achievedDate);
+                        setRenewsMonths(state.renewsMonths);
+                        setSelectedImage(state.selectedImage);
+                        setSelectedImageThumbnail(state.selectedImageThumbnail);
+                        setSelectedDocument(state.selectedDocument);
                         setIsDrawerVisible(true);
                         Animated.spring(drawerAnimation, {
                           toValue: 1,
