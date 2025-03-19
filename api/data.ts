@@ -1,8 +1,9 @@
 import requiredQualifications from './quals_required.json';
 import companies from './companies.json';
 import sampleQualifications from './quals_sample.json';
+import users from './users.json';
 
-type JsonDataType = 'req_quals' | 'companies' | 'sample_quals';
+type JsonDataType = 'req_quals' | 'companies' | 'sample_quals' | 'users';
 
 export interface RequiredQualification {
   uid: string;
@@ -55,7 +56,20 @@ export interface SampleQualification {
   synced: number;
 }
 
-export function pullJson(type: JsonDataType): RequiredQualification[] | Company[] | SampleQualification[] {
+export interface User {
+  uid: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  status: number;
+  created: string;
+  creator: string;
+  updated: string;
+  updator: string;
+  synced: number;
+}
+
+export function pullJson(type: JsonDataType): RequiredQualification[] | Company[] | SampleQualification[] | User[] {
   switch (type) {
     case 'req_quals':
       return requiredQualifications.qualifications as RequiredQualification[];
@@ -63,6 +77,8 @@ export function pullJson(type: JsonDataType): RequiredQualification[] | Company[
       return companies.companies as Company[];
     case 'sample_quals':
       return sampleQualifications.qualifications as SampleQualification[];
+    case 'users':
+      return users.users as User[];
     default:
       throw new Error(`Unknown JSON data type: ${type}`);
   }

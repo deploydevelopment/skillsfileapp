@@ -4,7 +4,7 @@ import * as SQLite from 'expo-sqlite';
 import { Colors } from '../../constants/styles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { pullJson, RequiredQualification, Company, SampleQualification } from '../../api/data';
+import { pullJson, RequiredQualification, Company, SampleQualification, User } from '../../api/data';
 
 interface BaseRecord {
   id: number;
@@ -250,7 +250,7 @@ export default function TableScreen() {
                 1
               )
             `);
-          } 
+          }
           // If qualification exists and JSON has newer update, update it
           else if (qual.updated > existingQual.updated) {
             db.execSync(`
@@ -270,84 +270,201 @@ export default function TableScreen() {
         });
       } else if (selectedTable === 'quals_req') {
         const reqQuals = pullJson('req_quals') as RequiredQualification[];
-        reqQuals.forEach((qual) => {
-          db.execSync(`
-            INSERT OR REPLACE INTO quals_req (
-              uid, name, intro, category_name, expires_months,
-              created, creator, updated, updator, status, accreditor, synced
-            ) VALUES (
-              '${qual.uid}',
-              '${qual.name}',
-              '${qual.intro}',
-              '${qual.category_name}',
-              ${qual.expires_months},
-              '${qual.created}',
-              '${qual.creator}',
-              '${qual.updated}',
-              '${qual.updator}',
-              ${qual.status},
-              '${qual.accreditor}',
-              1
-            )
-          `);
+        
+        // Get existing qualifications
+        const existingQuals = db.getAllSync<QualsReqRecord>(
+          'SELECT * FROM quals_req'
+        );
+        
+        // Create a map of existing qualifications by uid for quick lookup
+        const existingQualsMap = new Map(
+          existingQuals.map(qual => [qual.uid, qual])
+        );
 
-          // Insert company relationships for this qualification
+        reqQuals.forEach((qual) => {
+          const existingQual = existingQualsMap.get(qual.uid);
+          
+          // If qualification doesn't exist, insert it
+          if (!existingQual) {
+            db.execSync(`
+              INSERT INTO quals_req (
+                uid, name, intro, category_name, expires_months,
+                created, creator, updated, updator, status, accreditor, synced
+              ) VALUES (
+                '${qual.uid}',
+                '${qual.name}',
+                '${qual.intro}',
+                '${qual.category_name}',
+                ${qual.expires_months},
+                '${qual.created}',
+                '${qual.creator}',
+                '${qual.updated}',
+                '${qual.updator}',
+                ${qual.status},
+                '${qual.accreditor}',
+                1
+              )
+            `);
+          }
+          // If qualification exists and JSON has newer update, update it
+          else if (qual.updated > existingQual.updated) {
+            db.execSync(`
+              UPDATE quals_req 
+              SET name = '${qual.name}',
+                  intro = '${qual.intro}',
+                  category_name = '${qual.category_name}',
+                  expires_months = ${qual.expires_months},
+                  updated = '${qual.updated}',
+                  updator = '${qual.updator}',
+                  status = ${qual.status},
+                  accreditor = '${qual.accreditor}',
+                  synced = 1
+              WHERE uid = '${qual.uid}'
+            `);
+          }
+
+          // Handle company relationships
           if (qual.comp_requests) {
+            // Get existing relationships
+            const existingRelations = db.getAllSync<QualCompanyReqRecord>(
+              `SELECT * FROM qual_company_req WHERE qual_uid = '${qual.uid}'`
+            );
+            
+            // Create a map of existing relationships by company_uid
+            const existingRelationsMap = new Map(
+              existingRelations.map(rel => [rel.company_uid, rel])
+            );
+
             qual.comp_requests.forEach((req) => {
-              db.execSync(`
-                INSERT OR REPLACE INTO qual_company_req (
-                  qual_uid, company_uid, created, creator, updated, updator, synced
-                ) VALUES (
-                  '${qual.uid}',
-                  '${req.creator}',
-                  '${req.created}',
-                  'system',
-                  '${req.updated}',
-                  '${req.updator}',
-                  1
-                )
-              `);
+              const existingRel = existingRelationsMap.get(req.creator);
+              
+              // If relationship doesn't exist, insert it
+              if (!existingRel) {
+                db.execSync(`
+                  INSERT INTO qual_company_req (
+                    qual_uid, company_uid, created, creator, updated, updator, synced
+                  ) VALUES (
+                    '${qual.uid}',
+                    '${req.creator}',
+                    '${req.created}',
+                    'system',
+                    '${req.updated}',
+                    '${req.updator}',
+                    1
+                  )
+                `);
+              }
+              // If relationship exists and JSON has newer update, update it
+              else if (req.updated > existingRel.updated) {
+                db.execSync(`
+                  UPDATE qual_company_req 
+                  SET updated = '${req.updated}',
+                      updator = '${req.updator}',
+                      synced = 1
+                  WHERE qual_uid = '${qual.uid}' AND company_uid = '${req.creator}'
+                `);
+              }
             });
           }
         });
       } else if (selectedTable === 'companies') {
         const companiesList = pullJson('companies') as Company[];
+        
+        // Get existing companies
+        const existingCompanies = db.getAllSync<CompanyRecord>(
+          'SELECT * FROM companies'
+        );
+        
+        // Create a map of existing companies by uid for quick lookup
+        const existingCompaniesMap = new Map(
+          existingCompanies.map(company => [company.uid, company])
+        );
+
         companiesList.forEach((company) => {
-          db.execSync(`
-            INSERT OR REPLACE INTO companies (
-              uid, name, status,
-              created, creator, updated, updator, synced
-            ) VALUES (
-              '${company.uid}',
-              '${company.name}',
-              ${company.status},
-              '${formatToSQLDateTime(new Date())}',
-              'system',
-              '',
-              '',
-              1
-            )
-          `);
+          const existingCompany = existingCompaniesMap.get(company.uid);
+          
+          // If company doesn't exist, insert it
+          if (!existingCompany) {
+            db.execSync(`
+              INSERT INTO companies (
+                uid, name, status,
+                created, creator, updated, updator, synced
+              ) VALUES (
+                '${company.uid}',
+                '${company.name}',
+                ${company.status},
+                '${formatToSQLDateTime(new Date())}',
+                'system',
+                '',
+                '',
+                1
+              )
+            `);
+          }
+          // If company exists and JSON has newer update, update it
+          else if (company.updated > existingCompany.updated) {
+            db.execSync(`
+              UPDATE companies 
+              SET name = '${company.name}',
+                  status = ${company.status},
+                  updated = '${company.updated}',
+                  updator = '${company.updator}',
+                  synced = 1
+              WHERE uid = '${company.uid}'
+            `);
+          }
         });
       } else if (selectedTable === 'users') {
-        // Create default user
-        db.execSync(`
-          INSERT OR REPLACE INTO users (
-            uid, created, creator, updated, updator,
-            first_name, last_name, username, status, synced
-          ) VALUES (
-            '${generateUID()}', 
-            '${formatToSQLDateTime(new Date())}',
-            'system',
-            '',
-            '',
-            'Matt',
-            'Riley',
-            'hugosebriley',
-            0,
-            1
-          );
-        `);
+        const usersList = pullJson('users') as User[];
+        
+        // Get existing users
+        const existingUsers = db.getAllSync<User>(
+          'SELECT * FROM users'
+        );
+        
+        // Create a map of existing users by uid for quick lookup
+        const existingUsersMap = new Map(
+          existingUsers.map(user => [user.uid, user])
+        );
+
+        usersList.forEach((user) => {
+          const existingUser = existingUsersMap.get(user.uid);
+          
+          // If user doesn't exist, insert it
+          if (!existingUser) {
+            db.execSync(`
+              INSERT INTO users (
+                uid, first_name, last_name, username, status,
+                created, creator, updated, updator, synced
+              ) VALUES (
+                '${user.uid}',
+                '${user.first_name}',
+                '${user.last_name}',
+                '${user.username}',
+                ${user.status},
+                '${user.created}',
+                '${user.creator}',
+                '${user.updated}',
+                '${user.updator}',
+                1
+              )
+            `);
+          }
+          // If user exists and JSON has newer update, update it
+          else if (user.updated > existingUser.updated) {
+            db.execSync(`
+              UPDATE users 
+              SET first_name = '${user.first_name}',
+                  last_name = '${user.last_name}',
+                  username = '${user.username}',
+                  status = ${user.status},
+                  updated = '${user.updated}',
+                  updator = '${user.updator}',
+                  synced = 1
+              WHERE uid = '${user.uid}'
+            `);
+          }
+        });
       } else if (selectedTable === 'qual_company_req') {
         // For qual_company_req, we need to fetch both quals_req and companies first
         const reqQuals = pullJson('req_quals') as RequiredQualification[];
