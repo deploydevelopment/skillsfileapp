@@ -53,6 +53,14 @@ export function CustomDrawerContent(props: any) {
 
         <AnimatedButton 
           style={styles.drawerItem}
+          onPress={() => router.push('/(tabs)/test-supabase')}
+        >
+          <Ionicons name="cloud-outline" size={22} color={Colors.white} style={styles.icon} />
+          <Text style={styles.drawerItemText}>Test Supabase</Text>
+        </AnimatedButton>
+
+        <AnimatedButton 
+          style={styles.drawerItem}
           onPress={() => {}}
         >
           <Ionicons name="settings-outline" size={22} color={Colors.white} style={styles.icon} />

@@ -109,6 +109,13 @@ export default function TabLayout() {
           tabBarStyle: { display: 'none' }
         }}
       />
+      <Tabs.Screen
+        name="test-supabase"
+        options={{
+          href: null,
+          tabBarStyle: { display: 'none' }
+        }}
+      />
     </Tabs>
   );
 }
