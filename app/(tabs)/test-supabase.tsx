@@ -5,11 +5,31 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/styles';
 import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import * as SQLite from 'expo-sqlite';
+
+const db = SQLite.openDatabaseSync('skillsfile.db');
+
+interface CountResult {
+  count: number;
+}
 
 export default function TestSupabaseScreen() {
   const router = useRouter();
   const [connectionStatus, setConnectionStatus] = useState<string>('');
   const [syncStatus, setSyncStatus] = useState<string>('');
+  const [dbStatus, setDbStatus] = useState<string>('');
+
+  const checkDatabase = () => {
+    try {
+      const totalRecords = (db.getAllSync<CountResult>('SELECT COUNT(*) as count FROM qualifications')[0]).count;
+      const unsyncedRecords = (db.getAllSync<CountResult>('SELECT COUNT(*) as count FROM qualifications WHERE synced = 0')[0]).count;
+      const syncedRecords = (db.getAllSync<CountResult>('SELECT COUNT(*) as count FROM qualifications WHERE synced = 1')[0]).count;
+      
+      setDbStatus(`Total records: ${totalRecords}\nUnsynced: ${unsyncedRecords}\nSynced: ${syncedRecords}`);
+    } catch (error) {
+      setDbStatus(`Error checking database: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
 
   const testConnection = async () => {
     try {
@@ -30,6 +50,7 @@ export default function TestSupabaseScreen() {
           ? `✅ Sync successful. Synced ${result.syncedCount} records.`
           : `❌ Sync failed: ${result.error}`
       );
+      checkDatabase(); // Refresh database status after sync
     } catch (error) {
       setSyncStatus(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -48,6 +69,11 @@ export default function TestSupabaseScreen() {
           <Text style={styles.title}>Supabase Connection Test</Text>
         </View>
         
+        <View style={styles.section}>
+          <Button title="Check Database" onPress={checkDatabase} />
+          <Text style={styles.status}>{dbStatus}</Text>
+        </View>
+
         <View style={styles.section}>
           <Button title="Test Connection" onPress={testConnection} />
           <Text style={styles.status}>{connectionStatus}</Text>

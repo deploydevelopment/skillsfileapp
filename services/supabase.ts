@@ -29,9 +29,14 @@ interface SQLiteRecord {
 export const syncToSupabase = async (): Promise<SyncResult> => {
   try {
     // Get all unsynced records from SQLite
-    const selectStmt = await db.prepareAsync('SELECT * FROM records WHERE synced = 0');
+    const selectStmt = await db.prepareAsync('SELECT * FROM qualifications WHERE synced = 0');
     const selectResult = await selectStmt.executeAsync<SQLiteRecord>();
     const result = await selectResult.getAllAsync();
+    
+    console.log('Found unsynced records:', result.length);
+    if (result.length > 0) {
+      console.log('First unsynced record:', result[0]);
+    }
     
     if (!Array.isArray(result) || result.length === 0) {
       return { success: true, syncedCount: 0 };
@@ -49,20 +54,25 @@ export const syncToSupabase = async (): Promise<SyncResult> => {
       return transformedRecord;
     });
 
+    console.log('Transformed records to sync:', transformedRecords);
+
     // Insert records into Supabase
     const { data, error } = await supabase
-      .from('records')
+      .from('qualifications')
       .upsert(transformedRecords, {
         onConflict: 'id',
         ignoreDuplicates: false
       });
 
     if (error) {
+      console.error('Supabase upsert error:', error);
       throw error;
     }
 
+    console.log('Supabase upsert response:', data);
+
     // Update synced status in SQLite
-    const updateStmt = await db.prepareAsync('UPDATE records SET synced = 1 WHERE synced = 0');
+    const updateStmt = await db.prepareAsync('UPDATE qualifications SET synced = 1 WHERE synced = 0');
     await updateStmt.executeAsync();
 
     return {
@@ -83,7 +93,7 @@ export const syncToSupabase = async (): Promise<SyncResult> => {
 export const testSupabaseConnection = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase
-      .from('records')
+      .from('qualifications')
       .select('count')
       .limit(1);
     
