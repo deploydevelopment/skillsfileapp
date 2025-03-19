@@ -5,6 +5,8 @@ import { Colors } from '../../constants/styles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { pullJson, RequiredQualification, Company, SampleQualification, User } from '../../api/data';
+import { pullAPI } from '../../api/pullAPI';
+import Toast from 'react-native-toast-message';
 
 interface BaseRecord {
   id: number;
@@ -520,6 +522,27 @@ export default function TableScreen() {
     }
   };
 
+  const handlePullAPI = async () => {
+    try {
+      await pullAPI();
+      loadRecords();
+      Toast.show({
+        type: 'success',
+        text1: 'Sync Successful',
+        text2: 'All data has been updated from the API',
+        position: 'bottom',
+      });
+    } catch (error) {
+      console.error('Error pulling API data:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Sync Failed',
+        text2: 'Failed to update data from the API',
+        position: 'bottom',
+      });
+    }
+  };
+
   useEffect(() => {
     loadRecords();
   }, [selectedTable]);
@@ -967,9 +990,9 @@ export default function TableScreen() {
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.footerButton, styles.updateButton]} 
-            onPress={loadRecords}
+            onPress={handlePullAPI}
           >
-            <Text style={styles.footerButtonText}>Update View</Text>
+            <Text style={styles.footerButtonText}>Pull API</Text>
           </TouchableOpacity>
         </View>
       </View>

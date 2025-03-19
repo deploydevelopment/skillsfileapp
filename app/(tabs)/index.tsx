@@ -1,36 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Animated, Dimensions, Easing } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Alert, ScrollView, Image, Animated, Dimensions, Easing, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SQLite from 'expo-sqlite';
 import { Link, useFocusEffect, useRouter, useNavigation } from 'expo-router';
-import { pullJson } from '../../api/data';
+import { pullJson, RequiredQualification, SampleQualification } from '../../api/data';
+import { pullAPI } from '../../api/pullAPI';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '../../constants/styles';
 import { DrawerActions } from '@react-navigation/native';
 import { AnimatedButton } from '../../components/AnimatedButton';
-
-interface Qualification {
-  uid: string;
-  name: string;
-  intro: string;
-  category_name: string;
-  expires_months: number;
-  created: string;
-  creator: string;
-  updated: string;
-  updator: string;
-  parent_uid?: string;
-  reference?: string;
-  status: number;
-  synced: number;
-  comp_requests?: { 
-    creator: string;
-    creator_name: string;
-    created: string;
-    updated: string;
-    updator: string;
-  }[];
-}
+import Toast from 'react-native-toast-message';
 
 interface Company {
   uid: string;
@@ -396,15 +375,63 @@ const initializeDatabase = () => {
   }
 };
 
+const formatDisplayDate = (date: Date): string => {
+  return date.toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  });
+};
+
 export default function TabOneScreen() {
   const router = useRouter();
   const navigation = useNavigation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [qualifications, setQualifications] = useState<Qualification[]>([]);
+  const [activeTab, setActiveTab] = useState<'achieved' | 'required'>('achieved');
+  const [requiredQualifications, setRequiredQualifications] = useState<RequiredQualification[]>([]);
+  const [achievedQualifications, setAchievedQualifications] = useState<SampleQualification[]>([]);
+  const [filteredRequiredQualifications, setFilteredRequiredQualifications] = useState<RequiredQualification[]>([]);
+  const [filteredAchievedQualifications, setFilteredAchievedQualifications] = useState<SampleQualification[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const isBack = useRef(false);
   const isFirstLoad = useRef(true);
+  const [selectedQual, setSelectedQual] = useState<RequiredQualification | null>(null);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const filteredQualifications = requiredQualifications.filter(qual => 
+    qual.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    qual.accreditor.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await pullAPI();
+      Toast.show({
+        type: 'success',
+        text1: 'Sync Successful',
+        text2: 'All data has been updated',
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+      });
+    } catch (error) {
+      console.error('Error refreshing:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Sync Failed',
+        text2: 'Failed to update data',
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   // Add navigation listener for back button
   useEffect(() => {
@@ -464,7 +491,7 @@ export default function TabOneScreen() {
     }, [])
   );
 
-  const addQualification = async (qual: Qualification) => {
+  const addQualification = async (qual: RequiredQualification) => {
     setIsLoading(true);
     setError(null);
     
@@ -523,19 +550,23 @@ export default function TabOneScreen() {
 
   const loadRecords = async () => {
     try {
-      // Verify table structure
-      const tableInfo = db.getAllSync<{ name: string, type: string }>(
-        "PRAGMA table_info(qualifications)"
-      );
-      console.log('Qualifications table structure:', tableInfo);
+      const db = SQLite.openDatabaseSync('skillsfile.db');
       
-      const records = db.getAllSync<Qualification>(
+      // Load required qualifications
+      const requiredRecords = db.getAllSync<RequiredQualification>(
+        'SELECT * FROM quals_req ORDER BY created DESC'
+      );
+      setRequiredQualifications(requiredRecords);
+      setFilteredRequiredQualifications(requiredRecords);
+      
+      // Load achieved qualifications
+      const achievedRecords = db.getAllSync<SampleQualification>(
         'SELECT * FROM qualifications ORDER BY created DESC'
       );
-      console.log('Loaded records:', records);
-      setQualifications(records);
-    } catch (err) {
-      console.error('Error loading records:', err);
+      setAchievedQualifications(achievedRecords);
+      setFilteredAchievedQualifications(achievedRecords);
+    } catch (error) {
+      console.error('Error loading records:', error);
       setError('Failed to load records');
     }
   };
@@ -560,6 +591,88 @@ export default function TabOneScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const showDrawer = (qualification: RequiredQualification | SampleQualification) => {
+    if ('intro' in qualification) {
+      // This is a RequiredQualification
+      setSelectedQual(qualification);
+    } else {
+      // This is a SampleQualification
+      // Convert it to RequiredQualification format
+      const reqQual: RequiredQualification = {
+        uid: qualification.uid,
+        name: qualification.name,
+        intro: '', // We don't have this info for achieved qualifications
+        category_name: '', // We don't have this info for achieved qualifications
+        expires_months: qualification.expires_months,
+        created: qualification.created,
+        creator: qualification.creator,
+        updated: qualification.updated,
+        updator: qualification.updator,
+        status: qualification.status,
+        accreditor: qualification.reference, // Use reference as accreditor
+        reference: qualification.reference,
+        parent_uid: qualification.parent_uid,
+        synced: qualification.synced,
+        comp_requests: [] // We don't have this info for achieved qualifications
+      };
+      setSelectedQual(reqQual);
+    }
+    setIsDrawerVisible(true);
+  };
+
+  const renderTabContent = () => {
+    if (activeTab === 'achieved') {
+      if (achievedQualifications.length === 0) {
+        return (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No qualifications achieved yet</Text>
+            <Text style={styles.emptyStateSubtext}>Your achieved qualifications will appear here</Text>
+          </View>
+        );
+      }
+
+      if (filteredAchievedQualifications.length === 0) {
+        return (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No matches found</Text>
+            <Text style={styles.emptyStateSubtext}>Try adjusting your search</Text>
+          </View>
+        );
+      }
+      
+      return (
+        <ScrollView style={styles.scrollView}>
+          {filteredAchievedQualifications.map((qual, index) => (
+            <AnimatedButton 
+              key={index}
+              style={styles.qualificationButton} 
+              onPress={() => showDrawer(qual)}
+            >
+              <View style={styles.qualificationContent}>
+                <View style={styles.qualificationRow}>
+                  <Text style={[styles.qualificationName, { flex: 1 }]}>{qual.name}</Text>
+                </View>
+                <View style={styles.qualificationBottomRow}>
+                  <Text style={styles.qualificationCompany}>
+                    {qual.reference}
+                  </Text>
+                  <Text style={styles.achievedDate}>
+                    {qual.achieved ? formatDisplayDate(new Date(qual.achieved)) : ''}
+                  </Text>
+                  <View style={styles.checkCircle}>
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.green} />
+                  </View>
+                </View>
+              </View>
+            </AnimatedButton>
+          ))}
+        </ScrollView>
+      );
+    }
+
+    // ... rest of the existing code ...
   };
 
   return (
@@ -602,7 +715,17 @@ export default function TabOneScreen() {
           </View>
         </View>
 
-        <ScrollView style={styles.scrollView}>
+        <ScrollView 
+          style={styles.scrollView}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.blueDark}
+              colors={[Colors.blueDark]}
+            />
+          }
+        >
           <View style={styles.content}>
             <View style={styles.alertItem}>
               <Image 
@@ -835,5 +958,55 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 0,
     backgroundColor: 'transparent',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.blueDark,
+    marginBottom: 10,
+  },
+  emptyStateSubtext: {
+    fontSize: 16,
+    color: Colors.blueDark,
+  },
+  qualificationButton: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: Colors.blueDark,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  qualificationContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  qualificationRow: {
+    flex: 1,
+  },
+  qualificationName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.blueDark,
+  },
+  qualificationBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  qualificationCompany: {
+    fontSize: 16,
+    color: Colors.blueDark,
+    marginRight: 10,
+  },
+  achievedDate: {
+    fontSize: 16,
+    color: Colors.blueDark,
+  },
+  checkCircle: {
+    marginLeft: 10,
   },
 });

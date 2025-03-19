@@ -69,6 +69,11 @@ export interface User {
   synced: number;
 }
 
+export function pullJson(type: 'req_quals'): RequiredQualification[];
+export function pullJson(type: 'companies'): Company[];
+export function pullJson(type: 'sample_quals'): SampleQualification[];
+export function pullJson(type: 'users'): User[];
+
 export function pullJson(type: JsonDataType): RequiredQualification[] | Company[] | SampleQualification[] | User[] {
   switch (type) {
     case 'req_quals':
