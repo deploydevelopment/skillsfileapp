@@ -489,12 +489,15 @@ export default function TableScreen() {
           `);
         });
 
+        // Clear the qual_company_req table
+        db.execSync('DELETE FROM qual_company_req');
+
         // Then create all relationships
         reqQuals.forEach((qual) => {
           if (qual.comp_requests) {
             qual.comp_requests.forEach((req) => {
               db.execSync(`
-                INSERT OR REPLACE INTO qual_company_req (
+                INSERT INTO qual_company_req (
                   qual_uid, company_uid, created, creator, updated, updator, synced
                 ) VALUES (
                   '${qual.uid}',
