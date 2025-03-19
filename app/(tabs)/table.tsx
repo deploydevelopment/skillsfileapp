@@ -13,6 +13,7 @@ interface BaseRecord {
   creator: string;
   updated: string;
   updator: string;
+  synced: number;
 }
 
 interface QualificationRecord extends BaseRecord {
@@ -233,7 +234,7 @@ export default function TableScreen() {
             db.execSync(`
               INSERT INTO qualifications (
                 uid, name, expires_months, created, creator, updated, updator,
-                parent_uid, reference, achieved, status
+                parent_uid, reference, achieved, status, synced
               ) VALUES (
                 '${qual.uid}',
                 '${qual.name}',
@@ -245,7 +246,8 @@ export default function TableScreen() {
                 '${qual.parent_uid}',
                 '${qual.reference}',
                 '${qual.achieved}',
-                ${qual.status}
+                ${qual.status},
+                1
               )
             `);
           } 
@@ -260,7 +262,8 @@ export default function TableScreen() {
                   parent_uid = '${qual.parent_uid}',
                   reference = '${qual.reference}',
                   achieved = '${qual.achieved}',
-                  status = ${qual.status}
+                  status = ${qual.status},
+                  synced = 1
               WHERE uid = '${qual.uid}'
             `);
           }
@@ -271,7 +274,7 @@ export default function TableScreen() {
           db.execSync(`
             INSERT OR REPLACE INTO quals_req (
               uid, name, intro, category_name, expires_months,
-              created, creator, updated, updator, status, accreditor
+              created, creator, updated, updator, status, accreditor, synced
             ) VALUES (
               '${qual.uid}',
               '${qual.name}',
@@ -283,7 +286,8 @@ export default function TableScreen() {
               '${qual.updated}',
               '${qual.updator}',
               ${qual.status},
-              '${qual.accreditor}'
+              '${qual.accreditor}',
+              1
             )
           `);
 
@@ -292,14 +296,15 @@ export default function TableScreen() {
             qual.comp_requests.forEach((req) => {
               db.execSync(`
                 INSERT OR REPLACE INTO qual_company_req (
-                  qual_uid, company_uid, created, creator, updated, updator
+                  qual_uid, company_uid, created, creator, updated, updator, synced
                 ) VALUES (
                   '${qual.uid}',
                   '${req.creator}',
                   '${req.created}',
                   'system',
                   '${req.updated}',
-                  '${req.updator}'
+                  '${req.updator}',
+                  1
                 )
               `);
             });
@@ -311,7 +316,7 @@ export default function TableScreen() {
           db.execSync(`
             INSERT OR REPLACE INTO companies (
               uid, name, status,
-              created, creator, updated, updator
+              created, creator, updated, updator, synced
             ) VALUES (
               '${company.uid}',
               '${company.name}',
@@ -319,7 +324,8 @@ export default function TableScreen() {
               '${formatToSQLDateTime(new Date())}',
               'system',
               '',
-              ''
+              '',
+              1
             )
           `);
         });
@@ -328,7 +334,7 @@ export default function TableScreen() {
         db.execSync(`
           INSERT OR REPLACE INTO users (
             uid, created, creator, updated, updator,
-            first_name, last_name, username, status
+            first_name, last_name, username, status, synced
           ) VALUES (
             '${generateUID()}', 
             '${formatToSQLDateTime(new Date())}',
@@ -338,7 +344,8 @@ export default function TableScreen() {
             'Matt',
             'Riley',
             'hugosebriley',
-            0
+            0,
+            1
           );
         `);
       } else if (selectedTable === 'qual_company_req') {
@@ -351,7 +358,7 @@ export default function TableScreen() {
           db.execSync(`
             INSERT OR REPLACE INTO companies (
               uid, name, status,
-              created, creator, updated, updator
+              created, creator, updated, updator, synced
             ) VALUES (
               '${company.uid}',
               '${company.name}',
@@ -359,7 +366,8 @@ export default function TableScreen() {
               '${formatToSQLDateTime(new Date())}',
               'system',
               '',
-              ''
+              '',
+              1
             )
           `);
         });
@@ -370,14 +378,15 @@ export default function TableScreen() {
             qual.comp_requests.forEach((req) => {
               db.execSync(`
                 INSERT OR REPLACE INTO qual_company_req (
-                  qual_uid, company_uid, created, creator, updated, updator
+                  qual_uid, company_uid, created, creator, updated, updator, synced
                 ) VALUES (
                   '${qual.uid}',
                   '${req.creator}',
                   '${req.created}',
                   'system',
                   '${req.updated}',
-                  '${req.updator}'
+                  '${req.updator}',
+                  1
                 )
               `);
             });

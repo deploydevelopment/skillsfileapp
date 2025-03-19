@@ -222,35 +222,62 @@ describe('Database Operations', () => {
 ## Database Syncing
 
 ### Syncing Status Field
-All tables in the database should include a `synced` column with the following specifications:
-- Type: TINYINT
+All tables in the database include a `synced` column with the following specifications:
+- Type: TINYINT NOT NULL
 - Values: 0 (not synced) or 1 (synced)
 - Default: 0
 
-Example:
-```sql
-ALTER TABLE table_name ADD COLUMN synced TINYINT DEFAULT 0;
-```
+The following tables include the synced column:
+- qualifications
+- users
+- quals_req
+- qual_company_req
+- companies
 
 ### Syncing Rules
 
-1. **New Records Created in App**
+1. **Records Created in App**
    - When a new record is created directly in the app:
-     - `synced` should be set to 0
-     - `created_at` and `creator` should be set
-     - `updated_at` and `updator` should be set
+     - `synced` is set to 0 (default)
+     - Record is pending sync with Supabase
 
-2. **Records Imported from JSON APIs**
-   - When records are imported from external JSON APIs:
-     - `synced` should be set to 1
-     - `created_at` and `creator` should be set
-     - `updated_at` and `updator` should be set
+2. **Records from JSON**
+   - When records are imported from JSON files:
+     - `synced` is set to 1
+     - These records are considered already synced
 
 3. **Record Updates**
-   - When any record is modified:
-     - `synced` should be set to 0
-     - `updated_at` and `updator` should be updated
-     - Original `created_at` and `creator` should be preserved
+   - When a record is updated:
+     - `synced` is set to 0
+     - Record will be synced with Supabase
+   - After successful Supabase sync:
+     - `synced` is set to 1
+
+4. **Supabase Callback**
+   - When Supabase confirms a sync:
+     - `synced` is set to 1
+     - Record is considered in sync
+
+Example table creation:
+```sql
+CREATE TABLE table_name (
+    -- other fields...
+    synced TINYINT NOT NULL DEFAULT 0
+);
+```
+
+Example sync status update:
+```sql
+-- After successful Supabase sync
+UPDATE table_name 
+SET synced = 1 
+WHERE id = ?;
+
+-- After local modification
+UPDATE table_name 
+SET synced = 0 
+WHERE id = ?;
+```
 
 ### Implementation Example
 

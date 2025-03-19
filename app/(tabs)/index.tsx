@@ -83,7 +83,8 @@ const initializeDatabase = () => {
           parent_uid TEXT(36),
           reference TEXT(50),
           achieved TEXT,
-          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+          synced TINYINT NOT NULL DEFAULT 0
         );
 
         CREATE TABLE users (
@@ -96,7 +97,8 @@ const initializeDatabase = () => {
           creator TEXT NOT NULL,
           updated TEXT,
           updator TEXT,
-          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+          synced TINYINT NOT NULL DEFAULT 0
         );
 
         CREATE TABLE quals_req (
@@ -111,7 +113,8 @@ const initializeDatabase = () => {
           updated TEXT,
           updator TEXT,
           accreditor TEXT NOT NULL,
-          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
+          status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+          synced TINYINT NOT NULL DEFAULT 0
         );
 
         CREATE TABLE qual_company_req (
@@ -122,6 +125,7 @@ const initializeDatabase = () => {
           creator TEXT NOT NULL,
           updated TEXT,
           updator TEXT,
+          synced TINYINT NOT NULL DEFAULT 0,
           FOREIGN KEY (qual_uid) REFERENCES quals_req(uid),
           FOREIGN KEY (company_uid) REFERENCES companies(uid)
         );
@@ -134,23 +138,25 @@ const initializeDatabase = () => {
           created TEXT NOT NULL,
           creator TEXT NOT NULL,
           updated TEXT,
-          updator TEXT
+          updator TEXT,
+          synced TINYINT NOT NULL DEFAULT 0
         );
 
         -- Insert default user
         INSERT INTO users (
-          uid, created, creator, updated, updator,
-          first_name, last_name, username, status
+          uid, first_name, last_name, username, status,
+          created, creator, updated, updator, synced
         ) VALUES (
           '${generateUID()}',
+          'Matt',
+          'Riley',
+          'hugosebriley',
+          0,
           '${formatToSQLDateTime(new Date())}',
           'system',
           '',
           '',
-          'Matt',
-          'Riley',
-          'hugosebriley',
-          0
+          1
         );
       `);
 
@@ -160,7 +166,7 @@ const initializeDatabase = () => {
         db.execSync(`
           INSERT INTO quals_req (
             uid, name, intro, category_name, expires_months,
-            created, creator, updated, updator, status, accreditor
+            created, creator, updated, updator, status, accreditor, synced
           ) VALUES (
             '${q.uid}',
             '${q.name}',
@@ -172,7 +178,8 @@ const initializeDatabase = () => {
             '${q.updated}',
             '${q.updator}',
             ${q.status},
-            '${q.accreditor}'
+            '${q.accreditor}',
+            1
           );
         `);
 
@@ -181,14 +188,15 @@ const initializeDatabase = () => {
           q.comp_requests.forEach(cr => {
             db.execSync(`
               INSERT INTO qual_company_req (
-                qual_uid, company_uid, created, creator, updated, updator
+                qual_uid, company_uid, created, creator, updated, updator, synced
               ) VALUES (
                 '${q.uid}',
                 '${cr.creator}',
                 '${cr.created}',
                 'system',
                 '${cr.updated}',
-                '${cr.updator}'
+                '${cr.updator}',
+                1
               );
             `);
           });
@@ -201,7 +209,7 @@ const initializeDatabase = () => {
         db.execSync(`
           INSERT INTO companies (
             uid, name, status,
-            created, creator, updated, updator
+            created, creator, updated, updator, synced
           ) VALUES (
             '${c.uid}',
             '${c.name}',
@@ -209,7 +217,8 @@ const initializeDatabase = () => {
             '${formatToSQLDateTime(new Date())}',
             'system',
             '',
-            ''
+            '',
+            1
           );
         `);
       });
@@ -237,7 +246,8 @@ const initializeDatabase = () => {
             parent_uid TEXT(36),
             reference TEXT(50),
             achieved TEXT,
-            status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2))
+            status INTEGER NOT NULL DEFAULT 0 CHECK (status IN (0, 1, 2)),
+            synced TINYINT NOT NULL DEFAULT 0
           );
           
           INSERT INTO qualifications 
@@ -291,14 +301,15 @@ const initializeDatabase = () => {
             created TEXT NOT NULL,
             creator TEXT NOT NULL,
             updated TEXT,
-            updator TEXT
+            updator TEXT,
+            synced TINYINT NOT NULL DEFAULT 0
           );
 
           -- Insert companies from JSON
           ${pullJson('companies').map(c => `
             INSERT INTO companies (
               uid, name, status,
-              created, creator, updated, updator
+              created, creator, updated, updator, synced
             ) VALUES (
               '${c.uid}',
               '${c.name}',
@@ -306,7 +317,8 @@ const initializeDatabase = () => {
               '${formatToSQLDateTime(new Date())}',
               'system',
               '',
-              ''
+              '',
+              1
             );
           `).join('\n')}
         `);
@@ -357,6 +369,22 @@ const initializeDatabase = () => {
           WHERE uid = '${q.uid}'
         `);
       });
+    }
+
+    // Check for synced column in all tables
+    const allTables = ['qualifications', 'users', 'quals_req', 'qual_company_req', 'companies'];
+    
+    for (const table of allTables) {
+      const columns = db.getAllSync<{ name: string }>(
+        `PRAGMA table_info(${table})`
+      );
+      
+      const columnNames = columns.map(col => col.name);
+      
+      if (!columnNames.includes('synced')) {
+        console.log(`Adding synced column to ${table} table...`);
+        db.execSync(`ALTER TABLE ${table} ADD COLUMN synced TINYINT NOT NULL DEFAULT 0`);
+      }
     }
 
     console.log('Database initialization completed successfully');
