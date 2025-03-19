@@ -711,7 +711,7 @@ export default function QualificationsScreen() {
       Toast.show({
         type: 'success',
         text1: 'Success',
-        text2: `${qualName || 'Qualification'} has been added to your qualifications`,
+        text2: 'Qualification added successfully',
         position: 'top',
         topOffset: 60,
         visibilityTime: 3000,
@@ -736,7 +736,6 @@ export default function QualificationsScreen() {
       console.error('Error adding qualification:', error);
       setError('Failed to add qualification');
       
-      // Show error toast
       Toast.show({
         type: 'error',
         text1: 'Error',

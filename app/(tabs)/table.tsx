@@ -529,8 +529,22 @@ export default function TableScreen() {
       Toast.show({
         type: 'success',
         text1: 'Sync Successful',
-        text2: 'All data has been updated from the API',
-        position: 'bottom',
+        text2: 'All data has been pulled from the API',
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
+        }
       });
     } catch (error) {
       console.error('Error pulling API data:', error);
@@ -538,7 +552,21 @@ export default function TableScreen() {
         type: 'error',
         text1: 'Sync Failed',
         text2: 'Failed to update data from the API',
-        position: 'bottom',
+        position: 'top',
+        topOffset: 60,
+        visibilityTime: 3000,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
+        }
       });
     }
   };

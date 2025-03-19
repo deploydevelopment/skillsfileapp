@@ -410,23 +410,51 @@ export default function TabOneScreen() {
     setRefreshing(true);
     try {
       await pullAPI();
-      Toast.show({
-        type: 'success',
-        text1: 'Sync Successful',
-        text2: 'All data has been updated',
-        position: 'top',
-        visibilityTime: 3000,
-        autoHide: true,
-      });
+      loadRecords();
+      // Add a short delay before showing the success toast
+      setTimeout(() => {
+        Toast.show({
+          type: 'success',
+          text1: 'Sync Successful',
+          text2: 'All data has been pulled from the API',
+          position: 'top',
+          topOffset: 60,
+          visibilityTime: 3000,
+          text1Style: {
+            fontSize: 18,
+            fontFamily: 'MavenPro-Medium',
+            color: Colors.blueDark,
+            marginBottom: 4
+          },
+          text2Style: {
+            fontSize: 16,
+            fontFamily: 'MavenPro-Regular',
+            color: Colors.blueDark,
+            lineHeight: 20
+          }
+        });
+      }, 700); // 500ms delay
     } catch (error) {
-      console.error('Error refreshing:', error);
+      console.error('Error pulling API data:', error);
       Toast.show({
         type: 'error',
         text1: 'Sync Failed',
-        text2: 'Failed to update data',
+        text2: 'Failed to update data from the API',
         position: 'top',
+        topOffset: 60,
         visibilityTime: 3000,
-        autoHide: true,
+        text1Style: {
+          fontSize: 18,
+          fontFamily: 'MavenPro-Medium',
+          color: Colors.blueDark,
+          marginBottom: 4
+        },
+        text2Style: {
+          fontSize: 16,
+          fontFamily: 'MavenPro-Regular',
+          color: Colors.blueDark,
+          lineHeight: 20
+        }
       });
     } finally {
       setRefreshing(false);
