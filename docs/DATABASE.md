@@ -217,3 +217,104 @@ describe('Database Operations', () => {
     expect(result.timestamp).toBe(timestamp);
   });
 }); 
+```
+
+## Database Syncing
+
+### Syncing Status Field
+All tables in the database should include a `synced` column with the following specifications:
+- Type: TINYINT
+- Values: 0 (not synced) or 1 (synced)
+- Default: 0
+
+Example:
+```sql
+ALTER TABLE table_name ADD COLUMN synced TINYINT DEFAULT 0;
+```
+
+### Syncing Rules
+
+1. **New Records Created in App**
+   - When a new record is created directly in the app:
+     - `synced` should be set to 0
+     - `created_at` and `creator` should be set
+     - `updated_at` and `updator` should be set
+
+2. **Records Imported from JSON APIs**
+   - When records are imported from external JSON APIs:
+     - `synced` should be set to 1
+     - `created_at` and `creator` should be set
+     - `updated_at` and `updator` should be set
+
+3. **Record Updates**
+   - When any record is modified:
+     - `synced` should be set to 0
+     - `updated_at` and `updator` should be updated
+     - Original `created_at` and `creator` should be preserved
+
+### Implementation Example
+
+```typescript
+interface BaseRecord {
+  id: number;
+  created_at: string;
+  creator: string;
+  updated_at: string;
+  updator: string;
+  synced: number;
+}
+
+// Creating a new record
+const createRecord = async (data: Partial<BaseRecord>): Promise<void> => {
+  const now = new Date().toISOString();
+  const userId = getCurrentUserId(); // Implementation depends on auth system
+  
+  await db.execAsync(`
+    INSERT INTO table_name (
+      created_at, creator, updated_at, updator, synced, ...other_fields
+    ) VALUES (
+      ?, ?, ?, ?, 0, ...other_values
+    )
+  `, [now, userId, now, userId, ...Object.values(data)]);
+};
+
+// Importing from API
+const importFromApi = async (apiData: any): Promise<void> => {
+  const now = new Date().toISOString();
+  const systemId = 'SYSTEM'; // Or appropriate system identifier
+  
+  await db.execAsync(`
+    INSERT INTO table_name (
+      created_at, creator, updated_at, updator, synced, ...other_fields
+    ) VALUES (
+      ?, ?, ?, ?, 1, ...other_values
+    )
+  `, [now, systemId, now, systemId, ...Object.values(apiData)]);
+};
+
+// Updating a record
+const updateRecord = async (id: number, data: Partial<BaseRecord>): Promise<void> => {
+  const now = new Date().toISOString();
+  const userId = getCurrentUserId();
+  
+  await db.execAsync(`
+    UPDATE table_name 
+    SET updated_at = ?, updator = ?, synced = 0, ...other_fields
+    WHERE id = ?
+  `, [now, userId, ...Object.values(data), id]);
+};
+```
+
+### Sync Status Tracking
+- Use the `synced` field to track which records need to be synced with Supabase
+- Only records with `synced = 0` should be included in sync operations
+- After successful sync to Supabase, update `synced` to 1
+- Maintain sync status even if the app is offline
+- Consider implementing a sync queue for failed sync attempts
+
+### Best Practices
+1. Always check the `synced` status before performing sync operations
+2. Implement proper error handling for sync failures
+3. Consider implementing a sync retry mechanism
+4. Log sync operations for debugging purposes
+5. Consider implementing a sync status indicator in the UI
