@@ -249,11 +249,25 @@ The following tables include the synced column:
 3. **Record Updates**
    - When a record is updated:
      - `synced` is set to 0
-     - Record will be synced with Supabase
-   - After successful Supabase sync:
-     - `synced` is set to 1
+     - Record is pending sync with Supabase
 
-4. **Supabase Callback**
+4. **JSON Data Synchronization Rules**
+   When pulling data from JSON files, the following rules apply:
+   - For each line item in the JSON:
+     - If the item's UUID exists in the SQLite table:
+       - Compare the JSON item's `updated` date with the SQLite record's date
+       - If JSON's `updated` date is NOT after the SQLite record's date:
+         - Skip the item (do not update)
+       - If JSON's `updated` date IS after the SQLite record's date:
+         - Overwrite all data in that row
+         - Set `synced` to 1
+     - If the item's UUID does not exist:
+       - Insert as new record
+       - Set `synced` to 1
+   - Important: There should NEVER be duplicate UUIDs in any table
+   - This ensures data consistency and prevents duplicate entries
+
+5. **Supabase Callback**
    - When Supabase confirms a sync:
      - `synced` is set to 1
      - Record is considered in sync
