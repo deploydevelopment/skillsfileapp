@@ -474,6 +474,12 @@ export default function TableScreen() {
           >
             <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.syncedCell]} 
+            onPress={() => requestSort('synced')}
+          >
+            <Text style={styles.headerCellText}>synced {getSortDirection('synced')}</Text>
+          </TouchableOpacity>
         </View>
       );
     } else if (selectedTable === 'users') {
@@ -515,6 +521,12 @@ export default function TableScreen() {
           >
             <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.syncedCell]} 
+            onPress={() => requestSort('synced')}
+          >
+            <Text style={styles.headerCellText}>synced {getSortDirection('synced')}</Text>
+          </TouchableOpacity>
         </View>
       );
     } else if (selectedTable === 'companies') {
@@ -549,6 +561,12 @@ export default function TableScreen() {
             onPress={() => requestSort('status')}
           >
             <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.syncedCell]} 
+            onPress={() => requestSort('synced')}
+          >
+            <Text style={styles.headerCellText}>synced {getSortDirection('synced')}</Text>
           </TouchableOpacity>
         </View>
       );
@@ -621,6 +639,12 @@ export default function TableScreen() {
           >
             <Text style={styles.headerCellText}>status {getSortDirection('status')}</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.syncedCell]} 
+            onPress={() => requestSort('synced')}
+          >
+            <Text style={styles.headerCellText}>synced {getSortDirection('synced')}</Text>
+          </TouchableOpacity>
         </View>
       );
     } else if (selectedTable === 'qual_company_req') {
@@ -662,6 +686,12 @@ export default function TableScreen() {
           >
             <Text style={styles.headerCellText}>updator {getSortDirection('updator')}</Text>
           </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.headerCell, styles.syncedCell]} 
+            onPress={() => requestSort('synced')}
+          >
+            <Text style={styles.headerCellText}>synced {getSortDirection('synced')}</Text>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -682,6 +712,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
           <Text style={[styles.cell, styles.creatorCell]}>{record.creator}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
+          <Text style={[styles.cell, styles.syncedCell]}>{record.synced}</Text>
         </View>
       );
     } else if (isUserRecord(record)) {
@@ -693,6 +724,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.nameCell]}>{record.username}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
+          <Text style={[styles.cell, styles.syncedCell]}>{record.synced}</Text>
         </View>
       );
     } else if (isQualsReqRecord(record)) {
@@ -709,6 +741,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.created)}</Text>
           <Text style={[styles.cell, styles.creatorCell]}>{record.creator}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
+          <Text style={[styles.cell, styles.syncedCell]}>{record.synced}</Text>
         </View>
       );
     } else if (isCompanyRecord(record)) {
@@ -719,6 +752,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.nameCell]}>{record.name}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{record.created}</Text>
           <Text style={[styles.cell, styles.statusCell]}>{record.status}</Text>
+          <Text style={[styles.cell, styles.syncedCell]}>{record.synced}</Text>
         </View>
       );
     } else if (isQualCompanyReqRecord(record)) {
@@ -730,6 +764,7 @@ export default function TableScreen() {
           <Text style={[styles.cell, styles.creatorCell]}>{record.creator}</Text>
           <Text style={[styles.cell, styles.dateCell]}>{formatDate(record.updated)}</Text>
           <Text style={[styles.cell, styles.updatorCell]}>{record.updator}</Text>
+          <Text style={[styles.cell, styles.syncedCell]}>{record.synced}</Text>
         </View>
       );
     }
@@ -991,5 +1026,10 @@ const styles = StyleSheet.create({
   },
   accreditorCell: {
     width: 120,
+  },
+  syncedCell: {
+    width: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 }); 

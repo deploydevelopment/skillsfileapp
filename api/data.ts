@@ -18,12 +18,14 @@ export interface RequiredQualification {
   accreditor: string;
   reference?: string;
   parent_uid?: string;
+  synced: number;
   comp_requests?: {
     creator: string;
     creator_name: string;
     created: string;
     updated: string;
     updator: string;
+    synced: number;
   }[];
 }
 
@@ -31,6 +33,11 @@ export interface Company {
   uid: string;
   name: string;
   status: number;
+  created: string;
+  creator: string;
+  updated: string;
+  updator: string;
+  synced: number;
 }
 
 export interface SampleQualification {
@@ -45,6 +52,7 @@ export interface SampleQualification {
   updator: string;
   achieved: string;
   status: number;
+  synced: number;
 }
 
 export function pullJson(type: JsonDataType): RequiredQualification[] | Company[] | SampleQualification[] {

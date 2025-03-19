@@ -21,6 +21,8 @@ interface Qualification {
   updator: string;
   parent_uid?: string;
   reference?: string;
+  status: number;
+  synced: number;
   comp_requests?: { 
     creator: string;
     creator_name: string;
@@ -494,7 +496,7 @@ export default function TabOneScreen() {
       
       const insertSQL = `
         INSERT INTO qualifications (
-          uid, name, expires_months, created, creator, updated, updator
+          uid, name, expires_months, created, creator, updated, updator, synced
         ) VALUES (
           '${uid}',
           '${qual.name}',
@@ -502,7 +504,8 @@ export default function TabOneScreen() {
           '${formatToSQLDateTime(now)}',
           '${creatorUid}',
           '',
-          ''
+          '',
+          0
         )
       `;
       console.log('Insert SQL:', insertSQL);
